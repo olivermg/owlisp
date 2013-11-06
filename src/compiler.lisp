@@ -24,4 +24,4 @@
   (loop
      for sexpr
      in (read-stream/ow stream)
-     do (compile-sexpr/ow sexpr)))
+     collect (compile-sexpr/ow sexpr)))
