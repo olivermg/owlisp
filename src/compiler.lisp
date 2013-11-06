@@ -14,5 +14,14 @@
 	(declare (ignore e))
 	sexpr-list))))
 
+(defun compile-sexpr/ow (sexpr)
+  (let ((fn (car sexpr))
+	(args (cdr sexpr)))
+    (format t "fn: ~a - args: ~a~%" fn args)
+    fn))
+
 (defun compile-stream/ow (stream)
-  (read-stream/ow stream))
+  (loop
+     for sexpr
+     in (read-stream/ow stream)
+     do (compile-sexpr/ow sexpr)))
