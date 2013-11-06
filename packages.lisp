@@ -1,0 +1,2 @@
+(defpackage #:owlisp
+  (:use :cl))
