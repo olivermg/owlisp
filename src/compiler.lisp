@@ -3,6 +3,14 @@
 (export '(read-stream/ow
 	  compile-stream/ow))
 
+
+
+(define-condition unknown-form (error)
+  ((name :initarg :name
+	 :reader unknown-form-name)))
+
+
+
 (defun read-stream/ow (stream)
   (let ((sexpr-list '()))
     (handler-case
@@ -14,11 +22,20 @@
 	(declare (ignore e))
 	sexpr-list))))
 
+(defun output-defun/ow (name args body)
+  (declare (ignore args body))
+  (format t "define void ~a() {~%" name)
+  (format t "entry:~%")
+  (format t "~tret~%")
+  (format t "}~%"))
+
 (defun compile-sexpr/ow (sexpr)
-  (let ((fn (car sexpr))
+  (let ((funname (car sexpr))
 	(args (cdr sexpr)))
-    (format t "fn: ~a - args: ~a~%" fn args)
-    fn))
+    (cond ((string= funname "DEFUN")
+	   (output-defun/ow funname args '()))
+	  (t (error 'unknown-form
+		    :name funname)))))
 
 (defun compile-stream/ow (stream)
   (loop
