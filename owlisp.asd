@@ -20,8 +20,7 @@
 			:components ((:file "owlisp")
 				     (:module evaluator
 					      :components ((:file "evaluator"))
-					      :depends-on ("owlisp"
-							   "compiler"
+					      :depends-on ("compiler"
 							   "interpreter"))
 				     (:module compiler
 					      :components ((:file "compiler")))
