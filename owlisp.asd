@@ -20,10 +20,14 @@
 			:components ((:file "owlisp")
 				     (:module evaluator
 					      :components ((:file "evaluator"))
-					      :depends-on ("compiler"
+					      :depends-on ("owlisp"
+							   "compiler"
 							   "interpreter"))
 				     (:module compiler
-					      :components ((:file "compiler")))
+					      :components ((:file "compiler"
+								  :depends-on ("llvm-ir"))
+							   (:module llvm-ir
+								    :components ((:file "llvm-ir")))))
 				     (:module interpreter
 					      :components ((:file "interpreter"))))
 			:depends-on ("packages"))))

@@ -1,7 +1,7 @@
 (in-package :owlisp)
 
 (export '(unknown-form
-	  read-stream/ow))
+	  read-stream))
 
 
 
@@ -11,7 +11,7 @@
 
 
 
-(defun read-stream/ow (stream)
+(defun read-stream (stream)
   (let ((sexpr-list '()))
     (handler-case
 	(do ((sexpr (read stream) (read stream)))
