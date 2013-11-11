@@ -7,14 +7,16 @@
 
 (defun evaluate-stream (stream)
   (loop
-     for sexpr
+     for form
      in (read-stream stream)
-     collect (evaluate-form sexpr)))
+     collect (evaluate-form form nil)))
 
-(defun evaluate-form (sexpr)
-  (let ((funname (car sexpr))
-	(args (cdr sexpr)))
-    (cond ((string= funname "DEFUN")
-	   (compile-defun funname args '()))
-	  (t (error 'unknown-form
-		    :name funname)))))
+(defun evaluate-form (form env)
+  (declare (ignore env))
+  (if (consp form)
+      (case (car form)
+	((defun) (compile-defun (cadr form)
+				(cddr form)
+				'()))
+	(t (error 'unknown-form
+		  :name (car form))))))
