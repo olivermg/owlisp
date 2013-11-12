@@ -1,6 +1,7 @@
 (in-package :owlisp/llvm-ir)
 
-(export '(compile-defun))
+(export '(compile-defun
+	  compile-call))
 
 
 
@@ -10,3 +11,7 @@
   (format t "entry:~%")
   (format t "~tret~%")
   (format t "}~%"))
+
+(defun compile-call (name args)
+  (declare (ignore args))
+  (format t "~tcall void ~a()~%" name))

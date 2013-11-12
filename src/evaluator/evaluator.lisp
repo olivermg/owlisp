@@ -12,11 +12,10 @@
      collect (evaluate-form form nil)))
 
 (defun evaluate-form (form env)
-  (declare (ignore env))
   (if (consp form)
       (case (car form)
 	((defun) (compile-defun (cadr form)
-				(cddr form)
+				(evaluate-form (cddr form) env)
 				'()))
-	(t (error 'unknown-form
-		  :name (car form))))))
+	(t (compile-call (car form)
+			 (cadr form))))))
