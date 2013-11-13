@@ -18,7 +18,7 @@
   (if (consp form)
       (case (car form)
 	((defun) (compile-defun (cadr form)
-				(evaluate-form (caddr form) env)
+				(caddr form)
 				(evaluate-forms (cdddr form) env)))
 	(t (compile-call (car form)
 			 (cdr form))))))
