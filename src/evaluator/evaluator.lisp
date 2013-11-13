@@ -6,16 +6,19 @@
 
 
 (defun evaluate-stream (stream)
+  (evaluate-forms (read-stream stream) nil))
+
+(defun evaluate-forms (forms env)
   (loop
      for form
-     in (read-stream stream)
-     collect (evaluate-form form nil)))
+     in forms
+     collect (evaluate-form form env)))
 
 (defun evaluate-form (form env)
   (if (consp form)
       (case (car form)
 	((defun) (compile-defun (cadr form)
-				(evaluate-form (cddr form) env)
-				'()))
+				(evaluate-form (caddr form) env)
+				(evaluate-forms (cdddr form) env)))
 	(t (compile-call (car form)
-			 (cadr form))))))
+			 (cdr form))))))
