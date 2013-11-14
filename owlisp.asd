@@ -19,7 +19,9 @@
 	       (:module src
 			:components ((:file "owlisp")
 				     (:module evaluator
-					      :components ((:file "evaluator"))
+					      :components ((:file "evaluator"
+								  :depends-on ("builtins"))
+							   (:file "builtins"))
 					      :depends-on ("owlisp"
 							   "compiler"
 							   "interpreter"))
@@ -27,7 +29,9 @@
 					      :components ((:file "compiler"
 								  :depends-on ("llvm-ir"))
 							   (:module llvm-ir
-								    :components ((:file "llvm-ir")))))
+								    :components ((:file "llvm-ir"
+											:depends-on ("builtins"))
+										 (:file "builtins")))))
 				     (:module interpreter
 					      :components ((:file "interpreter"))))
 			:depends-on ("packages"))))

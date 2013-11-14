@@ -6,7 +6,9 @@
 
 
 (defun evaluate-stream (stream)
-  (evaluate-forms (read-stream stream) nil))
+  (append
+   (define-builtins)
+   (evaluate-forms (read-stream stream) nil)))
 
 (defun evaluate-forms (forms env)
   (loop
