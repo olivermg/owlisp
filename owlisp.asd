@@ -29,9 +29,12 @@
 					      :components ((:file "compiler"
 								  :depends-on ("llvm-ir"))
 							   (:module llvm-ir
-								    :components ((:file "llvm-ir"
-											:depends-on ("builtins"))
-										 (:file "builtins")))))
+								    :components ((:file "ir-generator")
+										 (:file "llvm-ir"
+											:depends-on ("builtins"
+												     "ir-generator"))
+										 (:file "builtins"
+											:depends-on ("ir-generator"))))))
 				     (:module interpreter
 					      :components ((:file "interpreter"))))
 			:depends-on ("packages"))))
