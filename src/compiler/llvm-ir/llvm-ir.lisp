@@ -25,11 +25,24 @@
    sequence
    :initial-value '()))
 
+(defun interleave-lists (l1 l2)
+  (labels ((interleave-lists-sub (li l1 l2)
+	     (let ((e1 (car l1))
+		   (r1 (cdr l1)))
+	       (if e1
+		   (interleave-lists-sub (append li (list e1))
+					 l2
+					 r1)
+		   li))))
+    (interleave-lists-sub '() l1 l2)))
+
 (defun compile-call (name args)
-  (let ((llvm-pconv (concatenate 'string
-				 (format nil "~{~t%p~a = alloca i8~%~}" args)
-				 (format nil "~{~tstore i8 ~a, i8* %p~a~%~}" (duplicate-elements args))))
-	(llvm-pargs (format nil "~{i8* %p~a~^, ~}" args)))
+  (let* ((pointer-args (symbols->llvm-pointer-symbols args))
+	 (llvm-pconv (concatenate 'string
+				  (format nil "~{~t~a = alloca i8~%~}"
+					  pointer-args)
+				  (format nil "~{~tstore i8 ~a, i8* ~a~%~}"
+					  (interleave-lists args pointer-args)))))
     (concatenate 'string
 		 llvm-pconv
-		 (format nil "~tcall fastcc void @~a(~a)~%" name llvm-pargs))))
+		 (format nil "~tcall fastcc void @~a(~a)~%" name (calling-args->llvm args)))))
