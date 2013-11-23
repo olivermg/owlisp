@@ -36,6 +36,11 @@
 		   li))))
     (interleave-lists-sub '() l1 l2)))
 
+(defun compile-call/i (name args)
+  (let* ((context (LLVMGetGlobalContext))
+	 (module (LLVMModuleCreateWIthNameInContext context))
+	 (builder (LLVMCreateBuilderInContext context)))))
+
 (defun compile-call (name args)
   (let* ((pointer-args (symbols->llvm-pointer-symbols args))
 	 (llvm-pconv (concatenate 'string
