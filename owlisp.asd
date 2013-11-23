@@ -14,7 +14,7 @@
   :author "Oliver Wegner <void1976@gmail.com"
   :licence "BSD"
   :description "owlisp"
-  :depends-on ()
+  :depends-on (:cffi)
   :components ((:file "packages")
 	       (:module
 		src
@@ -37,9 +37,14 @@
 		   (:module
 		    llvm-ir
 		    :components
-		    ((:file "ir-generator")
+		    ((:module
+		      cffi
+		      :components
+		      ((:file "loader")
+		       (:file "llvmcffi"
+			      :depends-on ("loader"))))
 		     (:file "common"
-			    :depends-on ("ir-generator"))
+			    :depends-on ("cffi"))
 		     (:file "llvm-ir"
 			    :depends-on ("builtins"
 					 "common"))

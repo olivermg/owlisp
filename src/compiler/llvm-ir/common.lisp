@@ -4,6 +4,11 @@
 
 
 
+(defun context
+    (LLVMGetGlobalContext))
+
+
+
 (defun stringify-atom (atom)
   (format nil "~a" atom))
 
