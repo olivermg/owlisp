@@ -8,3 +8,5 @@
   (t (:default "libLLVM-3.2")))
 
 (cffi:use-foreign-library libllvm)
+
+(load "src/compiler/llvm-ir/cffi/llvmcffi.lisp")

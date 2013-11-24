@@ -7,7 +7,7 @@
 
 (defun evaluate-stream (stream)
   (append
-   (define-builtins)
+;   (define-builtins)
    (evaluate-forms (read-stream stream) nil)))
 
 (defun evaluate-forms (forms env)
@@ -19,6 +19,7 @@
 (defun evaluate-form (form env)
   (if (consp form)
       (case (car form)
+	((defpackage) (compile-defpackage (cadr form)))
 	((defun) (compile-defun (cadr form)
 				(caddr form)
 				(evaluate-forms (cdddr form) env)))

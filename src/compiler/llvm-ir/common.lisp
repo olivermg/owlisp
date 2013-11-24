@@ -4,8 +4,9 @@
 
 
 
-(defun context
-    (LLVMGetGlobalContext))
+(defun args->llvmargs (args)
+    (labels ((args->llvmargs/r (llvmargs args)
+	       args))))
 
 
 

@@ -20,6 +20,12 @@
 		src
 		:components
 		((:file "owlisp")
+
+		 (:module
+		  helper
+		  :components
+		  ((:file "sequences")))
+
 		 (:module
 		  evaluator
 		  :components
@@ -27,8 +33,10 @@
 			  :depends-on ("builtins"))
 		   (:file "builtins"))
 		  :depends-on ("owlisp"
+			       "helper"
 			       "compiler"
 			       "interpreter"))
+
 		 (:module
 		  compiler
 		  :components
@@ -40,17 +48,21 @@
 		    ((:module
 		      cffi
 		      :components
-		      ((:file "loader")
-		       (:file "llvmcffi"
-			      :depends-on ("loader"))))
+		      ((:file "loader")))
 		     (:file "common"
 			    :depends-on ("cffi"))
 		     (:file "llvm-ir"
 			    :depends-on ("builtins"
 					 "common"))
 		     (:file "builtins"
-			    :depends-on ("common"))))))
+			    :depends-on ("common")))))
+		  :depends-on ("owlisp"
+			       "helper"))
+
 		 (:module
 		  interpreter
-		  :components ((:file "interpreter"))))
+		  :components ((:file "interpreter"))
+		  :depends-on ("owlisp"
+			       "helper")))
+
 		:depends-on ("packages"))))
