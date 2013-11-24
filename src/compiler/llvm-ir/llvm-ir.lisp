@@ -26,7 +26,6 @@
 	 (fn (LLVMAddFunction *module* name fn-type))
 	 (entry-block (LLVMAppendBasicBlockInContext *context* fn "entry")))
     (LLVMPositionBuilderAtEnd *builder* entry-block))
-  (break)
   (LLVMPrintModuleToFile *module* "outfilebla" (cffi:null-pointer)))
 
 
