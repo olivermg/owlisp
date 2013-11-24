@@ -9,12 +9,13 @@
 (defparameter *context* (LLVMGetGlobalContext))
 (defparameter *module* nil)
 (defparameter *builder* (LLVMCreateBuilderInContext *context*))
+(defparameter *functions* (make-hash-table :test #'equalp))
 
 
 
 (defun compile-defpackage (name)
   (setf *module*
-	(LLVMModuleCreateWithNameInContext name *context*)))
+	(LLVMModuleCreateWithNameInContext (format nil "~a" name) *context*)))
 
 
 
@@ -23,12 +24,26 @@
 				    (cffi:null-pointer)
 				    0
 				    0))
-	 (fn (LLVMAddFunction *module* name fn-type))
+	 (fn (LLVMAddFunction *module* (format nil "~a" name) fn-type))
 	 (entry-block (LLVMAppendBasicBlockInContext *context* fn "entry")))
-    (LLVMPositionBuilderAtEnd *builder* entry-block))
+    (LLVMPositionBuilderAtEnd *builder* entry-block)
+    (mapcar (lambda (form)
+	      (if (functionp form)
+		  (funcall form)
+		  (format t "unknown form ~a~%" form)))
+	    evaluated-body-forms)
+    (setf (gethash name *functions*) fn))
   (LLVMPrintModuleToFile *module* "outfilebla" (cffi:null-pointer)))
 
 
 
 (defun compile-call (name args)
-  (LLVMBuildCall *builder* nil nil 0 ""))
+  (lambda ()
+    (let ((fn (gethash name *functions*)))
+      (if fn
+	  (LLVMBuildCall *builder*
+			 fn
+			 (cffi:null-pointer)
+			 0
+			 "")
+	  (format t "call to unknown function ~a~%" name)))))
