@@ -7,8 +7,9 @@
 
 (defun evaluate-stream (stream)
   (append
-;   (define-builtins)
-   (evaluate-forms (read-stream stream) nil)))
+   (define-builtins)
+   (evaluate-forms (read-stream stream) nil)
+   (write-compilation)))
 
 (defun evaluate-forms (forms env)
   (loop

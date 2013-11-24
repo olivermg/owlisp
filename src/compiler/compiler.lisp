@@ -2,7 +2,8 @@
 
 (export '(compile-defpackage
 	  compile-defun
-	  compile-call))
+	  compile-call
+	  write-compilation))
 
 
 
@@ -14,3 +15,6 @@
 
 (defun compile-call (name args)
   (owlisp/llvm-ir:compile-call name args))
+
+(defun write-compilation ()
+  (owlisp/llvm-ir:write-compilation))

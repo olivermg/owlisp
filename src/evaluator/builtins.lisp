@@ -5,4 +5,5 @@
 
 
 (defun define-builtins ()
-  (list (owlisp/llvm-ir/builtins:define-+)))
+  (owlisp/llvm-ir:define-default-package)
+  (list (owlisp/llvm-ir:define-+)))

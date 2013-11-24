@@ -4,6 +4,13 @@
 
 
 
+(defparameter *context* (LLVMGetGlobalContext))
+(defparameter *module* nil)
+(defparameter *builder* (LLVMCreateBuilderInContext *context*))
+(defparameter *functions* (make-hash-table :test #'equalp))
+
+
+
 (defun args->llvmargs (args)
     (labels ((args->llvmargs/r (llvmargs args)
 	       args))))

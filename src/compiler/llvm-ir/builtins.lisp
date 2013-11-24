@@ -1,23 +1,30 @@
-(cl:in-package :owlisp/llvm-ir/builtins)
+(cl:in-package :owlisp/llvm-ir)
 
-(cl:export '(define-+
+(cl:export '(define-default-package
+	     define-+
 	     define-print))
 
 
 
-(cl:defun define-+ ()
-  (cl:concatenate 'cl:string
-		  (cl:format cl:nil "define fastcc i8* @ADD(i8* %ap, i8* %bp) {~%")
-		  (cl:format cl:nil "entry:~%")
-		  (cl:format cl:nil "~t%a = load i8* %ap~%")
-		  (cl:format cl:nil "~t%b = load i8* %bp~%")
-		  (cl:format cl:nil "~t%sum = add i8 %a, %b~%")
-		  (cl:format cl:nil "~t%sump = alloca i8~%")
-		  (cl:format cl:nil "~tstore i8 %sum, i8* %sump~%")
-		  (cl:format cl:nil "~tret i8* %sump~%")
-		  (cl:format cl:nil "}~%")))
+(defun define-default-package ()
+  (setf *module* (LLVMModuleCreateWithNameInContext "cluser" *context*)))
 
-(cl:defun define-print ()
-  (cl:concatenate 'cl:string
-		  (cl:format cl:nil "define fastcc i8* @PRINT(i8* %msgp) {~%")
-		  (cl:format cl:nil "}~%")))
+(defun define-+ ()
+  (let ((int-type (LLVMInt32TypeInContext *context*)))
+    (cffi:with-foreign-object (param-types :pointer 2)
+      (setf (cffi:mem-aref param-types :pointer 0) int-type)
+      (setf (cffi:mem-aref param-types :pointer 1) int-type)
+      (let* ((fn-type (LLVMFunctionType int-type
+					param-types
+					2
+					0))
+	     (fn (LLVMAddFunction *module* "add" fn-type))
+	     (entry-block (LLVMAppendBasicBlockInContext *context* fn "entry")))
+	(LLVMPositionBuilderAtEnd *builder* entry-block)
+	(let* ((llvm-a (LLVMGetFirstParam fn))
+	       (llvm-b (LLVMGetNextParam llvm-a))
+	       (sum (LLVMBuildAdd *builder* llvm-a llvm-b "")))
+	  (LLVMBuildRet *builder* sum))))))
+
+(defun define-print (msg)
+  nil)
