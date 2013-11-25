@@ -24,7 +24,8 @@
 		 (:module
 		  helper
 		  :components
-		  ((:file "sequences")))
+		  ((:file "sequences")
+		   (:file "symbols")))
 
 		 (:module
 		  evaluator

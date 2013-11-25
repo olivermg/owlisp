@@ -9,26 +9,27 @@
 
 (defun compile-defpackage (name)
   (setf *module*
-	(LLVMModuleCreateWithNameInContext (format nil "~a" name) *context*)))
+	(LLVMModuleCreateWithNameInContext (string name) *context*)))
 
 (defun compile-defun (name args evaluated-body-forms)
-  (let* ((fn-type (LLVMFunctionType (LLVMInt32TypeInContext *context*)
-				    (cffi:null-pointer)
-				    0
-				    0))
-	 (fn (LLVMAddFunction *module* (format nil "~a" name) fn-type))
-	 (entry-block (LLVMAppendBasicBlockInContext *context* fn "entry")))
-    (LLVMPositionBuilderAtEnd *builder* entry-block)
-    (mapcar (lambda (form)
-	      (if (functionp form)
-		  (funcall form)
-		  (format t "unknown form ~a~%" form)))
-	    evaluated-body-forms)
-    (setf (gethash name *functions*) fn)))
+  (let ((int-type (LLVMInt32TypeInContext *context*)))
+    (let* ((fn-type (LLVMFunctionType int-type
+				      (cffi:null-pointer)
+				      0
+				      0))
+	   (fn (LLVMAddFunction *module* (string name) fn-type))
+	   (entry-block (LLVMAppendBasicBlockInContext *context* fn "entry")))
+      (LLVMPositionBuilderAtEnd *builder* entry-block)
+      (mapcar (lambda (form)
+		(if (functionp form)
+		    (funcall form)
+		    (format t "unknown form ~a~%" form)))
+	      evaluated-body-forms)
+      (store-function name fn))))
 
 (defun compile-call (name args)
   (lambda ()
-    (let ((fn (gethash name *functions*)))
+    (let ((fn (lookup-function name)))
       (if fn
 	  (LLVMBuildCall *builder*
 			 fn

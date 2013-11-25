@@ -11,6 +11,17 @@
 
 
 
+(defun lookup-function (name)
+  (gethash (owlisp:symbol->keyword name)
+	   *functions*))
+
+(defun store-function (name fn)
+  (setf (gethash (owlisp:symbol->keyword name)
+		 *functions*)
+	fn))
+
+
+
 (defun args->llvmargs (args)
     (labels ((args->llvmargs/r (llvmargs args)
 	       args))))
