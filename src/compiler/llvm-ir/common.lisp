@@ -25,17 +25,18 @@
 (defun get-llvm-type ()
   (LLVMInt32TypeInContext *context*))
 
-(defun declaration-args->llvm (args)
-  (let ((llvmargs (cffi:foreign-alloc :pointer :count (length args))))
-    (labels ((declaration-args->llvm/r (current-pos restargs)
-	       (when restargs
-		 (setf
-		  (cffi:mem-aref llvmargs :pointer current-pos)
-		  (get-llvm-type))
-		 (declaration-args->llvm/r (+ 1 current-pos)
-					   (cdr restargs)))))
-      (declaration-args->llvm/r 0 args))
-    llvmargs))
+(defmacro with-declaration-args (args llvmargsvar &body body)
+  `(cffi:with-foreign-object
+       (,llvmargsvar :pointer ,(length args))
+     (let ((llvm-type (get-llvm-type)))
+       (reduce (lambda (current-index current-arg)
+		 (declare (ignore current-arg))
+		 (setf (cffi:mem-aref ,llvmargsvar :pointer current-index)
+		       llvm-type)
+		 (1+ current-index))
+	       ,args
+	       :initial-value 0))
+     ,@body))
 
 
 

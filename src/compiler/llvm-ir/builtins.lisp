@@ -10,7 +10,7 @@
   (setf *module* (LLVMModuleCreateWithNameInContext "cl" *context*)))
 
 (defun define-+ ()
-  (let ((llvm-args (declaration-args->llvm '(a b))))
+  (with-declaration-args '(a b) llvm-args
     (let* ((fn-type (LLVMFunctionType (get-llvm-type)
 				      llvm-args
 				      2
