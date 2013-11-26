@@ -22,9 +22,20 @@
 
 
 
-(defun args->llvmargs (args)
-    (labels ((args->llvmargs/r (llvmargs args)
-	       args))))
+(defun get-llvm-type ()
+  (LLVMInt32TypeInContext *context*))
+
+(defun declaration-args->llvm (args)
+  (let ((llvmargs (cffi:foreign-alloc :pointer :count (length args))))
+    (labels ((declaration-args->llvm/r (current-pos restargs)
+	       (when restargs
+		 (setf
+		  (cffi:mem-aref llvmargs :pointer current-pos)
+		  (get-llvm-type))
+		 (declaration-args->llvm/r (+ 1 current-pos)
+					   (cdr restargs)))))
+      (declaration-args->llvm/r 0 args))
+    llvmargs))
 
 
 
