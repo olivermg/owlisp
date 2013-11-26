@@ -10,22 +10,19 @@
   (setf *module* (LLVMModuleCreateWithNameInContext "cl" *context*)))
 
 (defun define-+ ()
-  (let ((int-type (LLVMInt32TypeInContext *context*)))
-    (cffi:with-foreign-object (param-types :pointer 2)
-      (setf (cffi:mem-aref param-types :pointer 0) int-type)
-      (setf (cffi:mem-aref param-types :pointer 1) int-type)
-      (let* ((fn-type (LLVMFunctionType int-type
-					param-types
-					2
-					0))
-	     (fn (LLVMAddFunction *module* "add" fn-type))
-	     (entry-block (LLVMAppendBasicBlockInContext *context* fn "entry")))
-	(LLVMPositionBuilderAtEnd *builder* entry-block)
-	(let* ((llvm-a (LLVMGetParam fn 0))
-	       (llvm-b (LLVMGetParam fn 1))
-	       (sum (LLVMBuildAdd *builder* llvm-a llvm-b "")))
-	  (LLVMBuildRet *builder* sum))
-	(store-function 'add fn)))))
+  (let ((llvm-args (declaration-args->llvm '(a b))))
+    (let* ((fn-type (LLVMFunctionType (get-llvm-type)
+				      llvm-args
+				      2
+				      0))
+	   (fn (LLVMAddFunction *module* "add" fn-type))
+	   (entry-block (LLVMAppendBasicBlockInContext *context* fn "entry")))
+      (LLVMPositionBuilderAtEnd *builder* entry-block)
+      (let* ((llvm-a (LLVMGetParam fn 0))
+	     (llvm-b (LLVMGetParam fn 1))
+	     (sum (LLVMBuildAdd *builder* llvm-a llvm-b "")))
+	(LLVMBuildRet *builder* sum))
+      (store-function 'add fn))))
 
 (defun define-print (msg)
   nil)

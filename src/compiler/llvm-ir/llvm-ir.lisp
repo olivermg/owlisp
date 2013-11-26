@@ -12,20 +12,19 @@
 	(LLVMModuleCreateWithNameInContext (string name) *context*)))
 
 (defun compile-defun (name args evaluated-body-forms)
-  (let ((int-type (LLVMInt32TypeInContext *context*)))
-    (let* ((fn-type (LLVMFunctionType int-type
-				      (cffi:null-pointer)
-				      0
-				      0))
-	   (fn (LLVMAddFunction *module* (string name) fn-type))
-	   (entry-block (LLVMAppendBasicBlockInContext *context* fn "entry")))
-      (LLVMPositionBuilderAtEnd *builder* entry-block)
-      (mapcar (lambda (form)
-		(if (functionp form)
-		    (funcall form)
-		    (format t "unknown form ~a~%" form)))
-	      evaluated-body-forms)
-      (store-function name fn))))
+  (let* ((fn-type (LLVMFunctionType (get-llvm-type)
+				    (cffi:null-pointer)
+				    0
+				    0))
+	 (fn (LLVMAddFunction *module* (string name) fn-type))
+	 (entry-block (LLVMAppendBasicBlockInContext *context* fn "entry")))
+    (LLVMPositionBuilderAtEnd *builder* entry-block)
+    (mapcar (lambda (form)
+	      (if (functionp form)
+		  (funcall form)
+		  (format t "unknown form ~a~%" form)))
+	    evaluated-body-forms)
+    (store-function name fn)))
 
 (defun compile-call (name args)
   (lambda ()
