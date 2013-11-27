@@ -12,30 +12,35 @@
 	(LLVMModuleCreateWithNameInContext (string name) *context*)))
 
 (defun compile-defun (name args evaluated-body-forms)
-  (let* ((fn-type (LLVMFunctionType (get-llvm-type)
-				    (cffi:null-pointer)
-				    0
-				    0))
-	 (fn (LLVMAddFunction *module* (string name) fn-type))
-	 (entry-block (LLVMAppendBasicBlockInContext *context* fn "entry")))
-    (LLVMPositionBuilderAtEnd *builder* entry-block)
-    (mapcar (lambda (form)
-	      (if (functionp form)
-		  (funcall form)
-		  (format t "unknown form ~a~%" form)))
-	    evaluated-body-forms)
-    (store-function name fn)))
+  (with-declaration-args args llvm-args
+    (let* ((fn-type (LLVMFunctionType *llvm-default-type*
+				      llvm-args
+				      (length args)
+				      0))
+	   (fn (LLVMAddFunction *module* (string name) fn-type))
+	   (entry-block (LLVMAppendBasicBlockInContext *context* fn "entry")))
+      (LLVMPositionBuilderAtEnd *builder* entry-block)
+      (let ((result-value nil))
+	(mapcar (lambda (form)
+		  (if (functionp form)
+		      (setf result-value (funcall form))
+		      (format t "unknown form ~a~%" form)))
+		evaluated-body-forms)
+	(LLVMBuildRet *builder* result-value))
+      (store-function name fn))))
 
 (defun compile-call (name args)
   (lambda ()
-    (let ((fn (lookup-function name)))
-      (if fn
-	  (LLVMBuildCall *builder*
-			 fn
-			 (cffi:null-pointer)
-			 0
-			 "")
-	  (format t "call to unknown function ~a~%" name)))))
+    (with-calling-args args llvm-args
+      (let ((fn (lookup-function name)))
+	(if fn
+	    (LLVMBuildCall *builder*
+			   fn
+			   llvm-args
+			   2
+			   "")
+	    (error 'owlisp:unknown-form
+		   :name name))))))
 
 (defun write-compilation ()
   (LLVMPrintModuleToFile *module* "outfilebla" (cffi:null-pointer)))

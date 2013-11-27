@@ -8,6 +8,7 @@
 (defparameter *module* nil)
 (defparameter *builder* (LLVMCreateBuilderInContext *context*))
 (defparameter *functions* (make-hash-table :test #'equalp))
+(defparameter *llvm-default-type* (LLVMInt32TypeInContext *context*))
 
 
 
@@ -22,20 +23,32 @@
 
 
 
-(defun get-llvm-type ()
-  (LLVMInt32TypeInContext *context*))
-
 (defmacro with-declaration-args (args llvmargsvar &body body)
   `(cffi:with-foreign-object
-       (,llvmargsvar :pointer ,(length args))
-     (let ((llvm-type (get-llvm-type)))
-       (reduce (lambda (current-index current-arg)
-		 (declare (ignore current-arg))
-		 (setf (cffi:mem-aref ,llvmargsvar :pointer current-index)
-		       llvm-type)
-		 (1+ current-index))
-	       ,args
-	       :initial-value 0))
+       (,llvmargsvar :pointer (length ,args))
+     (reduce (lambda (current-index current-arg)
+	       (declare (ignore current-arg))
+	       (setf (cffi:mem-aref ,llvmargsvar :pointer current-index)
+		     *llvm-default-type*)
+	       (1+ current-index))
+	     ,args
+	     :initial-value 0)
+     ,@body))
+
+(defmacro with-calling-args (args llvmargsvar &body body)
+  `(cffi:with-foreign-object
+       (,llvmargsvar :pointer (length ,args))
+     (reduce (lambda (current-index current-arg)
+	       (let ((llvm-value (LLVMConstInt *llvm-default-type*
+					       current-arg
+					       0)))
+		 (setf (cffi:mem-aref ,llvmargsvar
+				      :pointer
+				      current-index)
+		       llvm-value))
+	       (1+ current-index))
+	     ,args
+	     :initial-value 0)
      ,@body))
 
 

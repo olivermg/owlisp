@@ -11,11 +11,11 @@
 
 (defun define-+ ()
   (with-declaration-args '(a b) llvm-args
-    (let* ((fn-type (LLVMFunctionType (get-llvm-type)
+    (let* ((fn-type (LLVMFunctionType *llvm-default-type*
 				      llvm-args
 				      2
 				      0))
-	   (fn (LLVMAddFunction *module* "add" fn-type))
+	   (fn (LLVMAddFunction *module* "owadd" fn-type))
 	   (entry-block (LLVMAppendBasicBlockInContext *context* fn "entry")))
       (LLVMPositionBuilderAtEnd *builder* entry-block)
       (let* ((llvm-a (LLVMGetParam fn 0))
