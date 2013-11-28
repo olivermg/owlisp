@@ -17,7 +17,9 @@
 				      llvm-args
 				      (length args)
 				      0))
-	   (fn (LLVMAddFunction *module* (string name) fn-type))
+	   (fn (LLVMAddFunction *module*
+				(string-downcase (string name))
+				fn-type))
 	   (entry-block (LLVMAppendBasicBlockInContext *context* fn "entry")))
       (LLVMPositionBuilderAtEnd *builder* entry-block)
       (let ((result-value nil))

@@ -22,7 +22,7 @@
 	     (llvm-b (LLVMGetParam fn 1))
 	     (sum (LLVMBuildAdd *builder* llvm-a llvm-b "")))
 	(LLVMBuildRet *builder* sum))
-      (store-function 'add fn))))
+      (store-function '+ fn))))
 
 (defun define-print (msg)
   nil)
