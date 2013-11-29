@@ -45,4 +45,4 @@
 		   :name name))))))
 
 (defun write-compilation ()
-  (LLVMPrintModuleToFile *module* "outfilebla" (cffi:null-pointer)))
+  (LLVMPrintModuleToFile *module* "/dev/stdout" (cffi:null-pointer)))

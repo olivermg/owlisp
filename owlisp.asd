@@ -49,7 +49,9 @@
 		    ((:module
 		      cffi
 		      :components
-		      ((:file "loader")))
+		      ((:file "loader")
+		       (:file "llvmcffi"
+			      :depends-on ("loader"))))
 		     (:file "common"
 			    :depends-on ("cffi"))
 		     (:file "llvm-ir"

@@ -5,6 +5,8 @@
 ;;; the SWIG interface file instead.
 
 
+(in-package :owlisp/llvm-ir)
+
 ;;;SWIG wrapper code starts here
 
 (cl:defmacro defanonenum (&body enums)

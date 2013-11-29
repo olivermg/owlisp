@@ -1,9 +1,15 @@
 (in-package :owlisp)
 
-(export '(evaluate-stream
+(export '(toplevel-evaluator
+	  evaluate-stream
 	  evaluate-form))
 
 
+
+(defun toplevel-evaluator ()
+  (load-libraries)
+  (with-input-from-string (s "(defun main () (+ 23 45))")
+    (evaluate-stream s)))
 
 (defun evaluate-stream (stream)
   (append

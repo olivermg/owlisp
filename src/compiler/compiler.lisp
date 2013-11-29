@@ -1,11 +1,15 @@
 (in-package :owlisp)
 
-(export '(compile-defpackage
+(export '(load-libraries
+	  compile-defpackage
 	  compile-defun
 	  compile-call
 	  write-compilation))
 
 
+
+(defun load-libraries ()
+  (owlisp/llvm-ir:load-llvm-library))
 
 (defun compile-defpackage (name)
   (owlisp/llvm-ir:compile-defpackage name))

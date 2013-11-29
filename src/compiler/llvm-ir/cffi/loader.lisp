@@ -1,6 +1,6 @@
 (in-package :owlisp/llvm-ir)
 
-(export '())
+(export '(load-llvm-library))
 
 
 
@@ -9,4 +9,10 @@
 
 (cffi:use-foreign-library libllvm)
 
-(load "src/compiler/llvm-ir/cffi/llvmcffi.lisp")
+(defun load-llvm-library ()
+  (break)
+  (cffi:define-foreign-library libllvm-runtime
+    (t (:default "libLLVM-3.2")))
+  (break)
+  (cffi:use-foreign-library libllvm-runtime)
+  (break))
