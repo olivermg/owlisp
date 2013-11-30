@@ -43,7 +43,7 @@ For using owlisp (at least in this stage of development) you need:
 1. Link the file **owlisp.asd** to wherever your asdf search path is.
 
 2. Start up your Common Lisp (I have only tested SBCL yet) and load owlisp by
-
+"
    ```lisp
      CL-USER> (asdf:load-system :owlisp)
    ```
@@ -67,3 +67,23 @@ SBCL). This will create a binary **build/owlispc**
 that, when run, will read lisp code from stdin and after pressing **Ctrl+D**
 will output the resulting LLVM-IR code to stdout.
 
+Example:
+
+```bash
+$ ./build/owlispc
+(defun main () (+ 22 33)
+<Ctrl+D>
+; ModuleID = 'cl'
+
+define i32 @owadd(i32, i32) {
+entry:
+  %2 = add i32 %0, %1
+  ret i32 %2
+}
+
+define i32 @main() {
+entry:
+  %0 = call i32 @owadd(i32 22, i32 33)
+  ret i32 %0
+}
+```
