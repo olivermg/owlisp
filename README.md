@@ -25,16 +25,19 @@ Feedback is always welcome too!
 
 For using owlisp (at least in this stage of development) you need:
 
-* A working common lisp with at least asdf & cffi.
-  The Makefile in the root directory of this project provides a target to
-  create a binary. This currently depends on SBCL specifically.
+* A working common lisp with at least **ASDF** & **CFFI**.
+
+  If you want to use the Makefile in the root directory of this project
+  to create a compiler binary, you need SBCL specifically (or adjust
+  **make.lisp**).
 
 * LLVM dynamic library in your library search path.
   Currently, owlisp tries to load **libLLVM-3.2.so**; if you want to use a
   different version of LLVM, you will at least have to adjust that in
   **src/compiler/llvm-ir/cffi/loader.lisp** . Maybe you will also have to
   generate a new **src/compiler/llvm-ir/cffi/llvmcffi.lisp** by running `make`
-  in that very directory.
+  in that very directory (You will maybe have to adjust the Makefile to
+  reflect the paths on your system).
 
 ## Usage
 
@@ -43,7 +46,7 @@ For using owlisp (at least in this stage of development) you need:
 1. Link the file **owlisp.asd** to wherever your asdf search path is.
 
 2. Start up your Common Lisp (I have only tested SBCL yet) and load owlisp by
-"
+
    ```lisp
      CL-USER> (asdf:load-system :owlisp)
    ```
