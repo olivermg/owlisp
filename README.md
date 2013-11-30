@@ -38,17 +38,24 @@ For using owlisp (at least in this stage of development) you need:
 
 # Getting started
 
+## Via REPL
+
  1. Link the file owlisp.asd to wherever your asdf search path is.
 
  2. Start up your Common Lisp (I have only tested SBCL yet) and load owlisp by
+
       CL-USER> (asdf:load-system :owlisp)
 
  3. You can now compile something, e.g.
+
       CL-USER> (with-input-from-string
                    (s "(defun main () (+ 1 2))")
                  (owlisp:evaluate-stream s))
+
     The compiler will print the result LLVM-IR code to stdout (if you
     want to change this, edit src/compiler/llvm-ir/globals.lisp).
+
+## Compiler Binary
 
 If you desire, you can also create a binary by running make in the root
 directory of the project (NOTE: currently this assumes that you are using
