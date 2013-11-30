@@ -36,7 +36,7 @@ For using owlisp (at least in this stage of development) you need:
   generate a new **src/compiler/llvm-ir/cffi/llvmcffi.lisp** by running `make`
   in that very directory.
 
-## Getting started
+## Usage
 
 ### Via REPL
 
@@ -67,12 +67,14 @@ SBCL). This will create a binary **build/owlispc**
 that, when run, will read lisp code from stdin and after pressing **Ctrl+D**
 will output the resulting LLVM-IR code to stdout.
 
-Example:
+#### Example
 
 ```
 $ ./build/owlispc
 (defun main () (+ 22 33)
+
   <Ctrl+D pressed>
+
 ; ModuleID = 'cl'
 
 define i32 @owadd(i32, i32) {
@@ -87,3 +89,25 @@ entry:
   ret i32 %0
 }
 ```
+
+## Running resulting LLVM-IR code
+
+You can run the resulting LLVM-IR code for example with `lli`, which is
+an interpreter for LLVM-IR that comes with the LLVM distribution:
+
+```
+$ ./build/owlispc >test.ll
+(defun main () (+ 22 33))
+
+  <press Ctrl+D>
+
+$ lli test.ll
+$ echo $?
+55
+```
+
+Yay! :)
+
+For further instructions for how to compile this LLVM-IR code, please refer
+to the LLVM documentation on http://llvm.org .
+
