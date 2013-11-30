@@ -46,12 +46,14 @@
 		   (:module
 		    llvm-ir
 		    :components
-		    ((:module
+		    ((:file "globals")
+		     (:module
 		      cffi
 		      :components
 		      ((:file "loader")
 		       (:file "llvmcffi"
-			      :depends-on ("loader"))))
+			      :depends-on ("loader")))
+		      :depends-on ("globals"))
 		     (:file "common"
 			    :depends-on ("cffi"))
 		     (:file "llvm-ir"

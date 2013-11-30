@@ -1,6 +1,7 @@
 (in-package :owlisp)
 
 (export '(load-libraries
+	  initialize
 	  compile-defpackage
 	  compile-defun
 	  compile-call
@@ -10,6 +11,9 @@
 
 (defun load-libraries ()
   (owlisp/llvm-ir:load-llvm-library))
+
+(defun initialize ()
+  (owlisp/llvm-ir:initialize))
 
 (defun compile-defpackage (name)
   (owlisp/llvm-ir:compile-defpackage name))

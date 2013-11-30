@@ -1,16 +1,14 @@
 (in-package :owlisp/llvm-ir)
 
-(export '())
+(export '(initialize))
 
 
 
-(defparameter *context* (LLVMGetGlobalContext))
-(defparameter *module* nil)
-(defparameter *builder* (LLVMCreateBuilderInContext *context*))
-(defparameter *functions* (make-hash-table :test #'equalp))
-(defparameter *llvm-default-type* (LLVMInt32TypeInContext *context*))
-
-
+(defun initialize ()
+  (setf *context* (LLVMGetGlobalContext))
+  (setf *builder* (LLVMCreateBuilderInContext *context*))
+  (setf *functions* (make-hash-table :test #'equalp))
+  (setf *llvm-default-type* (LLVMInt32TypeInContext *context*)))
 
 (defun lookup-function (name)
   (gethash (owlisp:symbol->keyword name)

@@ -1,17 +1,17 @@
 (in-package :owlisp)
 
-(export '(toplevel-evaluator
+(export '(evaluate-stdin
 	  evaluate-stream
 	  evaluate-form))
 
 
 
-(defun toplevel-evaluator ()
-  (load-libraries)
-  (with-input-from-string (s "(defun main () (+ 23 45))")
-    (evaluate-stream s)))
+(defun evaluate-stdin ()
+  (evaluate-stream *standard-input*))
 
 (defun evaluate-stream (stream)
+  (load-libraries)
+  (initialize)
   (append
    (define-builtins)
    (evaluate-forms (read-stream stream) nil)
