@@ -7,8 +7,8 @@ target that LLVM offers.
 ## Status
 
 owlisp is not even alpha yet ;)
-(...so it does not support any language features yet apart from defun and
-calling functions)
+(...so it does not support any language features yet apart from defpackage,
+defun and calling functions)
 
 I created this project for my own mere fun and because I was searching for
 something that could translate Common Lisp to JavaScript, so I could also
@@ -110,4 +110,11 @@ Yay! :)
 
 For further instructions for how to compile this LLVM-IR code, please refer
 to the LLVM documentation on http://llvm.org .
+
+## Blog
+
+Also have a look at my blog in which from time to time I post some thoughts
+about this project:
+
+http://blog.lambda-startup.com
 
