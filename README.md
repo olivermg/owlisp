@@ -69,10 +69,10 @@ will output the resulting LLVM-IR code to stdout.
 
 Example:
 
-```bash
+```
 $ ./build/owlispc
 (defun main () (+ 22 33)
-<Ctrl+D>
+  <Ctrl+D pressed>
 ; ModuleID = 'cl'
 
 define i32 @owadd(i32, i32) {
