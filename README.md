@@ -11,15 +11,13 @@ owlisp is not even alpha yet ;)
 defun and calling functions)
 
 I created this project for my own mere fun and because I was searching for
-something that could translate Common Lisp to JavaScript, so I could also
-use Lisp for writing client browser code during web application development.
+something that could translate Common Lisp to JavaScript. This would allow
+me to write even the client side code of web applications in Lisp.
 
-However, I aim to push this forward until it is a full featured compiler,
+However, I aim to push this forward until it is a full-fledged compiler,
 although I can only work in my spare time on this project.
-But who knows... maybe people out there (you?) get interested in this and
-start helping coding ;) .
 
-Feedback is always welcome too!
+Feedback is always welcome!
 
 ## Prerequisites
 
@@ -59,12 +57,12 @@ For using owlisp (at least in this stage of development) you need:
                 (owlisp:evaluate-stream s))
    ```
 
-   The compiler will print the result LLVM-IR code to stdout (if you
+   The compiler will print the resulting LLVM-IR code to stdout (if you
    want to change this, edit **src/compiler/llvm-ir/globals.lisp**).
 
 ### Compiler Binary
 
-If you desire, you can also create a binary by running make in the root
+If you desire, you can also create a binary by running `make` in the root
 directory of the project (NOTE: currently this assumes that you are using
 SBCL). This will create a binary **build/owlispc**
 that, when run, will read lisp code from stdin and after pressing **Ctrl+D**
@@ -111,13 +109,12 @@ $ echo $?
 
 Yay! :)
 
-For further instructions for how to compile this LLVM-IR code, please refer
+For further instructions on how to compile this LLVM-IR code, please refer
 to the LLVM documentation on http://llvm.org .
 
 ## Blog
 
 Also have a look at my blog in which from time to time I post some thoughts
 about this project:
-
 http://blog.lambda-startup.com
 
