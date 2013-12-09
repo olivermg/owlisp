@@ -5,7 +5,7 @@
 
 
 ;(defvar +LLVM-LIBNAME+ "libLLVM-3.2")
-(defvar +OUTPUTFILE+ "/dev/stdout")
+(defvar +OUTPUTFILE+ "outfile")
 
 (defparameter *context* nil)
 (defparameter *module* nil)
