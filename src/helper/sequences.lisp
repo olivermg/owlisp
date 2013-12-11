@@ -1,7 +1,8 @@
 (in-package :owlisp)
 
 (export '(duplicate-elements
-	  interleave-lists))
+	  interleave-lists
+	  lookup-alist-value))
 
 
 
@@ -23,3 +24,6 @@
 					 r1)
 		   li))))
     (interleave-lists-sub '() l1 l2)))
+
+(defun lookup-alist-value (alist key &key (testfn #'eql))
+  (cdr (assoc key alist :test testfn)))

@@ -5,10 +5,11 @@
 
 
 ;(defvar +LLVM-LIBNAME+ "libLLVM-3.2")
-(defvar +OUTPUTFILE+ "outfile")
+(defvar +OUTPUTFILE+ "/dev/stdout")
 
 (defparameter *context* nil)
 (defparameter *module* nil)
 (defparameter *builder* nil)
 (defparameter *functions* nil)
 (defparameter *llvm-default-type* nil)
+(defparameter *llvm-boxvalue-type* nil)

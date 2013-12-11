@@ -29,7 +29,7 @@
      (reduce (lambda (current-index current-arg)
 	       (declare (ignore current-arg))
 	       (setf (cffi:mem-aref ,llvmargsvar :pointer current-index)
-		     *llvm-default-type*)
+		     *llvm-boxvalue-type*)
 	       (1+ current-index))
 	     ,args
 	     :initial-value 0)
@@ -39,15 +39,11 @@
   `(cffi:with-foreign-object
        (,llvmargsvar :pointer (length ,args))
      (reduce (lambda (current-index current-arg)
-	       (let* ((llvm-value (LLVMConstInt (LLVMInt64Type)
-						current-arg
-						0))
-		      (llvm-value-ptr (LLVMConstIntToPtr llvm-value
-							 *llvm-default-type*)))
+	       (let* ((boxed-llvm-value (box-i64-value (int->i64 current-arg))))
 		 (setf (cffi:mem-aref ,llvmargsvar
 				      :pointer
 				      current-index)
-		       llvm-value-ptr))
+		       boxed-llvm-value))
 	       (1+ current-index))
 	     ,args
 	     :initial-value 0)
