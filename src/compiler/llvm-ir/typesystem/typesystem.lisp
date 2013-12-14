@@ -1,6 +1,8 @@
 (in-package :owlisp/llvm-ir)
 
-(export '(define-boxtype))
+(export '(define-boxtype
+	  define-typemap
+	  define-lookup-type))
 
 
 
@@ -8,19 +10,49 @@
   '((INTEGER . 1)
     (STRING . 2)))
 
-(defun define-boxtype ()
-  (let* ((i8 (LLVMInt8TypeInContext *context*))
-	 (i8ptr (LLVMPointerType i8 0)))
-    (cffi:with-foreign-object (struct-types :pointer 2)
-      (setf (cffi:mem-aref struct-types :pointer 0)
-	    i8)
-      (setf (cffi:mem-aref struct-types :pointer 1)
-	    i8ptr)
-      (setf *llvm-boxvalue-type* (LLVMStructCreateNamed *context* "valuestruct"))
-      (LLVMStructSetBody *llvm-boxvalue-type* struct-types 2 0))))
+
 
 (defun lookup-type (type-name)
   (owlisp:lookup-alist-value +TYPE-MAP+ type-name))
+
+
+
+(defun define-global-struct-type (struct-name llvm-types)
+  (let ((typecount (length llvm-types)))
+    (cffi:with-foreign-object (struct-element-types :pointer typecount)
+      (loop
+	 for current-type in llvm-types
+	 for current-index from 0 to (- typecount 1)
+	 do (setf (cffi:mem-aref struct-element-types :pointer current-index)
+		  current-type))
+      (let ((struct-type (LLVMStructCreateNamed *context* struct-name)))
+	(LLVMStructSetBody struct-type struct-element-types typecount 0)
+	struct-type))))
+
+(defun define-boxtype ()
+  (let ((types (list (LLVMInt8TypeInContext *context*)
+		     (LLVMPointerType (LLVMInt8TypeInContext *context*) 0))))
+    (setf *llvm-boxvalue-type*
+	  (define-global-struct-type "boxed_value" types))))
+
+(defun define-typemap ()
+  (let ((types (list (LLVMInt64TypeInContext *context*)
+		     (LLVMArrayType (LLVMInt8TypeInContext *context*) 0))))
+    (setf *llvm-typemap*
+	  (define-global-struct-type "type_map" types))))
+
+
+
+(defun define-lookup-type ()
+  "runtime"
+  (let ((fn-type (LLVMFunctionType :LLVMFunctionTypeKind
+				   (cffi:null-pointer)
+				   0
+				   0))
+	)
+    (LLVMGetTypeKind (LLVMInt8Type))))
+
+
 
 (defun int->i8 (int)
   "compile-time"

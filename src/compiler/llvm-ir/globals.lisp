@@ -13,3 +13,4 @@
 (defparameter *functions* nil)
 (defparameter *llvm-default-type* nil)
 (defparameter *llvm-boxvalue-type* nil)
+(defparameter *llvm-typemap* nil)
