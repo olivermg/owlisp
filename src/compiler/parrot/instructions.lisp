@@ -21,6 +21,12 @@
   (format t "defpackage -~a-" name))
 
 (defun compile-defun (name args body)
+  (list (format t ".sub ~a~%" name)
+	(loop for arg in args
+	   do (format t "~t.param int ~a~%" arg))
+	(format t "~t$I0 = ~a + 1~%" (car args))
+	(format t "~t.return ($I0)~%")
+	(print ".end"))
   (format t "defun -~a ~a ~a-" name args body))
 
 (defun compile-call (name args)
