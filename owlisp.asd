@@ -42,7 +42,8 @@
 		    compiler
 		    :components
 		    ((:file "compiler"
-			    :depends-on ("llvm-ir"))
+			    :depends-on ("llvm-ir"
+					 "parrot"))
 		     (:module
 		      llvm-ir
 		      :components
@@ -65,7 +66,11 @@
 			      :depends-on ("builtins"
 					   "common"))
 		       (:file "builtins"
-			      :depends-on ("common")))))
+			      :depends-on ("common"))))
+		     (:module
+		      parrot
+		      :components
+		      ((:file "instructions"))))
 		    :depends-on ("owlisp"
 				 "helper"))
 
