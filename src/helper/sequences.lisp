@@ -2,7 +2,12 @@
 
 (export '(duplicate-elements
 	  interleave-lists
-	  lookup-alist-value))
+	  lookup-alist-value
+	  make-keyvalue-map
+	  insert-into-keyvalue-map
+	  lookup-keyvalue-map
+	  delete-from-keyvalue-map
+	  call-function-on-keyvalue-map))
 
 
 
@@ -27,3 +32,22 @@
 
 (defun lookup-alist-value (alist key &key (testfn #'eql))
   (cdr (assoc key alist :test testfn)))
+
+
+
+(defun make-keyvalue-map ()
+  (make-hash-table :test #'equalp))
+
+(defun insert-into-keyvalue-map (map key value)
+  (setf (gethash key map)
+	value))
+
+(defun lookup-keyvalue-map (map key)
+  (gethash key map))
+
+(defun delete-from-keyvalue-map (map key)
+  (remhash key map))
+
+(defmacro call-function-on-keyvalue-map (map functionname &rest args)
+  `(let ((function (lookup-keyvalue-map ,map ,functionname)))
+     (funcall function ,@args)))

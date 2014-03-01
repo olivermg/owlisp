@@ -14,7 +14,8 @@
     :author "Oliver Wegner <void1976@gmail.com"
     :licence "BSD"
     :description "owlisp"
-    :depends-on (:cffi)
+    :depends-on (:cffi
+		 :cl-ppcre)
     :components ((:file "packages")
 		 (:module
 		  src
@@ -24,14 +25,18 @@
 		   (:module
 		    helper
 		    :components
-		    ((:file "sequences")
-		     (:file "symbols")))
+		    ((:file "syntax-funcalls")
+		     (:file "sequences"
+			    :depends-on ("syntax-funcalls"))
+		     (:file "symbols"
+			    :depends-on ("syntax-funcalls"))))
 
 		   (:module
 		    evaluator
 		    :components
 		    ((:file "evaluator"
 			    :depends-on ("builtins"))
+		     (:file "environment")
 		     (:file "builtins"))
 		    :depends-on ("owlisp"
 				 "helper"
