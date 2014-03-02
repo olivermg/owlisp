@@ -39,10 +39,12 @@
 
 (defun insert-into-keyvalue-map (map key value)
   (setf (gethash key map)
-	value))
+	value)
+  map)
 
 (defun lookup-keyvalue-map (map key)
   (gethash key map))
 
 (defun delete-from-keyvalue-map (map key)
-  (remhash key map))
+  (remhash key map)
+  map)

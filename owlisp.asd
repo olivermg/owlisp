@@ -25,11 +25,10 @@
 		   (:module
 		    helper
 		    :components
-		    ((:file "syntax-funcalls")
-		     (:file "sequences"
-			    :depends-on ("syntax-funcalls"))
-		     (:file "symbols"
-			    :depends-on ("syntax-funcalls"))))
+		    ((:file "syntax-funcalls"
+			    :depends-on ("sequences"))
+		     (:file "sequences")
+		     (:file "symbols")))
 
 		   (:module
 		    evaluator

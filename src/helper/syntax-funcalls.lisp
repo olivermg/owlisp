@@ -6,27 +6,18 @@
 
 
 
-(defun get-function-from-map (map functionname)
-  (lookup-keyvalue-map map functionname))
+(defmacro call-map-function-macro (map action &rest args)
+  (let ((action-keyword (find-symbol (symbol-name action) 'keyword)))
+    `(funcall (lookup-keyvalue-map ,map ,action-keyword)
+	      ,@args)))
 
-(defun find-function (designator)
-  (let* ((split-designator (cl-ppcre:split
-			    "=>"
-			    (symbol-name designator))))
-    (cond ((> (length split-designator)
-	      1)
-	   (get-function-from-map (eval (find-symbol (car split-designator)
-						     (symbol-package designator)))
-				  (eval (find-symbol (cadr split-designator)
-						     'keyword))))
-	  (t `#',designator))))
-
-(defun call (stream char)
+(defun call-map-function (stream char)
   (declare (ignore char))
   (let* ((delimited-list (read-delimited-list #\] stream t))
-	 (fn (car delimited-list))
-	 (fn-args (cdr delimited-list)))
-    `(apply (find-function ',fn) ',fn-args)))
+	 (map (car delimited-list))
+	 (fn (cadr delimited-list))
+	 (fn-args (cddr delimited-list)))
+    `(call-map-function-macro ,map ,fn ,@fn-args)))
 
-(set-macro-character #\[ #'call)
+(set-macro-character #\[ #'call-map-function)
 (set-macro-character #\] (get-macro-character #\)))
