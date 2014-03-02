@@ -6,8 +6,7 @@
 	  make-keyvalue-map
 	  insert-into-keyvalue-map
 	  lookup-keyvalue-map
-	  delete-from-keyvalue-map
-	  call-function-on-keyvalue-map))
+	  delete-from-keyvalue-map))
 
 
 
@@ -47,7 +46,3 @@
 
 (defun delete-from-keyvalue-map (map key)
   (remhash key map))
-
-(defmacro call-function-on-keyvalue-map (map functionname &rest args)
-  `(let ((function (lookup-keyvalue-map ,map ,functionname)))
-     (funcall function ,@args)))
