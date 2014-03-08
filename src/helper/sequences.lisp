@@ -37,12 +37,12 @@
 (defun make-keyvalue-map ()
   (make-hash-table :test #'equalp))
 
-(defun insert-into-keyvalue-map (map key value)
+(defun update-in-keyvalue-map (map key value)
   (setf (gethash key map)
 	value)
   map)
 
-(defun lookup-keyvalue-map (map key)
+(defun lookup-in-keyvalue-map (map key)
   (gethash key map))
 
 (defun delete-from-keyvalue-map (map key)

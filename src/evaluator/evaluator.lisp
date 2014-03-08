@@ -7,15 +7,15 @@
 
 
 
-(defun evaluate-stdin ()
-  (evaluate-stream *standard-input*))
+(defun evaluate-stdin (env)
+  (evaluate-stream *standard-input* env))
 
-(defun evaluate-stream (stream)
+(defun evaluate-stream (stream env)
   (load-libraries)
   (initialize)
   (append
    (define-builtins)
-   (evaluate-forms (read-stream stream) nil)
+   (evaluate-forms (read-stream stream) env)
    (write-compilation)))
 
 (defun evaluate-forms (forms env)
@@ -24,21 +24,25 @@
       (setf last-val (evaluate-form form env)))))
 
 (defun evaluate-form (form env)
-  (format t "evaluate-form ~a~%" form)
-  (if (atom form)
-      form
-      (case (car form)
-	((defpackage) (evaluate-defpackage (cadr form) env))
-	((defun) (evaluate-defun (cadr form)
-				 (caddr form)
-				 `(lambda ,(caddr form)
-				    ,@(cdddr form))
-				 env))
-	((lambda) (let ((params (cadr form))
-			(body (cddr form)))
-		    #'(lambda (&rest args)
-			(evaluate-forms body env))))
-	((myprint) (print form))	; useful for debugging
-	(t (evaluate-call (car form)
-			  (cdr form)
-			  env)))))
+  (print form)
+  (print (symbol-package (first form)))
+  (format t "evaluate-form ~A~%" form)
+  (cond ((symbolp form) (lookup-in-environment env form))
+	((atom form) form)
+	(t (case (first form)
+	     (QUOTE (second form))
+	     (DEFPACKAGE (evaluate-defpackage (second form) env))
+	     (LAMBDA (let ((params (second form))
+			   (body (cddr form)))
+		       #'(lambda (&rest args)
+			   (evaluate-forms body
+					   (update-in-environment env params args)))))
+	     (DEFUN (evaluate-defun (second form)
+				    (third form)
+				    `(lambda ,(third form)
+				       ,@(cdddr form))
+				    env))
+	     (MYPRINT (print form))
+	     (t (evaluate-call (first form)
+			       (rest form)
+			       env))))))
