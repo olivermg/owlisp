@@ -8,7 +8,7 @@
 	  write-compilation))
 
 
-
+#|
 (defun load-libraries ()
   (owlisp/parrot:load-libraries))
 
@@ -26,3 +26,4 @@
 
 (defun write-compilation ()
   (owlisp/parrot:write-compilation))
+|#
