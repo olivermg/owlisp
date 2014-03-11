@@ -38,4 +38,23 @@
 	(error 'unknown-form))))
 
 (defun evaluate-inpackage (name env)
+  (format t "in-package ~a~%" name)
   (update-current-package-in-environment env name))
+
+(defun evaluate-let (bindings body env)
+  (format t "let ~a ~a~%" bindings body)
+  (let ((env-extended env))
+    (loop
+       for (var value) in bindings
+       do (setf env-extended
+		(update-in-environment env-extended
+				       var
+				       (evaluate-form value env-extended))))
+    (evaluate-forms body env-extended)))
+
+(defun evaluate-+ (args env)
+  (format t "+ ~a~%" args)
+  (reduce #'(lambda (sum e)
+	      (+ sum (lookup-in-environment env e)))
+	  args
+	  :initial-value 0))

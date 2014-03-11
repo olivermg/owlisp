@@ -30,14 +30,13 @@
       (update-in-keyvalue-map (owlisp-environment-map env)
 			      (qualified-key scope type env key-or-keys)
 			      value-or-values)
-      (progn
-	(loop
-	   for key in key-or-keys
-	   for value in value-or-values
-	   do (update-in-keyvalue-map (owlisp-environment-map env)
-				      (qualified-key scope type env key)
-				      value))
-	env)))
+      (loop
+	 for key in key-or-keys
+	 for value in value-or-values
+	 do (update-in-keyvalue-map (owlisp-environment-map env)
+				    (qualified-key scope type env key)
+				    value)))
+  env)
 
 (defun update-current-package-in-environment (env name)
   (setf (owlisp-environment-current-package env)
