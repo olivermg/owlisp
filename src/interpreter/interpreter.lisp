@@ -36,3 +36,6 @@
     (if fn
 	(apply fn args)
 	(error 'unknown-form))))
+
+(defun evaluate-inpackage (name env)
+  (update-current-package-in-environment env name))
