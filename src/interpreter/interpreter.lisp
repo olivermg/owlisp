@@ -20,9 +20,15 @@
   (declare (ignore env))
   (format t "defpackage ~a~%" name))
 
-(defun evaluate-defun (name args fn env)
-  (format t "defun ~a ~a ~a~%" name args fn)
-  (update-in-environment env name fn))
+(defun evaluate-lambda (params body env)
+  #'(lambda (&rest args)
+      (evaluate-forms body
+		      (update-in-environment env params args))))
+
+(defun evaluate-defun (name params body env)
+  (format t "defun ~a ~a ~a~%" name params body)
+  (let ((fn `(lambda ,params ,@body)))
+    (update-in-environment env name fn)))
 
 (defun evaluate-call (name args env)
   (format t "call ~a ~a~%" name args)
