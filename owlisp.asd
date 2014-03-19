@@ -31,14 +31,21 @@
 		     (:file "symbols")))
 
 		   (:module
+		    environment
+		    :components
+		    ((:file "environment"))
+		    :depends-on ("owlisp"
+				 "helper"))
+
+		   (:module
 		    evaluator
 		    :components
 		    ((:file "evaluator"
 			    :depends-on ("builtins"))
-		     (:file "environment")
 		     (:file "builtins"))
 		    :depends-on ("owlisp"
 				 "helper"
+				 "environment"
 				 "compiler"
 				 "interpreter"))
 
@@ -82,6 +89,7 @@
 		    interpreter
 		    :components ((:file "interpreter"))
 		    :depends-on ("owlisp"
-				 "helper")))
+				 "helper"
+				 "environment")))
 
 		  :depends-on ("packages"))))

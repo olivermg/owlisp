@@ -1,4 +1,4 @@
-(in-package :owlisp)
+(in-package :owlisp/evaluator)
 
 (export '(evaluate-stdin
 	  evaluate-stream
@@ -6,6 +6,10 @@
 	  evaluate-forms))
 
 
+
+(defun symbol-name-equals (symbol name)
+  (string-equal (symbol-name symbol)
+		(symbol-name name)))
 
 (defun evaluate-stdin (env)
   (evaluate-stream *standard-input* env))
@@ -23,9 +27,18 @@
     (dolist (form forms last-val)
       (setf last-val (evaluate-form form env)))))
 
-(defun evaluate-form (form env)
-  (format t "~%EVALUATE-FORM: ~A~%" form)
-  (cond ((symbolp form) (lookup-in-environment env form))
+(defun evaluate-form (expr env)
+  (format t "~%EVALUATE-FORM: ~A~%" expr)
+  (cond ((self-evaluating-p expr) expr)
+	((quote-p expr) (quoted-text expr))
+	((variable-p expr) (lookup-variable-value expr env))
+	((lambda-p expr) (make-procedure (lambda-parameters expr)
+					 (lambda-body expr)
+					 env))
+	((application-p expr) (apply (evaluate-form (operator expr) env)
+				     (evaluate-forms (operands expr) env)))))
+#|
+	((symbolp form) (lookup-in-environment env form))
 	((atom form) form)
 	(t (case (intern (symbol-name (first form))
 			 'keyword)
@@ -40,3 +53,56 @@
 	     (t (evaluate-call (first form)
 			       (rest form)
 			       env))))))
+|#
+
+(defun apply (fn args)
+  (evaluate-call fn args))
+
+
+
+(defun is-tagged-list (expr tag)
+  (if (consp expr)
+      (let ((head (first expr)))
+	(if (symbolp head)
+	    (symbol-name-equals head tag)))))
+
+(defun self-evaluating-p (expr)
+  (or
+   (numberp expr)
+   (stringp expr)))
+
+(defun variable-p (expr)
+  (symbolp expr))
+
+(defun quote-p (expr)
+  (is-tagged-list expr :quote))
+
+(defun lambda-p (expr)
+  (is-tagged-list expr :lambda))
+
+(defun application-p (expr)
+  (declare (ignore expr))
+  t)
+
+
+
+(defun quoted-text (expr)
+  (second expr))
+
+(defun lookup-variable-value (name env)
+  (lookup-in-environment env name))
+
+(defun make-procedure (params body env)
+  (evaluate-lambda params body env))
+
+(defun lambda-parameters (expr)
+  (second expr))
+
+(defun lambda-body (expr)
+  (rest (rest expr)))
+
+(defun operator (expr)
+  (first expr))
+
+(defun operands (expr)
+  (rest expr))

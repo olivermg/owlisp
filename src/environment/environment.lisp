@@ -8,20 +8,16 @@
 
 
 (defstruct env-node
-  lookup-table
+  (lookup-table (make-keyvalue-map))
   parent)
 
 
 
 (defun make-environment (&optional parent-env)
-  (make-env-node :lookup-table (make-keyvalue-map)
-		 :parent parent-env))
+  (make-env-node :parent parent-env))
 
 (defun parent-of-environment (env)
   (env-node-parent env))
-
-(defun children-of-environment (env)
-  (env-node-children env))
 
 (defun find-in-environment (env key)
   (if env
@@ -71,7 +67,8 @@
 
 
 
-;(defun update-current-package-in-environment (env name))
+(defun update-current-package-in-environment (env name)
+  (declare (ignore env name)))
 
 (defun get-current-package (env)
   (declare (ignore env))

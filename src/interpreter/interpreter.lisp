@@ -1,4 +1,4 @@
-(in-package :owlisp)
+(in-package :owlisp/evaluator)
 
 (export '(owlisp-toplevel))
 
@@ -30,12 +30,9 @@
   (let ((fn `(lambda ,params ,@body)))
     (update-in-environment env name fn)))
 
-(defun evaluate-call (name args env)
-  (format t "call ~a ~a~%" name args)
-  (let ((fn (evaluate-form (lookup-in-environment env name) env)))
-    (if fn
-	(apply fn args)
-	(error 'unknown-form))))
+(defun evaluate-call (fn args)
+  (format t "call ~a ~a~%" fn args)
+  (apply fn args))
 
 (defun evaluate-inpackage (name env)
   (format t "in-package ~a~%" name)
