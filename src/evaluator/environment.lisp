@@ -7,49 +7,72 @@
 
 
 
-(defstruct owlisp-environment
-  (current-package :cl-user)
-  (map (make-keyvalue-map)))
+(defstruct env-node
+  lookup-table
+  parent)
 
-(defun make-environment ()
-  (make-owlisp-environment))
 
-(defun qualified-key (scope type env unqualified-key)
-  (intern (concatenate 'string
-		       (symbol-name scope)
-		       ":"
-		       (symbol-name type)
-		       ":"
-		       (symbol-name (owlisp-environment-current-package env))
-		       ":"
-		       (symbol-name unqualified-key))
-	  'keyword))
+
+(defun make-environment (&optional parent-env)
+  (make-env-node :lookup-table (make-keyvalue-map)
+		 :parent parent-env))
+
+(defun parent-of-environment (env)
+  (env-node-parent env))
+
+(defun children-of-environment (env)
+  (env-node-children env))
+
+(defun find-in-environment (env key)
+  (if env
+      (multiple-value-bind (value found)
+	  (lookup-in-keyvalue-map (env-node-lookup-table env)
+				  key)
+	(if found
+	    value
+	    (find-in-environment (env-node-parent env)
+				 key)))
+      (error 'unknown-form
+	     :name key)))
+
+(defun set-in-environment (env key value)
+  (update-in-keyvalue-map (env-node-lookup-table env)
+			  key
+			  value))
+
+
+
+(defun lookup-in-environment (env key &key (scope :lexical) (type :primitive))
+  (find-in-environment env
+		       (qualified-key scope type (get-current-package env) key)))
 
 (defun update-in-environment (env key-or-keys value-or-values &key (scope :lexical) (type :primitive))
   (if (atom key-or-keys)
-      (update-in-keyvalue-map (owlisp-environment-map env)
-			      (qualified-key scope type env key-or-keys)
-			      value-or-values)
+      (set-in-environment env
+			  (qualified-key scope type (get-current-package env) key-or-keys)
+			  value-or-values)
       (loop
 	 for key in key-or-keys
 	 for value in value-or-values
-	 do (update-in-keyvalue-map (owlisp-environment-map env)
-				    (qualified-key scope type env key)
-				    value)))
+	 do (set-in-environment env
+				(qualified-key scope type (get-current-package env) key)
+				value)))
   env)
 
-(defun update-current-package-in-environment (env name)
-  (setf (owlisp-environment-current-package env)
-	name))
 
-(defun lookup-in-environment (env key &key (scope :lexical) (type :primitive))
-  (let ((value (lookup-in-keyvalue-map (owlisp-environment-map env)
-				       (qualified-key scope type env key))))
-    (if value
-	value
-	(error 'unknown-form
-	       :name key))))
 
-(defun delete-from-environment (env key &key (scope :lexical) (type :primitive))
-  (delete-from-keyvalue-map (owlisp-environment-map env)
-			    (qualified-key scope type env key)))
+(defun qualified-key (scope type package unqualified-key)
+  (intern (concatenate 'string
+		       (symbol-name scope) ":"
+		       (symbol-name type) ":"
+		       (symbol-name package) ":"
+		       (symbol-name unqualified-key))
+	  'keyword))
+
+
+
+;(defun update-current-package-in-environment (env name))
+
+(defun get-current-package (env)
+  (declare (ignore env))
+  :cl-user)
