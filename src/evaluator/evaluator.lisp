@@ -25,7 +25,13 @@
 (defun evaluate-forms (forms env)
   (let ((last-val nil))
     (dolist (form forms last-val)
-      (setf last-val (evaluate-form form env)))))
+      (setf last-val (evaluate-form form env)))
+    last-val))
+
+(defun evaluate-forms-map (forms env)
+  (mapcar (lambda (form)
+	    (evaluate-form form env))
+	  forms))
 
 (defun evaluate-form (expr env)
   (format t "~%EVALUATE-FORM: ~A~%" expr)
@@ -36,7 +42,7 @@
 					 (lambda-body expr)
 					 env))
 	((application-p expr) (apply (evaluate-form (operator expr) env)
-				     (evaluate-forms (operands expr) env)))))
+				     (evaluate-forms-map (operands expr) env)))))
 #|
 	((symbolp form) (lookup-in-environment env form))
 	((atom form) form)
@@ -55,8 +61,12 @@
 			       env))))))
 |#
 
-(defun apply (fn args)
-  (evaluate-call fn args))
+(defun apply (proc-def args)
+  (format t "appply ~a ~a~%" proc-def args)
+  (if (compound-procedure-p proc-def)
+      (evaluate-forms (procedure-body proc-def)
+		      (procedure-env proc-def))
+      (evaluate-call proc-def args)))
 
 
 
@@ -65,6 +75,9 @@
       (let ((head (first expr)))
 	(if (symbolp head)
 	    (symbol-name-equals head tag)))))
+
+(defun compound-procedure-p (proc)
+  (is-tagged-list proc :procedure))
 
 (defun self-evaluating-p (expr)
   (or
@@ -106,3 +119,12 @@
 
 (defun operands (expr)
   (rest expr))
+
+(defun procedure-params (proc-definition)
+  (first proc-definition))
+
+(defun procedure-body (proc-definition)
+  (second proc-definition))
+
+(defun procedure-env (proc-definition)
+  (third proc-definition))

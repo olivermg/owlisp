@@ -21,9 +21,7 @@
   (format t "defpackage ~a~%" name))
 
 (defun evaluate-lambda (params body env)
-  #'(lambda (&rest args)
-      (evaluate-forms body
-		      (update-in-environment env params args))))
+  (list 'procedure params body env))
 
 (defun evaluate-defun (name params body env)
   (format t "defun ~a ~a ~a~%" name params body)
