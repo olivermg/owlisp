@@ -22,16 +22,19 @@
    (evaluate-forms (read-stream stream) env)
    (write-compilation)))
 
-(defun evaluate-forms (forms env)
+(defun evaluate-forms-to-last (forms env)
   (let ((last-val nil))
     (dolist (form forms last-val)
       (setf last-val (evaluate-form form env)))
     last-val))
 
-(defun evaluate-forms-map (forms env)
+(defun evaluate-forms-to-list (forms env)
   (mapcar (lambda (form)
 	    (evaluate-form form env))
 	  forms))
+
+(defun evaluate-forms (forms env)
+  (evaluate-forms-to-last forms env))
 
 (defun evaluate-form (expr env)
   (format t "~%EVALUATE-FORM: ~A~%" expr)
@@ -42,31 +45,23 @@
 					 (lambda-body expr)
 					 env))
 	((application-p expr) (apply (evaluate-form (operator expr) env)
-				     (evaluate-forms-map (operands expr) env)))))
-#|
-	((symbolp form) (lookup-in-environment env form))
-	((atom form) form)
-	(t (case (intern (symbol-name (first form))
-			 'keyword)
-	     (:QUOTE (second form))
-	     (:DEFPACKAGE (evaluate-defpackage (second form) env))
-	     (:LAMBDA (evaluate-lambda (second form) (cddr form) env))
-	     (:DEFUN (evaluate-defun (second form) (third form) (cdddr form) env))
-	     (:IN-PACKAGE (evaluate-inpackage (second form) env))
-	     (:LET (evaluate-let (second form) (cddr form) env))
-	     (:MYPRINT (format t "MYPRINT: ~a~%" (evaluate-forms (rest form) env)))
-	     (:+ (evaluate-+ (cdr form) env))
-	     (t (evaluate-call (first form)
-			       (rest form)
-			       env))))))
-|#
+				     (evaluate-forms-to-list (operands expr) env)))))
 
 (defun apply (proc-def args)
-  (format t "appply ~a ~a~%" proc-def args)
-  (if (compound-procedure-p proc-def)
-      (evaluate-forms (procedure-body proc-def)
-		      (procedure-env proc-def))
-      (evaluate-call proc-def args)))
+  (format t "APPLY ~a ~a~%" proc-def args)
+  (cond ((compound-procedure-p proc-def)
+	 (evaluate-forms (compound-procedure-body proc-def)
+			 (make-environment (compound-procedure-env proc-def)
+					   (compound-procedure-params proc-def)
+					   args)))
+	((primitive-procedure-p proc-def)
+	 (apply-primitive-procedure (primitive-procedure-implementation proc-def)
+				    args))
+	(t (error 'unknown-form
+		  :name proc-def))))
+
+(defun apply-primitive-procedure (implementation args)
+  (cl:apply implementation args))
 
 
 
@@ -76,8 +71,11 @@
 	(if (symbolp head)
 	    (symbol-name-equals head tag)))))
 
-(defun compound-procedure-p (proc)
-  (is-tagged-list proc :procedure))
+(defun compound-procedure-p (expr)
+  (is-tagged-list expr :compound-procedure))
+
+(defun primitive-procedure-p (expr)
+  (is-tagged-list expr :primitive-procedure))
 
 (defun self-evaluating-p (expr)
   (or
@@ -120,11 +118,14 @@
 (defun operands (expr)
   (rest expr))
 
-(defun procedure-params (proc-definition)
-  (first proc-definition))
-
-(defun procedure-body (proc-definition)
+(defun compound-procedure-params (proc-definition)
   (second proc-definition))
 
-(defun procedure-env (proc-definition)
+(defun compound-procedure-body (proc-definition)
   (third proc-definition))
+
+(defun compound-procedure-env (proc-definition)
+  (fourth proc-definition))
+
+(defun primitive-procedure-implementation (proc-definition)
+  (second proc-definition))

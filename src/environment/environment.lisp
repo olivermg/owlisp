@@ -1,6 +1,7 @@
 (in-package :owlisp)
 
 (export '(make-environment
+	  make-initialized-environment
 	  update-in-environment
 	  lookup-in-environment
 	  update-current-package-in-environment))
@@ -33,8 +34,15 @@
 
 
 
-(defun make-environment (&optional parent-env)
-  (make-frame :parent parent-env))
+(defun make-environment (&optional parent-env key-or-keys value-or-values)
+  (let ((env (make-frame :parent parent-env)))
+    (update-in-environment env key-or-keys value-or-values)))
+
+(defun make-initialized-environment ()
+  (let ((env (make-environment)))
+    (update-in-environment env
+			   (primitive-procedure-names)
+			   (primitive-procedure-objects))))
 
 (defun parent-environment (env)
   (frame-parent env))
@@ -74,3 +82,29 @@
 (defun get-current-package (env)
   (declare (ignore env))
   :cl-user)
+
+
+
+(defun primitive-procedures ()
+  `((:print . ,#'cl:print)
+    (:+ . ,#'cl:+)
+    (:- . ,#'cl:-)
+    (:* . ,#'cl:*)
+    (:/ . ,#'cl:/)
+    (:list . ,#'cl:list)
+    (:car . ,#'cl:car)
+    (:cdr . ,#'cl:cdr)))
+
+(defun primitive-procedure-names ()
+  (mapcar #'car
+	  (primitive-procedures)))
+
+(defun primitive-procedure-implementations ()
+  (mapcar #'cdr
+	  (primitive-procedures)))
+
+(defun primitive-procedure-objects ()
+  (mapcar (lambda (proc-impl)
+	    (list 'primitive-procedure
+		  proc-impl))
+	  (primitive-procedure-implementations)))
