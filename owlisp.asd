@@ -93,3 +93,19 @@
 				 "environment")))
 
 		  :depends-on ("packages"))))
+
+(defsystem owlisp-tests
+  :name "owlisp-tests"
+  :version "0.0.1"
+  :maintainer "Oliver Wegner <void1976@gmail.com>"
+  :author "Oliver Wegner <void1976@gmail.com>"
+  :licence "BSD"
+  :description "owlisp-tests"
+  :depends-on (:owlisp
+	       :fiveam)
+  :components ((:file "packages.test")
+	       (:module
+		tests
+		:components
+		((:file "environment"))
+		:depends-on ("packages.test"))))

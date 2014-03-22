@@ -7,36 +7,37 @@
 
 
 
-(defstruct env-node
+(defstruct frame
   (lookup-table (make-keyvalue-map))
   parent)
 
 
 
-(defun make-environment (&optional parent-env)
-  (make-env-node :parent parent-env))
-
-(defun parent-of-environment (env)
-  (env-node-parent env))
-
 (defun find-in-environment (env key)
   (if env
       (multiple-value-bind (value found)
-	  (lookup-in-keyvalue-map (env-node-lookup-table env)
+	  (lookup-in-keyvalue-map (frame-lookup-table env)
 				  key)
 	(if found
 	    value
-	    (find-in-environment (env-node-parent env)
+	    (find-in-environment (parent-environment env)
 				 key)))
       (error 'unknown-form
 	     :name key)))
 
 (defun set-in-environment (env key value)
-  (update-in-keyvalue-map (env-node-lookup-table env)
+  (update-in-keyvalue-map (frame-lookup-table env)
 			  key
-			  value))
+			  value)
+  env)
 
 
+
+(defun make-environment (&optional parent-env)
+  (make-frame :parent parent-env))
+
+(defun parent-environment (env)
+  (frame-parent env))
 
 (defun lookup-in-environment (env key &key (scope :lexical) (type :primitive))
   (find-in-environment env
