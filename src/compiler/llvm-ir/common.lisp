@@ -8,7 +8,9 @@
   (setf *context* (LLVMGetGlobalContext))
   (setf *builder* (LLVMCreateBuilderInContext *context*))
   (setf *functions* (make-hash-table :test #'equalp))
-  (setf *llvm-default-type* (LLVMInt32TypeInContext *context*)))
+  (setf *llvm-default-type* (LLVMPointerType
+			     (LLVMInt8TypeInContext *context*)
+			     0)))
 
 (defun lookup-function (name)
   (gethash (owlisp:symbol->keyword name)
@@ -27,7 +29,7 @@
      (reduce (lambda (current-index current-arg)
 	       (declare (ignore current-arg))
 	       (setf (cffi:mem-aref ,llvmargsvar :pointer current-index)
-		     *llvm-default-type*)
+		     *llvm-boxvalue-type*)
 	       (1+ current-index))
 	     ,args
 	     :initial-value 0)
@@ -37,13 +39,11 @@
   `(cffi:with-foreign-object
        (,llvmargsvar :pointer (length ,args))
      (reduce (lambda (current-index current-arg)
-	       (let ((llvm-value (LLVMConstInt *llvm-default-type*
-					       current-arg
-					       0)))
+	       (let* ((boxed-llvm-value (box-i64-value (int->i64 current-arg))))
 		 (setf (cffi:mem-aref ,llvmargsvar
 				      :pointer
 				      current-index)
-		       llvm-value))
+		       boxed-llvm-value))
 	       (1+ current-index))
 	     ,args
 	     :initial-value 0)

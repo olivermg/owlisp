@@ -2,27 +2,28 @@
 
 (export '(load-libraries
 	  initialize
-	  compile-defpackage
-	  compile-defun
-	  compile-call
+	  evaluate-defpackage
+	  evaluate-defun
+	  evaluate-call
 	  write-compilation))
 
 
-
+#|
 (defun load-libraries ()
-  (owlisp/llvm-ir:load-llvm-library))
+  (owlisp/parrot:load-libraries))
 
 (defun initialize ()
-  (owlisp/llvm-ir:initialize))
+  (owlisp/parrot:initialize))
 
-(defun compile-defpackage (name)
-  (owlisp/llvm-ir:compile-defpackage name))
+(defun evaluate-defpackage (name)
+  (owlisp/parrot:compile-defpackage name))
 
-(defun compile-defun (name args body)
-  (owlisp/llvm-ir:compile-defun name args body))
+(defun evaluate-defun (name args body)
+  (owlisp/parrot:compile-defun name args body))
 
-(defun compile-call (name args)
-  (owlisp/llvm-ir:compile-call name args))
+(defun evaluate-call (name args)
+  (owlisp/parrot:compile-call name args))
 
 (defun write-compilation ()
-  (owlisp/llvm-ir:write-compilation))
+  (owlisp/parrot:write-compilation))
+|#

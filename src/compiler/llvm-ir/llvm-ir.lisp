@@ -13,7 +13,7 @@
 
 (defun compile-defun (name args evaluated-body-forms)
   (with-declaration-args args llvm-args
-    (let* ((fn-type (LLVMFunctionType *llvm-default-type*
+    (let* ((fn-type (LLVMFunctionType *llvm-boxvalue-type*
 				      llvm-args
 				      (length args)
 				      0))
@@ -26,7 +26,8 @@
 	(mapcar (lambda (form)
 		  (if (functionp form)
 		      (setf result-value (funcall form))
-		      (format t "unknown form ~a~%" form)))
+		      (error 'owlisp:unknown-form
+			     :name (pprint form))))
 		evaluated-body-forms)
 	(LLVMBuildRet *builder* result-value))
       (store-function name fn))))
