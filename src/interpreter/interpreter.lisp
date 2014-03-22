@@ -6,7 +6,8 @@
 
 (defun owlisp-toplevel ()
   (loop (format t "~&owlisp> ")
-     (print (evaluate-form (read) nil))))
+     (print (evaluate-form (read)
+			   (make-initialized-environment)))))
 
 
 

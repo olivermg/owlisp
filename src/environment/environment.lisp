@@ -36,7 +36,10 @@
 
 (defun make-environment (&optional parent-env key-or-keys value-or-values)
   (let ((env (make-frame :parent parent-env)))
-    (update-in-environment env key-or-keys value-or-values)))
+    (if (and key-or-keys
+	     value-or-values)
+	(update-in-environment env key-or-keys value-or-values))
+    env))
 
 (defun make-initialized-environment ()
   (let ((env (make-environment)))

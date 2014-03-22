@@ -44,6 +44,8 @@
 	((lambda-p expr) (make-procedure (lambda-parameters expr)
 					 (lambda-body expr)
 					 env))
+	((let-p expr) (evaluate-forms (let-body expr)
+				      (let-environment expr env)))
 	((application-p expr) (apply (evaluate-form (operator expr) env)
 				     (evaluate-forms-to-list (operands expr) env)))))
 
@@ -88,6 +90,9 @@
 (defun quote-p (expr)
   (is-tagged-list expr :quote))
 
+(defun let-p (expr)
+  (is-tagged-list expr :let))
+
 (defun lambda-p (expr)
   (is-tagged-list expr :lambda))
 
@@ -129,3 +134,12 @@
 
 (defun primitive-procedure-implementation (proc-definition)
   (second proc-definition))
+
+(defun let-environment (expr base-env)
+  (let ((bindings (second expr)))
+    (make-environment base-env
+		      (mapcar #'car bindings)
+		      (mapcar #'cadr bindings))))
+
+(defun let-body (expr)
+  (rest (rest expr)))
