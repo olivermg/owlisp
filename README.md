@@ -4,14 +4,21 @@ owlisp is a compiler frontend to LLVM that compiles Common Lisp to LLVM-IR code,
 which then in turn can be processed further by LLVM Tools to translate it to any
 target that LLVM offers.
 
+## Blog
+
+For the current status of this project as well as ideas and thoughts that I
+have about it, please take a look at my blog:
+
+http://blog.lambda-startup.com
+
 ## Status
 
-> NOTE: Currently, the LLVM-IR generation described below does not work,
+> __NOTE: Currently, the LLVM-IR generation described below does not work,
 > since as a first step, I am trying to establish an interpreter and then
 > advance to a compiler from there.
 >
 > Instead of LLVM-IR generation, owlisp will currently try to interpret
-> all expressions immediately.
+> all expressions immediately.__
 
 owlisp is not even alpha yet ;)
 (...so it does not support any language features yet apart from things like
@@ -75,9 +82,9 @@ SBCL). This will create a binary **build/owlispc**
 that, when run, will read lisp code from stdin and after pressing **Ctrl+D**
 will output the resulting LLVM-IR code to stdout.
 
-> NOTE: Currently, when running the binary, you will be presented with a
+> __NOTE: Currently, when running the binary, you will be presented with a
 > REPL that you can use to have expressions interpreted immediately (instead
-> of any compilation).
+> of any compilation).__
 
 #### Example
 
@@ -122,10 +129,3 @@ Yay! :)
 
 For further instructions on how to compile this LLVM-IR code, please refer
 to the LLVM documentation on http://llvm.org .
-
-## Blog
-
-Also have a look at my blog in which from time to time I post some thoughts
-about this project:
-http://blog.lambda-startup.com
-
