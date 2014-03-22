@@ -19,7 +19,7 @@
   (initialize)
   (append
    (define-builtins)
-   (evaluate-forms (read-stream stream) env)
+   (list (evaluate-forms (read-stream stream) env))
    (write-compilation)))
 
 (defun evaluate-forms-to-last (forms env)
