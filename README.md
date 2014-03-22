@@ -13,12 +13,12 @@ http://blog.lambda-startup.com
 
 ## Status
 
-> __NOTE: Currently, the LLVM-IR generation described below does not work,
+> NOTE: Currently, the LLVM-IR generation described below does not work,
 > since as a first step, I am trying to establish an interpreter and then
 > advance to a compiler from there.
 >
 > Instead of LLVM-IR generation, owlisp will currently try to interpret
-> all expressions immediately.__
+> all expressions immediately.
 
 owlisp is not even alpha yet ;)
 (...so it does not support any language features yet apart from things like
@@ -82,9 +82,9 @@ SBCL). This will create a binary **build/owlispc**
 that, when run, will read lisp code from stdin and after pressing **Ctrl+D**
 will output the resulting LLVM-IR code to stdout.
 
-> __NOTE: Currently, when running the binary, you will be presented with a
+> NOTE: Currently, when running the binary, you will be presented with a
 > REPL that you can use to have expressions interpreted immediately (instead
-> of any compilation).__
+> of any compilation).
 
 #### Example
 
