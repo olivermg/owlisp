@@ -5,6 +5,9 @@
   (:use cl owlisp)
   (:shadow apply))
 
+(defpackage #:owlisp/register
+  (:use cl))
+
 (defpackage #:owlisp/llvm-ir
   (:use cl))
 

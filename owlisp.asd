@@ -90,7 +90,12 @@
 		    :components ((:file "interpreter"))
 		    :depends-on ("owlisp"
 				 "helper"
-				 "environment")))
+				 "environment"))
+
+		   (:module
+		    registermachine
+		    :components ((:file "instructions"))
+		    :depends-on ()))
 
 		  :depends-on ("packages"))))
 

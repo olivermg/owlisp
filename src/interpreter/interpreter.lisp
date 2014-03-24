@@ -25,6 +25,12 @@
   (format t "defpackage ~a~%" name))
 
 (defun evaluate-lambda (params body env)
+  (format t ".sub 'lambda001'~%")
+  (loop
+     for p in params
+     do (format t "~t.param pmc ~a~%" p))
+  (format t "~t.return (123)~%")
+  (format t ".end~%")
   (list 'compound-procedure params body env))
 
 (defun evaluate-defun (name params body env)
