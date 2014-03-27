@@ -66,6 +66,7 @@
 	((variable-p expr) (analyze-variable expr))
 	((lambda-p expr) (analyze-lambda expr))
 	((let-p expr) (analyze-let expr))
+	((if-p expr) (analyze-if expr))
 	((application-p expr) (analyze-application expr))))
 
 (defun analyze-sequence (exprs)
@@ -135,7 +136,8 @@
 (defun self-evaluating-p (expr)
   (or
    (numberp expr)
-   (stringp expr)))
+   (stringp expr)
+   (null expr)))
 
 (defun variable-p (expr)
   (symbolp expr))
@@ -148,6 +150,9 @@
 
 (defun lambda-p (expr)
   (is-tagged-list expr :lambda))
+
+(defun if-p (expr)
+  (is-tagged-list expr :if))
 
 (defun application-p (expr)
   (declare (ignore expr))
@@ -201,6 +206,15 @@
 (defun let-body (expr)
   (rest (rest expr)))
 
+(defun if-predicate (expr)
+  (second expr))
+
+(defun if-then (expr)
+  (third expr))
+
+(defun if-else (expr)
+  (fourth expr))
+
 
 
 (defun analyze-self-evaluating (expr)
@@ -228,6 +242,15 @@
 	(bindings (analyze-bindings (let-bindings expr))))
     (lambda (env)
       (funcall bodyproc (let-environment bindings env)))))
+
+(defun analyze-if (expr)
+  (let ((predicate-proc (analyze (if-predicate expr)))
+	(then-proc (analyze (if-then expr)))
+	(else-proc (analyze (if-else expr))))
+    (lambda (env)
+      (if (funcall predicate-proc env)
+	  (funcall then-proc env)
+	  (funcall else-proc env)))))
 
 (defun analyze-application (expr)
   (let ((operator-proc (analyze (operator expr)))
