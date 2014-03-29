@@ -95,7 +95,7 @@
 		   (:module
 		    registermachine
 		    :components ((:file "instructions"))
-		    :depends-on ()))
+		    :depends-on ("helper")))
 
 		  :depends-on ("packages"))))
 

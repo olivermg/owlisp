@@ -5,7 +5,8 @@
 	  lookup-alist-value
 	  make-keyvalue-map
 	  insert-into-keyvalue-map
-	  lookup-keyvalue-map
+	  lookup-in-keyvalue-map
+	  update-in-keyvalue-map
 	  delete-from-keyvalue-map))
 
 
