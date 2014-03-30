@@ -28,12 +28,14 @@
 		    ((:file "syntax-funcalls"
 			    :depends-on ("sequences"))
 		     (:file "sequences")
-		     (:file "symbols")))
+		     (:file "symbols")
+		     (:file "message-passing")))
 
 		   (:module
 		    environment
 		    :components
-		    ((:file "environment"))
+		    ((:file "environment")
+		     (:file "declarative"))
 		    :depends-on ("owlisp"
 				 "helper"))
 

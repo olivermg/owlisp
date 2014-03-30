@@ -1,8 +1,11 @@
 (defpackage #:owlisp
   (:use cl))
 
+(defpackage #:owlisp/environment
+  (:use cl owlisp))
+
 (defpackage #:owlisp/evaluator
-  (:use cl owlisp)
+  (:use cl owlisp owlisp/environment)
   (:shadow apply))
 
 (defpackage #:owlisp/register

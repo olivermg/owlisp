@@ -1,4 +1,4 @@
-(in-package :owlisp)
+(in-package :owlisp/environment)
 
 (export '(make-environment
 	  make-initialized-environment

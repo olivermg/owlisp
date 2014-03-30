@@ -87,7 +87,7 @@
 	  bindings))
 
 
-
+#|
 (defun apply (proc-def args)
   (format t "~%APPLY ~a ~a~%" proc-def args)
   (cond ((compound-procedure-p proc-def)
@@ -100,6 +100,7 @@
 				    args))
 	(t (error 'unknown-form
 		  :name proc-def))))
+|#
 
 (defun apply-primitive-procedure (implementation args)
   (cl:apply implementation args))
