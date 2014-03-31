@@ -112,13 +112,11 @@
 
 
 
-(defun execute-apply (proc-def args)
+(defun execute-apply (proc-def args bind-env)
   (format t "~%EXECUTE-APPLY ~a ~a~%" proc-def args)
   (cond ((compound-procedure-p proc-def)
 	 (funcall (compound-procedure-body proc-def)
-		  (make-environment (compound-procedure-env proc-def)
-				    (compound-procedure-params proc-def)
-				    args)))
+		  (env.b.extend args bind-env)))
 	((primitive-procedure-p proc-def)
 	 (apply-primitive-procedure (primitive-procedure-implementation proc-def)
 				    args))
@@ -172,8 +170,10 @@
 (defun lookup-variable-value (address bind-env)
   (send-message bind-env :lookup address))
 
+#|
 (defun make-procedure (params body env)
   (evaluate-lambda params body env))
+|#
 
 (defun lambda-parameters (expr)
   (second expr))
@@ -186,6 +186,9 @@
 
 (defun operands (expr)
   (rest expr))
+
+(defun make-compound-procedure (params body env)
+  (list 'compound-procedure params body env))
 
 (defun compound-procedure-params (proc-definition)
   (second proc-definition))
@@ -252,10 +255,12 @@
       (lookup-variable-value address bind-env))))
 
 (defun analyze-lambda (expr decl-env)
-  (let ((params (lambda-parameters expr))
-	(bodyproc (analyze-sequence (lambda-body expr) decl-env)))
-    (lambda (env)
-      (make-procedure params bodyproc env))))
+  (let* ((params (lambda-parameters expr))
+	 (extended-decl-env (env.d.extend params decl-env))
+	 (bodyproc (analyze-sequence (lambda-body expr) extended-decl-env)))
+    (lambda (bind-env)
+      (declare (ignore bind-env))
+      (make-compound-procedure params bodyproc decl-env))))
 
 (defun analyze-let (expr decl-env)
   (format t "ANALYZE-LET: ~a~%" expr)
@@ -275,16 +280,20 @@
   (let ((predicate-proc (analyze (if-predicate expr) decl-env))
 	(then-proc (analyze (if-then expr) decl-env))
 	(else-proc (analyze (if-else expr) decl-env)))
-    (lambda (env)
-      (if (funcall predicate-proc env)
-	  (funcall then-proc env)
-	  (funcall else-proc env)))))
+    (lambda (bind-env)
+      (if (funcall predicate-proc bind-env)
+	  (funcall then-proc bind-env)
+	  (funcall else-proc bind-env)))))
 
 (defun analyze-application (expr decl-env)
+  (format t "ANALYZE APPLICATION: ~a ~a~%" expr decl-env)
   (let ((operator-proc (analyze (operator expr) decl-env))
-	(operands-procs (mapcar #'analyze (operands expr))))
-    (lambda (env)
-      (execute-apply (funcall operator-proc env)
-		     (mapcar (lambda (operand-proc)
-			       (funcall operand-proc env))
-			     operands-procs)))))
+	(operands-procs (mapcar #'(lambda (operand)
+				    (analyze operand decl-env))
+				(operands expr))))
+    (lambda (bind-env)
+      (execute-apply (funcall operator-proc bind-env)
+		     (mapcar #'(lambda (operand-proc)
+				 (funcall operand-proc bind-env))
+			     operands-procs)
+		     bind-env))))

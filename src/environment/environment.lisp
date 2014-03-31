@@ -41,12 +41,6 @@
 	(update-in-environment env key-or-keys value-or-values))
     env))
 
-(defun make-initialized-environment ()
-  (let ((env (make-environment)))
-    (update-in-environment env
-			   (primitive-procedure-names)
-			   (primitive-procedure-objects))))
-
 (defun parent-environment (env)
   (frame-parent env))
 
@@ -85,29 +79,3 @@
 (defun get-current-package (env)
   (declare (ignore env))
   :cl-user)
-
-
-
-(defun primitive-procedures ()
-  `((:print . ,#'cl:print)
-    (:+ . ,#'cl:+)
-    (:- . ,#'cl:-)
-    (:* . ,#'cl:*)
-    (:/ . ,#'cl:/)
-    (:list . ,#'cl:list)
-    (:car . ,#'cl:car)
-    (:cdr . ,#'cl:cdr)))
-
-(defun primitive-procedure-names ()
-  (mapcar #'car
-	  (primitive-procedures)))
-
-(defun primitive-procedure-implementations ()
-  (mapcar #'cdr
-	  (primitive-procedures)))
-
-(defun primitive-procedure-objects ()
-  (mapcar (lambda (proc-impl)
-	    (list 'primitive-procedure
-		  proc-impl))
-	  (primitive-procedure-implementations)))

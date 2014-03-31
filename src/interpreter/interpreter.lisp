@@ -9,9 +9,41 @@
      (format t "~&owlisp> ")
      (finish-output)
      (print (evaluate-form (read)
-			   (env.d.extend '())
-			   (env.b.extend '())))
+			   (make-initialized-declaration-environment)
+			   (make-initialized-binding-environment)))
      (finish-output)))
+
+
+
+(defun make-initialized-declaration-environment ()
+  (env.d.extend (primitive-procedure-names)))
+
+(defun make-initialized-binding-environment ()
+  (env.b.extend (primitive-procedure-objects)))
+
+(defun primitive-procedures ()
+  `((:print . ,#'cl:print)
+    (:+ . ,#'cl:+)
+    (:- . ,#'cl:-)
+    (:* . ,#'cl:*)
+    (:/ . ,#'cl:/)
+    (:list . ,#'cl:list)
+    (:car . ,#'cl:car)
+    (:cdr . ,#'cl:cdr)))
+
+(defun primitive-procedure-names ()
+  (mapcar #'car
+	  (primitive-procedures)))
+
+(defun primitive-procedure-implementations ()
+  (mapcar #'cdr
+	  (primitive-procedures)))
+
+(defun primitive-procedure-objects ()
+  (mapcar #'(lambda (proc-impl)
+	      (list 'primitive-procedure
+		    proc-impl))
+	  (primitive-procedure-implementations)))
 
 
 
