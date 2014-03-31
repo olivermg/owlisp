@@ -9,7 +9,8 @@
      (format t "~&owlisp> ")
      (finish-output)
      (print (evaluate-form (read)
-			   (make-initialized-environment)))
+			   (env.d.extend '())
+			   (env.b.extend '())))
      (finish-output)))
 
 
