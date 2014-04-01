@@ -1,114 +1,74 @@
-(in-package :owlisp/tests)
+(in-package :owlisp/environment/tests)
 
-(def-suite owlisp/tests/environment)
+(def-suite owlisp/environment/tests)
 
-(in-suite owlisp/tests/environment)
-
-
-
-(defparameter *key1* :aaa)
-(defparameter *key2* :bbb)
-(defparameter *key3* :xxx)
-(defparameter *key4* :yyy)
-(defparameter *keylist1* (list *key3* *key4*))
-(defparameter *value1* '(1 2 3))
-(defparameter *value2* "mystring")
-(defparameter *value3* '(3 1 5))
-(defparameter *value4* "superstring")
-(defparameter *valuelist1* (list *value3* *value4*))
+(in-suite owlisp/environment/tests)
 
 
 
-(defun make-bound-environment ()
-  (owlisp::set-in-environment (owlisp::make-environment)
-			      *key1*
-			      *value1*))
+(defun make-env.d ()
+  (env.d.extend '(a b c)
+		(env.d.extend '(c d e))))
 
-(defun make-bound-environment-and-overwrite-binding ()
-  (owlisp::set-in-environment (make-bound-environment)
-			      *key1*
-			      *value2*))
-
-(defun make-bound-and-derived-environment ()
-  (owlisp::make-environment (make-bound-environment)))
-
-(defun make-derived-environment-and-bind-another ()
-  (owlisp::set-in-environment (owlisp::make-environment (make-bound-and-derived-environment))
-			      *key2*
-			      *value2*))
-
-(defun make-derived-environment-and-bind-same ()
-  (owlisp::set-in-environment (owlisp::make-environment (make-bound-and-derived-environment))
-			      *key1*
-			      *value2*))
+(defun make-env.b ()
+  (env.b.extend '(1 2 3)
+		(env.b.extend '(4 5 6))))
 
 
 
-(test make-environment-returns-not-null
-  (is (not (null (owlisp::make-environment)))))
+(test correct-address-a
+  (let ((env (make-env.d)))
+    (is (equal (send-message env :address 'a)
+	       '(0 . 0)))))
 
-(test can-bind
-  "can we create and retrieve a binding?"
-  (is (eq (owlisp::find-in-environment (make-bound-environment)
-				       *key1*)
-	  *value1*)))
+(test correct-address-b
+  (let ((env (make-env.d)))
+    (is (equal (send-message env :address 'b)
+	       '(0 . 1)))))
 
-(test can-rebind
-  "can we redefine a binding?"
-  (is (eq (owlisp::find-in-environment (make-bound-environment-and-overwrite-binding)
-				       *key1*)
-	  *value2*)))
+(test correct-address-c
+  (let ((env (make-env.d)))
+    (is (equal (send-message env :address 'c)
+	       '(0 . 2)))))
 
-(test can-retrieve-from-parent-environment
-  "can we retrieve a binding from a parent frame?"
-  (is (eq (owlisp::find-in-environment (make-bound-and-derived-environment)
-				       *key1*)
-	  *value1*)))
+(test correct-address-d
+  (let ((env (make-env.d)))
+    (is (equal (send-message env :address 'd)
+	       '(1 . 1)))))
 
-(test can-bind-new-value-in-derived-environment
-  "can we create a binding in a derived frame?"
-  (is (eq (owlisp::find-in-environment (make-derived-environment-and-bind-another)
-				       *key2*)
-	  *value2*)))
+(test correct-address-e
+  (let ((env (make-env.d)))
+    (is (equal (send-message env :address 'e)
+	       '(1 . 2)))))
 
-(test can-retrieve-same-value-from-parent-environment
-  "can we retrieve a binding from a parent frame after creating another binding?"
-  (is (eq (owlisp::find-in-environment (make-derived-environment-and-bind-another)
-				       *key1*)
-	  *value1*)))
 
-(test can-bind-and-retrieve-shadowed-value
-  "can we shadow a binding in a derived frame?"
-  (is (eq (owlisp::find-in-environment (make-derived-environment-and-bind-same)
-				       *key1*)
-	  *value2*)))
 
-(test shadowing-does-not-destroy-value-in-parent-environment
-  "can we shadow a binding and still maintain the original binding in the parent frame?"
-  (is (eq (owlisp::find-in-environment (owlisp::parent-environment
-					(make-derived-environment-and-bind-same))
-				       *key1*)
-	  *value1*)))
+(test correct-value-1
+  (let ((env (make-env.b)))
+    (is (= (send-message env :lookup '(0 . 0))
+	   1))))
 
-(test retrieve-unknown-binding-fails
-  "does trying to retrieve an unknown binding throw an error condition?"
-  (signals error (owlisp::find-in-environment (make-derived-environment-and-bind-another)
-					      :unknown)))
+(test correct-value-2
+  (let ((env (make-env.b)))
+    (is (= (send-message env :lookup '(0 . 1))
+	   2))))
 
-(test binding-qualified-variables-works
-  "can we bind with higher level functions that respect scope & type?"
-  (is (eq (owlisp::lookup-in-environment (owlisp::update-in-environment (make-bound-environment)
-									*key2*
-									*value2*)
-					 *key2*)
-	  *value2*)))
+(test correct-value-3
+  (let ((env (make-env.b)))
+    (is (= (send-message env :lookup '(0 . 2))
+	   3))))
 
-(test create-multiple-bindings
-  "can we bind multiple bindings at once?"
-  (let ((env (owlisp::update-in-environment (make-bound-environment)
-					    *keylist1*
-					    *valuelist1*)))
-    (is (eq (owlisp::lookup-in-environment env *key3*)
-	    *value3*))
-    (is (eq (owlisp::lookup-in-environment env *key4*)
-	    *value4*))))
+(test correct-value-4
+  (let ((env (make-env.b)))
+    (is (= (send-message env :lookup '(1 . 0))
+	   4))))
+
+(test correct-value-5
+  (let ((env (make-env.b)))
+    (is (= (send-message env :lookup '(1 . 1))
+	   5))))
+
+(test correct-value-6
+  (let ((env (make-env.b)))
+    (is (= (send-message env :lookup '(1 . 2))
+	   6))))

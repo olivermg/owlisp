@@ -1,2 +1,2 @@
-(defpackage #:owlisp/tests
-  (:use cl owlisp fiveam))
+(defpackage #:owlisp/environment/tests
+  (:use cl owlisp owlisp/environment fiveam))
