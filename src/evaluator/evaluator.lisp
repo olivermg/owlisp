@@ -167,6 +167,9 @@
 (defun quoted-text (expr)
   (second expr))
 
+(defun lookup-variable-address (name decl-env)
+  (send-message decl-env :address name))
+
 (defun lookup-variable-value (address bind-env)
   (send-message bind-env :lookup address))
 
@@ -238,29 +241,22 @@
 
 (defun analyze-self-evaluating (expr decl-env)
   (declare (ignore decl-env))
-  (lambda (bind-env)
-    (declare (ignore bind-env))
-    expr))
+  (CONSTANT expr))
 
 (defun analyze-quote (expr decl-env)
   (declare (ignore decl-env))
-  (lambda (bind-env)
-    (declare (ignore bind-env))
-    (quoted-text expr)))
+  (CONSTANT (quoted-text expr)))
 
 (defun analyze-variable (expr decl-env)
   (format t "ANALYZE-VAR: ~a~%" expr)
-  (let ((address (send-message decl-env :address expr)))
-    (lambda (bind-env)
-      (lookup-variable-value address bind-env))))
+  (let ((address (lookup-variable-address expr decl-env)))
+    (REFERENCE address)))
 
 (defun analyze-lambda (expr decl-env)
   (let* ((params (lambda-parameters expr))
 	 (extended-decl-env (env.d.extend params decl-env))
 	 (bodyproc (analyze-sequence (lambda-body expr) extended-decl-env)))
-    (lambda (bind-env)
-      (declare (ignore bind-env))
-      (make-compound-procedure params bodyproc decl-env))))
+    (ABSTRACTION params bodyproc decl-env)))
 
 (defun analyze-let (expr decl-env)
   (format t "ANALYZE-LET: ~a~%" expr)
@@ -269,12 +265,7 @@
 					  (analyze val-expr decl-env))
 				      (let-bindings-vals expr)))
 	 (bodyproc (analyze-sequence (let-body expr) extended-decl-env)))
-    (lambda (bind-env)
-      (let* ((runtime-vals (mapcar #'(lambda (analyzed-val-proc)
-				       (funcall analyzed-val-proc bind-env))
-				   analyzed-vals-procs))
-	     (extended-bind-env (env.b.extend runtime-vals bind-env)))
-	(funcall bodyproc extended-bind-env)))))
+    (LET-BINDING analyzed-vals-procs bodyproc)))
 
 (defun analyze-if (expr decl-env)
   (let ((predicate-proc (analyze (if-predicate expr) decl-env))
@@ -297,3 +288,27 @@
 				 (funcall operand-proc bind-env))
 			     operands-procs)
 		     bind-env))))
+
+
+
+(defun CONSTANT (value)
+  (lambda (bind-env)
+    (declare (ignore bind-env))
+    value))
+
+(defun REFERENCE (address)
+  (lambda (bind-env)
+    (lookup-variable-value address bind-env)))
+
+(defun ABSTRACTION (params body decl-env)
+  (lambda (bind-env)
+    (declare (ignore bind-env))
+    (make-compound-procedure params body decl-env)))
+
+(defun LET-BINDING (bound-values-procs body)
+  (lambda (bind-env)
+    (let* ((runtime-vals (mapcar #'(lambda (bound-value-proc)
+				     (funcall bound-value-proc bind-env))
+				 bound-values-procs))
+	   (extended-bind-env (env.b.extend runtime-vals bind-env)))
+      (funcall body extended-bind-env))))
