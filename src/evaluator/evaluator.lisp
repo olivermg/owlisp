@@ -112,21 +112,6 @@
 
 
 
-(defun execute-apply (proc-def args bind-env)
-  (declare (ignore bind-env))
-  (format t "~%EXECUTE-APPLY ~a ~a~%" proc-def args)
-  (cond ((compound-procedure-p proc-def)
-	 (funcall (compound-procedure-body proc-def)
-		  (env.b.extend args
-				(compound-procedure-bind-env proc-def))))
-	((primitive-procedure-p proc-def)
-	 (apply-primitive-procedure (primitive-procedure-implementation proc-def)
-				    args))
-	(t (error 'unknown-form
-		  :name proc-def))))
-
-
-
 (defun is-tagged-list (expr tag)
   (if (consp expr)
       (let ((head (first expr)))
@@ -317,8 +302,15 @@
 
 (defun APPLICATION (operator operands)
   (lambda (bind-env)
-    (execute-apply (funcall operator bind-env)
-		   (mapcar #'(lambda (operand)
-			       (funcall operand bind-env))
-			   operands)
-		   bind-env)))
+    (let ((proc-def (funcall operator bind-env))
+	  (evaluated-operands (mapcar #'(lambda (operand)
+					  (funcall operand bind-env))
+				      operands)))
+      (cond ((compound-procedure-p proc-def)
+	     (funcall (compound-procedure-body proc-def)
+		      (env.b.extend evaluated-operands
+				    (compound-procedure-bind-env proc-def))))
+	    ((primitive-procedure-p proc-def)
+	     (apply-primitive-procedure (primitive-procedure-implementation proc-def)
+					evaluated-operands))
+	    (t (error "unknown function"))))))
