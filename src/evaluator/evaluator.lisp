@@ -113,10 +113,12 @@
 
 
 (defun execute-apply (proc-def args bind-env)
+  (declare (ignore bind-env))
   (format t "~%EXECUTE-APPLY ~a ~a~%" proc-def args)
   (cond ((compound-procedure-p proc-def)
 	 (funcall (compound-procedure-body proc-def)
-		  (env.b.extend args bind-env)))
+		  (env.b.extend args
+				(compound-procedure-bind-env proc-def))))
 	((primitive-procedure-p proc-def)
 	 (apply-primitive-procedure (primitive-procedure-implementation proc-def)
 				    args))
@@ -190,16 +192,16 @@
 (defun operands (expr)
   (rest expr))
 
-(defun make-compound-procedure (params body env)
-  (list 'compound-procedure params body env))
+(defun make-compound-procedure (decl-env bind-env body)
+  (list 'compound-procedure decl-env bind-env body))
 
-(defun compound-procedure-params (proc-definition)
+(defun compound-procedure-decl-env (proc-definition)
   (second proc-definition))
 
-(defun compound-procedure-body (proc-definition)
+(defun compound-procedure-bind-env (proc-definition)
   (third proc-definition))
 
-(defun compound-procedure-env (proc-definition)
+(defun compound-procedure-body (proc-definition)
   (fourth proc-definition))
 
 (defun primitive-procedure-implementation (proc-definition)
@@ -256,7 +258,7 @@
   (let* ((params (lambda-parameters expr))
 	 (extended-decl-env (env.d.extend params decl-env))
 	 (bodyproc (analyze-sequence (lambda-body expr) extended-decl-env)))
-    (ABSTRACTION params bodyproc decl-env)))
+    (ABSTRACTION bodyproc decl-env)))
 
 (defun analyze-let (expr decl-env)
   (format t "ANALYZE-LET: ~a~%" expr)
@@ -271,10 +273,9 @@
   (let ((predicate-proc (analyze (if-predicate expr) decl-env))
 	(then-proc (analyze (if-then expr) decl-env))
 	(else-proc (analyze (if-else expr) decl-env)))
-    (lambda (bind-env)
-      (if (funcall predicate-proc bind-env)
-	  (funcall then-proc bind-env)
-	  (funcall else-proc bind-env)))))
+    (ALTERNATIVE predicate-proc
+		 then-proc
+		 else-proc)))
 
 (defun analyze-application (expr decl-env)
   (format t "ANALYZE APPLICATION: ~a ~a~%" expr decl-env)
@@ -282,12 +283,8 @@
 	(operands-procs (mapcar #'(lambda (operand)
 				    (analyze operand decl-env))
 				(operands expr))))
-    (lambda (bind-env)
-      (execute-apply (funcall operator-proc bind-env)
-		     (mapcar #'(lambda (operand-proc)
-				 (funcall operand-proc bind-env))
-			     operands-procs)
-		     bind-env))))
+    (APPLICATION operator-proc
+		 operands-procs)))
 
 
 
@@ -300,10 +297,9 @@
   (lambda (bind-env)
     (lookup-variable-value address bind-env)))
 
-(defun ABSTRACTION (params body decl-env)
+(defun ABSTRACTION (body decl-env)
   (lambda (bind-env)
-    (declare (ignore bind-env))
-    (make-compound-procedure params body decl-env)))
+    (make-compound-procedure decl-env bind-env body)))
 
 (defun LET-BINDING (bound-values-procs body)
   (lambda (bind-env)
@@ -312,3 +308,17 @@
 				 bound-values-procs))
 	   (extended-bind-env (env.b.extend runtime-vals bind-env)))
       (funcall body extended-bind-env))))
+
+(defun ALTERNATIVE (predicate then else)
+  (lambda (bind-env)
+    (if (funcall predicate bind-env)
+	(funcall then bind-env)
+	(funcall else bind-env))))
+
+(defun APPLICATION (operator operands)
+  (lambda (bind-env)
+    (execute-apply (funcall operator bind-env)
+		   (mapcar #'(lambda (operand)
+			       (funcall operand bind-env))
+			   operands)
+		   bind-env)))
