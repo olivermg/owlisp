@@ -306,7 +306,7 @@
     (let ((proc-def (funcall operator bind-env)))
       (labels ((evaluate-operands (operands frame &optional (index 0))
 		 (if operands
-		     (STORE-ARGUMENT (evaluate-operands (rest operands) frame (1+ index))
+		     (STORE-ARGUMENT (evaluate-operands (rest operands) frame (1+ index)) ; TODO: make tail call
 				     (funcall (first operands) bind-env)
 				     index)
 		     frame)))
