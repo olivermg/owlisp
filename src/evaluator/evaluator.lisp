@@ -318,8 +318,7 @@
 	      ((primitive-procedure-p proc-def)
 	       (apply-primitive-procedure (primitive-procedure-implementation proc-def)
 					  (evaluate-operands operands
-							     (MAKE-FRAME (length operands) ; TODO: length: at compiletime
-									 (compound-procedure-bind-env proc-def)))))
+							     (MAKE-FRAME (length operands))))) ; TODO: length at compiletime
 	      (t (error "unknown function")))))))
 
 (defun MAKE-FRAME (size &optional parent-frame)
