@@ -107,8 +107,9 @@
 		  :name proc-def))))
 |#
 
-(defun apply-primitive-procedure (implementation args)
-  (cl:apply implementation args))
+(defun apply-primitive-procedure (implementation bind-env)
+  (cl:apply implementation
+	    (send-message bind-env :get-current-bindings)))
 
 
 
@@ -302,15 +303,31 @@
 
 (defun APPLICATION (operator operands)
   (lambda (bind-env)
-    (let ((proc-def (funcall operator bind-env))
-	  (evaluated-operands (mapcar #'(lambda (operand)
-					  (funcall operand bind-env))
-				      operands)))
-      (cond ((compound-procedure-p proc-def)
-	     (funcall (compound-procedure-body proc-def)
-		      (env.b.extend evaluated-operands
-				    (compound-procedure-bind-env proc-def))))
-	    ((primitive-procedure-p proc-def)
-	     (apply-primitive-procedure (primitive-procedure-implementation proc-def)
-					evaluated-operands))
-	    (t (error "unknown function"))))))
+    (let ((proc-def (funcall operator bind-env)))
+      (labels ((evaluate-operands (operands frame &optional (index 0))
+		 (if operands
+		     (STORE-ARGUMENT (evaluate-operands (rest operands) frame (1+ index))
+				     (funcall (first operands) bind-env)
+				     index)
+		     frame)))
+	(cond ((compound-procedure-p proc-def)
+	       (funcall (compound-procedure-body proc-def)
+			(evaluate-operands operands
+					   (MAKE-FRAME (length operands) ; TODO: length: at compiletime
+						       (compound-procedure-bind-env proc-def)))))
+	      ((primitive-procedure-p proc-def)
+	       (apply-primitive-procedure (primitive-procedure-implementation proc-def)
+					  (evaluate-operands operands
+							     (MAKE-FRAME (length operands) ; TODO: length: at compiletime
+									 (compound-procedure-bind-env proc-def)))))
+	      (t (error "unknown function")))))))
+
+(defun MAKE-FRAME (size &optional parent-frame)
+  (format t "MAKE-FRAME: ~a ~a~%" size parent-frame)
+  (env.b.extend (make-list size)
+		parent-frame))
+
+(defun STORE-ARGUMENT (frame value index)
+  (format t "STORE-ARGUMENT: ~a ~a ~a~%" frame value index)
+  (send-message frame :set-value value index)
+  frame)

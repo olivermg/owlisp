@@ -11,12 +11,14 @@
 	       (if (< varindex (length bindings))
 		   (svref bindings varindex)
 		   (error "binding not found")))
+
 	     (lookup-in-parent (address current-frameindex)
 	       (if parent
 		   (send-message parent :lookup
 				 address
 				 (1+ current-frameindex))
 		   (error "binding not found")))
+
 	     (lookup (address &optional (current-frameindex 0))
 	       (format t "ENV.B.LOOKUP: ~a ~a~%" address current-frameindex)
 	       (let ((frameindex (first address)))
@@ -24,8 +26,19 @@
 		     (if (= current-frameindex frameindex)
 			 (lookup-in-frame (rest address))
 			 (lookup-in-parent address current-frameindex))
-		     (error "binding not found")))))
+		     (error "binding not found"))))
+
+	     (set-value (value varindex) ; TODO: allow address here instead of just varindex?
+	       (format t "ENV.B.SET-VALUE: ~a ~a~%" value varindex)
+	       (setf (svref bindings varindex)
+		     value))
+
+	     (get-current-bindings ()
+	       (coerce bindings 'list)))
+
       (lambda (msg)
 	(case msg
 	  (:lookup #'lookup)
+	  (:set-value #'set-value)
+	  (:get-current-bindings #'get-current-bindings)
 	  (t (error "unknown message")))))))
