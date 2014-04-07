@@ -50,7 +50,8 @@
 				 "helper"
 				 "environment"
 				 "compiler"
-				 "interpreter"))
+				 "interpreter"
+				 "registermachine"))
 
 		   (:module
 		    compiler
@@ -93,7 +94,8 @@
 		    :components ((:file "interpreter"))
 		    :depends-on ("owlisp"
 				 "helper"
-				 "environment"))
+				 "environment"
+				 "registermachine"))
 
 		   (:module
 		    registermachine
@@ -115,5 +117,7 @@
 	       (:module
 		tests
 		:components
-		((:file "environment"))
+		((:file "environment")
+		 (:file "register")
+		 (:file "evaluator"))
 		:depends-on ("packages.test"))))

@@ -4,12 +4,12 @@
 (defpackage #:owlisp/environment
   (:use cl owlisp))
 
-(defpackage #:owlisp/evaluator
-  (:use cl owlisp owlisp/environment)
-  (:shadow apply))
-
 (defpackage #:owlisp/register
   (:use cl owlisp))
+
+(defpackage #:owlisp/evaluator
+  (:use cl owlisp owlisp/environment owlisp/register)
+  (:shadow apply))
 
 (defpackage #:owlisp/llvm-ir
   (:use cl))

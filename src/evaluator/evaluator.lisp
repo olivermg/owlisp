@@ -13,30 +13,30 @@
 
 
 
-(defun evaluate-stdin (decl-env bind-env)
-  (evaluate-stream *standard-input* decl-env bind-env))
+(defun evaluate-stdin (decl-env bind-env machine)
+  (evaluate-stream *standard-input* decl-env bind-env machine))
 
-(defun evaluate-stream (stream decl-env bind-env)
+(defun evaluate-stream (stream decl-env bind-env machine)
   (load-libraries)
   (initialize)
   (append
    (define-builtins)
-   (list (evaluate-forms (read-stream stream) decl-env bind-env))
+   (list (evaluate-forms (read-stream stream) decl-env bind-env machine))
    (write-compilation)))
 
-(defun evaluate-forms-to-last (forms decl-env bind-env)
+(defun evaluate-forms-to-last (forms decl-env bind-env machine)
   (let ((last-val nil))
     (dolist (form forms last-val)
-      (setf last-val (evaluate-form form decl-env bind-env)))
+      (setf last-val (evaluate-form form decl-env bind-env machine)))
     last-val))
 
-(defun evaluate-forms-to-list (forms decl-env bind-env)
+(defun evaluate-forms-to-list (forms decl-env bind-env machine)
   (mapcar #'(lambda (form)
-	      (evaluate-form form decl-env bind-env))
+	      (evaluate-form form decl-env bind-env machine))
 	  forms))
 
-(defun evaluate-forms (forms decl-env bind-env)
-  (evaluate-forms-to-last forms decl-env bind-env))
+(defun evaluate-forms (forms decl-env bind-env machine)
+  (evaluate-forms-to-last forms decl-env bind-env machine))
 
 #|
 (defun evaluate-form (expr env)
@@ -53,25 +53,28 @@
 				     (evaluate-forms-to-list (operands expr) env)))))
 |#
 
-(defun evaluate-form (expr decl-env bind-env)
-  (funcall (analyze expr decl-env)
-	   bind-env))
+(defun evaluate-form (expr decl-env bind-env machine)
+  (let ((result (funcall (analyze expr decl-env machine)
+			 bind-env)))
+    (format t "~%~%MACHINE DUMP: ~a~%~%"
+	    (send-message machine :get-code))
+    result))
 
 
 
-(defun analyze (expr decl-env)
+(defun analyze (expr decl-env machine)
   (format t "~%ANALYZE: ~A ~A~%" expr decl-env)
-  (cond ((self-evaluating-p expr) (analyze-self-evaluating expr decl-env))
-	((quote-p expr) (analyze-quote expr decl-env))
-	((variable-p expr) (analyze-variable expr decl-env))
-	((lambda-p expr) (analyze-lambda expr decl-env))
-	((let-p expr) (analyze-let expr decl-env))
-	((if-p expr) (analyze-if expr decl-env))
-	((application-p expr) (analyze-application expr decl-env))))
+  (cond ((self-evaluating-p expr) (analyze-self-evaluating expr decl-env machine))
+	((quote-p expr) (analyze-quote expr decl-env machine))
+	((variable-p expr) (analyze-variable expr decl-env machine))
+	((lambda-p expr) (analyze-lambda expr decl-env machine))
+	((let-p expr) (analyze-let expr decl-env machine))
+	((if-p expr) (analyze-if expr decl-env machine))
+	((application-p expr) (analyze-application expr decl-env machine))))
 
-(defun analyze-sequence (exprs decl-env)
+(defun analyze-sequence (exprs decl-env machine)
   (let ((procs (mapcar #'(lambda (expr)
-			   (analyze expr decl-env))
+			   (analyze expr decl-env machine))
 		       exprs)))
     (lambda (bind-env)
       (let ((last-val nil))
@@ -227,47 +230,48 @@
 
 
 
-(defun analyze-self-evaluating (expr decl-env)
+(defun analyze-self-evaluating (expr decl-env machine)
   (declare (ignore decl-env))
+  (send-message machine :add-instructions (list (CONSTANT expr)))
   (CONSTANT expr))
 
-(defun analyze-quote (expr decl-env)
+(defun analyze-quote (expr decl-env machine)
   (declare (ignore decl-env))
   (CONSTANT (quoted-text expr)))
 
-(defun analyze-variable (expr decl-env)
+(defun analyze-variable (expr decl-env machine)
   (format t "ANALYZE-VAR: ~a~%" expr)
   (let ((address (lookup-variable-address expr decl-env)))
     (REFERENCE address)))
 
-(defun analyze-lambda (expr decl-env)
+(defun analyze-lambda (expr decl-env machine)
   (let* ((params (lambda-parameters expr))
 	 (extended-decl-env (env.d.extend params decl-env))
-	 (bodyproc (analyze-sequence (lambda-body expr) extended-decl-env)))
+	 (bodyproc (analyze-sequence (lambda-body expr) extended-decl-env machine)))
     (ABSTRACTION bodyproc decl-env)))
 
-(defun analyze-let (expr decl-env)
+(defun analyze-let (expr decl-env machine)
   (format t "ANALYZE-LET: ~a~%" expr)
   (let* ((extended-decl-env (env.d.extend (let-bindings-vars expr) decl-env))
 	 (analyzed-vals-procs (mapcar #'(lambda (val-expr)
-					  (analyze val-expr decl-env))
+					  (analyze val-expr decl-env machine))
 				      (let-bindings-vals expr)))
-	 (bodyproc (analyze-sequence (let-body expr) extended-decl-env)))
+	 (bodyproc (analyze-sequence (let-body expr) extended-decl-env machine)))
     (LET-BINDING analyzed-vals-procs bodyproc)))
 
-(defun analyze-if (expr decl-env)
-  (let ((predicate-proc (analyze (if-predicate expr) decl-env))
-	(then-proc (analyze (if-then expr) decl-env))
-	(else-proc (analyze (if-else expr) decl-env)))
+(defun analyze-if (expr decl-env machine)
+  (let ((predicate-proc (analyze (if-predicate expr) decl-env machine))
+	(then-proc (analyze (if-then expr) decl-env machine))
+	(else-proc (analyze (if-else expr) decl-env machine)))
     (ALTERNATIVE predicate-proc
 		 then-proc
 		 else-proc)))
 
-(defun analyze-application (expr decl-env)
+(defun analyze-application (expr decl-env machine)
   (format t "ANALYZE APPLICATION: ~a ~a~%" expr decl-env)
-  (let ((operator-proc (analyze (operator expr) decl-env))
+  (let ((operator-proc (analyze (operator expr) decl-env machine))
 	(operands-procs (mapcar #'(lambda (operand)
-				    (analyze operand decl-env))
+				    (analyze operand decl-env machine))
 				(operands expr))))
     (APPLICATION operator-proc
 		 operands-procs)))
@@ -315,6 +319,7 @@
 			(evaluate-operands operands
 					   (MAKE-FRAME (length operands) ; TODO: length: at compiletime
 						       (compound-procedure-bind-env proc-def)))))
+
 	      ((primitive-procedure-p proc-def)
 	       (apply-primitive-procedure (primitive-procedure-implementation proc-def)
 					  (evaluate-operands operands

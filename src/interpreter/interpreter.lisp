@@ -10,7 +10,8 @@
      (finish-output)
      (print (evaluate-form (read)
 			   (make-initialized-declaration-environment)
-			   (make-initialized-binding-environment)))
+			   (make-initialized-binding-environment)
+			   (make-machine)))
      (finish-output)))
 
 
