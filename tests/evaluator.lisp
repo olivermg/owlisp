@@ -13,6 +13,20 @@
 			(make-machine))
 	 5)))
 
+(test quote
+  (is (eql (evaluate-form ''xyz
+			  (env.d.extend '())
+			  (env.b.extend '())
+			  (make-machine))
+	   'xyz)))
+
+(test reference-unknown
+  (signals simple-error
+    (evaluate-form 'abc
+		   (env.d.extend '())
+		   (env.b.extend '())
+		   (make-machine))))
+
 (test let
   (is (= (evaluate-form '(let ((a 22))
 			  a)
