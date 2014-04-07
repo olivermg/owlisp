@@ -54,8 +54,8 @@
 
 (test lambda-nested-lexical
   (is (= (evaluate-form '(((lambda (a)
-			      (lambda (b)
-				a))
+			     (lambda (b)
+			       a))
 			   22)
 			  11)
 			(env.d.extend '())
