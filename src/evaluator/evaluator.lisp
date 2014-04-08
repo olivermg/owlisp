@@ -54,11 +54,11 @@
 |#
 
 (defun evaluate-form (expr decl-env bind-env machine)
-  (let ((result (funcall (analyze expr decl-env machine)
-			 bind-env)))
+  (let ((analyzed-expr (analyze expr decl-env machine)))
     (format t "~%~%MACHINE DUMP: ~a~%~%"
 	    (send-message machine :get-code))
-    result))
+    (send-message machine :run
+		  bind-env)))
 
 
 
@@ -230,25 +230,34 @@
 
 
 
+(defun add-instruction (machine instruction)
+  (send-message machine :add-instructions
+		(list instruction)))
+
+
+
 (defun analyze-self-evaluating (expr decl-env machine)
   (declare (ignore decl-env))
-  (send-message machine :add-instructions (list (CONSTANT expr)))
-  (CONSTANT expr))
+  (add-instruction machine
+		   (CONSTANT expr)))
 
 (defun analyze-quote (expr decl-env machine)
   (declare (ignore decl-env))
-  (CONSTANT (quoted-text expr)))
+  (add-instruction machine
+		   (CONSTANT (quoted-text expr))))
 
 (defun analyze-variable (expr decl-env machine)
   (format t "ANALYZE-VAR: ~a~%" expr)
   (let ((address (lookup-variable-address expr decl-env)))
-    (REFERENCE address)))
+    (add-instruction machine
+		     (REFERENCE address))))
 
 (defun analyze-lambda (expr decl-env machine)
   (let* ((params (lambda-parameters expr))
 	 (extended-decl-env (env.d.extend params decl-env))
 	 (bodyproc (analyze-sequence (lambda-body expr) extended-decl-env machine)))
-    (ABSTRACTION bodyproc decl-env)))
+    (add-instruction machine
+		     (ABSTRACTION bodyproc decl-env))))
 
 (defun analyze-let (expr decl-env machine)
   (format t "ANALYZE-LET: ~a~%" expr)
@@ -257,15 +266,17 @@
 					  (analyze val-expr decl-env machine))
 				      (let-bindings-vals expr)))
 	 (bodyproc (analyze-sequence (let-body expr) extended-decl-env machine)))
-    (LET-BINDING analyzed-vals-procs bodyproc)))
+    (add-instruction machine
+		     (LET-BINDING analyzed-vals-procs bodyproc))))
 
 (defun analyze-if (expr decl-env machine)
   (let ((predicate-proc (analyze (if-predicate expr) decl-env machine))
 	(then-proc (analyze (if-then expr) decl-env machine))
 	(else-proc (analyze (if-else expr) decl-env machine)))
-    (ALTERNATIVE predicate-proc
-		 then-proc
-		 else-proc)))
+    (add-instruction machine
+		     (ALTERNATIVE predicate-proc
+				  then-proc
+				  else-proc))))
 
 (defun analyze-application (expr decl-env machine)
   (format t "ANALYZE APPLICATION: ~a ~a~%" expr decl-env)
@@ -273,8 +284,10 @@
 	(operands-procs (mapcar #'(lambda (operand)
 				    (analyze operand decl-env machine))
 				(operands expr))))
-    (APPLICATION operator-proc
-		 operands-procs)))
+    (add-instruction machine
+		     (APPLICATION operator-proc
+				  operands-procs
+				  machine))))
 
 
 
@@ -305,33 +318,40 @@
 	(funcall then bind-env)
 	(funcall else bind-env))))
 
-(defun APPLICATION (operator operands)
+(defun APPLICATION (operator operands machine)
   (lambda (bind-env)
+    (break)
     (let ((proc-def (funcall operator bind-env)))
       (labels ((evaluate-operands (operands frame &optional (index 0))
 		 (if operands
 		     (STORE-ARGUMENT (evaluate-operands (rest operands) frame (1+ index)) ; TODO: make tail call
 				     (funcall (first operands) bind-env)
-				     index)
+				     index
+				     machine)
 		     frame)))
 	(cond ((compound-procedure-p proc-def)
 	       (funcall (compound-procedure-body proc-def)
 			(evaluate-operands operands
 					   (MAKE-FRAME (length operands) ; TODO: length: at compiletime
+						       machine
 						       (compound-procedure-bind-env proc-def)))))
 
 	      ((primitive-procedure-p proc-def)
 	       (apply-primitive-procedure (primitive-procedure-implementation proc-def)
 					  (evaluate-operands operands
-							     (MAKE-FRAME (length operands))))) ; TODO: length at compiletime
+							     (MAKE-FRAME (length operands)
+									 machine)))) ; TODO: length at compiletime
 	      (t (error "unknown function")))))))
 
-(defun MAKE-FRAME (size &optional parent-frame)
-  (format t "MAKE-FRAME: ~a ~a~%" size parent-frame)
-  (env.b.extend (make-list size)
-		parent-frame))
+(defun MAKE-FRAME (size machine &optional parent-frame)
+  (lambda (bind-env)
+    (declare (ignore bind-env))
+    (env.b.extend (make-list size)
+		  parent-frame)))
 
-(defun STORE-ARGUMENT (frame value index)
-  (format t "STORE-ARGUMENT: ~a ~a ~a~%" frame value index)
-  (send-message frame :set-value value index)
-  frame)
+(defun STORE-ARGUMENT (frame value index machine)
+  (lambda (bind-env)
+    (declare (ignore bind-env))
+    (send-message machine :push-arg value)
+    (send-message frame :set-value value index)
+    frame))

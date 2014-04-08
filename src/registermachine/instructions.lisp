@@ -8,7 +8,7 @@
   (let ((gp-registers (make-keyvalue-map))
 	(pc '())
 	(callstack '())
-	(csp '())
+	(stack '())
 	(code '())
 	(val nil))
     (labels ((get-register (reg)
@@ -34,18 +34,31 @@
 		     (append (get-code)
 			     instrs)))
 
-	     (step-instruction ()
-	       (let* ((instr (first pc)))
-		 (funcall instr)
+	     (step-instruction (bind-env)
+	       (let ((instr (first pc)))
+		 (setf val
+		       (funcall instr bind-env))
 		 (setf pc
 		       (rest pc))))
 
-	     (run ()
+	     (run (bind-env)
 	       (reset)
 	       (labels ((run-instruction ()
 			  (when pc
-			    (step-instruction)
-			    (run-instruction)))))))
+			    (step-instruction bind-env)
+			    (run-instruction))))
+		 (run-instruction)
+		 val))
+
+	     (push-arg (arg)
+	       (setf stack
+		     (cons arg stack)))
+
+	     (pop-arg ()
+	       (let ((arg (first stack)))
+		 (setf stack
+		       (rest stack))
+		 arg)))
 
       (lambda (action)
 	(case action
