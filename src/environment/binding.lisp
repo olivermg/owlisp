@@ -5,7 +5,6 @@
 
 
 (defun env.b.extend (values &optional parent)
-  (format t "ENV.B.EXTEND: ~a~%" values)
   (let ((bindings (coerce values 'vector)))
     (labels ((lookup-in-frame (varindex)
 	       (if (< varindex (length bindings))
@@ -20,7 +19,6 @@
 		   (error "binding not found")))
 
 	     (lookup (address &optional (current-frameindex 0))
-	       (format t "ENV.B.LOOKUP: ~a ~a~%" address current-frameindex)
 	       (let ((frameindex (first address)))
 		 (if (>= frameindex 0)
 		     (if (= current-frameindex frameindex)
@@ -29,7 +27,6 @@
 		     (error "binding not found"))))
 
 	     (set-value (value varindex) ; TODO: allow address here instead of just varindex?
-	       (format t "ENV.B.SET-VALUE: ~a ~a~%" value varindex)
 	       (setf (svref bindings varindex)
 		     value))
 

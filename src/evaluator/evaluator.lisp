@@ -56,33 +56,47 @@
 (defun evaluate-form (expr decl-env bind-env machine)
   (let ((result (funcall (analyze expr decl-env machine)
 			 bind-env)))
-    (format t "~%~%MACHINE DUMP: ~a~%~%"
-	    (send-message machine :get-code))
     result))
 
 
 
-(defun analyze (expr decl-env machine)
-  (format t "~%ANALYZE: ~A ~A~%" expr decl-env)
-  (cond ((self-evaluating-p expr) (analyze-self-evaluating expr decl-env machine))
-	((quote-p expr) (analyze-quote expr decl-env machine))
-	((variable-p expr) (analyze-variable expr decl-env machine))
-	((lambda-p expr) (analyze-lambda expr decl-env machine))
-	((let-p expr) (analyze-let expr decl-env machine))
-	((if-p expr) (analyze-if expr decl-env machine))
-	((application-p expr) (analyze-application expr decl-env machine))))
+(defparameter *indentation* "")
 
-(defun analyze-sequence (exprs decl-env machine)
-  (let ((procs (mapcar #'(lambda (expr)
-			   (analyze expr decl-env machine))
-		       exprs)))
-    (lambda (bind-env)
-      (let ((last-val nil))
-	(loop
-	   for proc in procs
-	   do (setf last-val
-		    (funcall proc bind-env)))
-	last-val))))
+(defun analyze (expr decl-env machine)
+  (let ((*indentation*
+	 (concatenate 'string *indentation* "  ")))
+    (format t "~a(" *indentation*)
+    (let ((evaluated-expr
+	   (cond ((self-evaluating-p expr)
+		  (format t "SELF-EVALUATING~%")
+		  (analyze-self-evaluating expr decl-env machine))
+
+		 ((quote-p expr)
+		  (format t "QUOTE~%")
+		  (analyze-quote expr decl-env machine))
+
+		 ((variable-p expr)
+		  (format t "VARIABLE~%")
+		  (analyze-variable expr decl-env machine))
+
+		 ((lambda-p expr)
+		  (format t "LAMBDA~%")
+		  (analyze-lambda expr decl-env machine))
+
+		 ((let-p expr)
+		  (format t "LET~%")
+		  (analyze-let expr decl-env machine))
+
+		 ((if-p expr)
+		  (format t "IF~%")
+		  (analyze-if expr decl-env machine))
+
+		 ((application-p expr)
+		  (format t "APPLICATION~%")
+		  (analyze-application expr decl-env machine)))))
+
+      (format t "~a)~%" *indentation*)
+      evaluated-expr)))
 
 #|
 (defun analyze-bindings (bindings decl-env)
@@ -237,7 +251,6 @@
   (CONSTANT (quoted-text expr)))
 
 (defun analyze-variable (expr decl-env machine)
-  (format t "ANALYZE-VAR: ~a~%" expr)
   (let ((address (lookup-variable-address expr decl-env)))
     (REFERENCE address)))
 
@@ -248,7 +261,6 @@
     (ABSTRACTION bodyproc)))
 
 (defun analyze-let (expr decl-env machine)
-  (format t "ANALYZE-LET: ~a~%" expr)
   (let* ((extended-decl-env (env.d.extend (let-bindings-vars expr) decl-env))
 	 (analyzed-vals-procs (mapcar #'(lambda (val-expr)
 					  (analyze val-expr decl-env machine))
@@ -265,13 +277,24 @@
 		 else-proc)))
 
 (defun analyze-application (expr decl-env machine)
-  (format t "ANALYZE APPLICATION: ~a ~a~%" expr decl-env)
   (let ((operator-proc (analyze (operator expr) decl-env machine))
 	(operands-procs (mapcar #'(lambda (operand)
 				    (analyze operand decl-env machine))
 				(operands expr))))
     (APPLICATION operator-proc
 		 operands-procs)))
+
+(defun analyze-sequence (exprs decl-env machine)
+  (let ((procs (mapcar #'(lambda (expr)
+			   (analyze expr decl-env machine))
+		       exprs)))
+    (lambda (bind-env)
+      (let ((last-val nil))
+	(loop
+	   for proc in procs
+	   do (setf last-val
+		    (funcall proc bind-env)))
+	last-val))))
 
 
 
@@ -324,11 +347,9 @@
 	      (t (error "unknown function")))))))
 
 (defun MAKE-FRAME (size &optional parent-frame)
-  (format t "MAKE-FRAME: ~a ~a~%" size parent-frame)
   (env.b.extend (make-list size)
 		parent-frame))
 
 (defun STORE-ARGUMENT (frame value index)
-  (format t "STORE-ARGUMENT: ~a ~a ~a~%" frame value index)
   (send-message frame :set-value value index)
   frame)

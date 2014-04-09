@@ -5,7 +5,6 @@
 
 
 (defun env.d.extend (names &optional parent)
-  (format t "ENV.D.EXTEND: ~a~%" names)
   (let ((declarations (coerce (mapcar #'symbol-name names)
 			      'vector)))
     (labels ((address-in-parent (name frameindex)
@@ -15,7 +14,6 @@
 				 (1+ frameindex))
 		   (error "unknown declaration")))
 	     (address (name &optional (frameindex 0))
-	       (format t "ENV.D.ADDRESS: ~a ~a~%" name frameindex)
 	       (let ((varindex (position (symbol-name name)
 					 declarations
 					 :test #'string-equal)))
