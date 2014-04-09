@@ -65,37 +65,37 @@
 (defun analyze (expr decl-env machine)
   (let ((*indentation*
 	 (concatenate 'string *indentation* "  ")))
-    (format t "~a(" *indentation*)
+    (format t "~%~a(" *indentation*)
     (let ((evaluated-expr
 	   (cond ((self-evaluating-p expr)
-		  (format t "SELF-EVALUATING~%")
+		  (format t "SELF-EVALUATING")
 		  (analyze-self-evaluating expr decl-env machine))
 
 		 ((quote-p expr)
-		  (format t "QUOTE~%")
+		  (format t "QUOTE")
 		  (analyze-quote expr decl-env machine))
 
 		 ((variable-p expr)
-		  (format t "VARIABLE~%")
+		  (format t "VARIABLE")
 		  (analyze-variable expr decl-env machine))
 
 		 ((lambda-p expr)
-		  (format t "LAMBDA~%")
+		  (format t "LAMBDA")
 		  (analyze-lambda expr decl-env machine))
 
 		 ((let-p expr)
-		  (format t "LET~%")
+		  (format t "LET")
 		  (analyze-let expr decl-env machine))
 
 		 ((if-p expr)
-		  (format t "IF~%")
+		  (format t "IF")
 		  (analyze-if expr decl-env machine))
 
 		 ((application-p expr)
-		  (format t "APPLICATION~%")
+		  (format t "APPLICATION")
 		  (analyze-application expr decl-env machine)))))
 
-      (format t "~a)~%" *indentation*)
+      (format t ")")
       evaluated-expr)))
 
 #|
