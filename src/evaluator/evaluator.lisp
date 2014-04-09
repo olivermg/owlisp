@@ -181,17 +181,14 @@
 (defun operands (expr)
   (rest expr))
 
-(defun make-compound-procedure (decl-env bind-env body)
-  (list 'compound-procedure decl-env bind-env body))
-
-(defun compound-procedure-decl-env (proc-definition)
-  (second proc-definition))
+(defun make-compound-procedure (bind-env body)
+  (list 'compound-procedure bind-env body))
 
 (defun compound-procedure-bind-env (proc-definition)
-  (third proc-definition))
+  (second proc-definition))
 
 (defun compound-procedure-body (proc-definition)
-  (fourth proc-definition))
+  (third proc-definition))
 
 (defun primitive-procedure-implementation (proc-definition)
   (second proc-definition))
@@ -232,7 +229,7 @@
 
 (defun analyze-self-evaluating (expr decl-env machine)
   (declare (ignore decl-env))
-  (send-message machine :add-instructions (list (CONSTANT expr)))
+;  (send-message machine :add-instructions (list (CONSTANT expr)))
   (CONSTANT expr))
 
 (defun analyze-quote (expr decl-env machine)
@@ -248,7 +245,7 @@
   (let* ((params (lambda-parameters expr))
 	 (extended-decl-env (env.d.extend params decl-env))
 	 (bodyproc (analyze-sequence (lambda-body expr) extended-decl-env machine)))
-    (ABSTRACTION bodyproc decl-env)))
+    (ABSTRACTION bodyproc)))
 
 (defun analyze-let (expr decl-env machine)
   (format t "ANALYZE-LET: ~a~%" expr)
@@ -287,9 +284,9 @@
   (lambda (bind-env)
     (lookup-variable-value address bind-env)))
 
-(defun ABSTRACTION (body decl-env)
+(defun ABSTRACTION (body)
   (lambda (bind-env)
-    (make-compound-procedure decl-env bind-env body)))
+    (make-compound-procedure bind-env body)))
 
 (defun LET-BINDING (bound-values-procs body)
   (lambda (bind-env)
