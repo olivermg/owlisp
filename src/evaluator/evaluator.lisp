@@ -129,9 +129,6 @@
 	(if (symbolp head)
 	    (symbol-name-equals head tag)))))
 
-(defun compound-procedure-p (expr)
-  (is-tagged-list expr :compound-procedure))
-
 (defun primitive-procedure-p (expr)
   (is-tagged-list expr :primitive-procedure))
 
@@ -187,15 +184,6 @@
 
 (defun operands (expr)
   (rest expr))
-
-(defun make-compound-procedure (bind-env body)
-  (list 'compound-procedure bind-env body))
-
-(defun compound-procedure-bind-env (proc-definition)
-  (second proc-definition))
-
-(defun compound-procedure-body (proc-definition)
-  (third proc-definition))
 
 (defun primitive-procedure-implementation (proc-definition)
   (second proc-definition))
@@ -303,7 +291,8 @@
 
 (defun ABSTRACTION (body)
   (lambda (bind-env)
-    (make-compound-procedure bind-env body)))
+    (lambda (evaluated-args)
+      (funcall body (env.b.extend evaluated-args bind-env)))))
 
 (defun LET-BINDING (bound-values-procs body)
   (lambda (bind-env)
@@ -328,11 +317,10 @@
 				     (funcall (first operands) bind-env)
 				     index)
 		     frame)))
-	(cond ((compound-procedure-p proc-def)
-	       (funcall (compound-procedure-body proc-def)
-			(evaluate-operands operands
-					   (MAKE-FRAME (length operands) ; TODO: length: at compiletime
-						       (compound-procedure-bind-env proc-def)))))
+	(cond ((functionp proc-def)
+	       (funcall proc-def (mapcar #'(lambda (operand)
+					     (funcall operand bind-env))
+					 operands)))
 
 	      ((primitive-procedure-p proc-def)
 	       (apply-primitive-procedure (primitive-procedure-implementation proc-def)
