@@ -311,21 +311,25 @@
 (defun APPLICATION (operator operands)
   (lambda (bind-env)
     (let ((proc-def (funcall operator bind-env)))
-      (labels ((evaluate-operands (operands frame &optional (index 0))
+      (labels ((evaluate-operands-env (operands frame &optional (index 0))
 		 (if operands
-		     (STORE-ARGUMENT (evaluate-operands (rest operands) frame (1+ index)) ; TODO: make tail call
+		     (STORE-ARGUMENT (evaluate-operands-env (rest operands) frame (1+ index)) ; TODO: make tail call
 				     (funcall (first operands) bind-env)
 				     index)
-		     frame)))
+		     frame))
+
+	       (evaluate-operands (operands) ; TODO: make this recursive (separate operands into combinator calls)
+		 (mapcar #'(lambda (operand)
+			     (funcall operand bind-env))
+			 operands)))
+
 	(cond ((functionp proc-def)
-	       (funcall proc-def (mapcar #'(lambda (operand)
-					     (funcall operand bind-env))
-					 operands)))
+	       (funcall proc-def (evaluate-operands operands)))
 
 	      ((primitive-procedure-p proc-def)
 	       (apply-primitive-procedure (primitive-procedure-implementation proc-def)
-					  (evaluate-operands operands
-							     (MAKE-FRAME (length operands))))) ; TODO: length at compiletime
+					  (evaluate-operands-env operands
+								 (MAKE-FRAME (length operands))))) ; TODO: length at compiletime
 	      (t (error "unknown function")))))))
 
 (defun MAKE-FRAME (size &optional parent-frame)
