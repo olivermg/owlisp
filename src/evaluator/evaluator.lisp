@@ -319,12 +319,12 @@
 		     frame))
 
 	       (evaluate-operands (operands) ; TODO: make this recursive (separate operands into combinator calls)
-		 (mapcar #'(lambda (operand)
-			     (funcall operand bind-env))
-			 operands)))
+		 (if operands
+		     (STORE-ARGUMENT-2 (funcall (first operands) bind-env)
+				       (evaluate-operands (rest operands)))))) ; TODO: make tail call
 
 	(cond ((functionp proc-def)
-	       (funcall proc-def (evaluate-operands operands)))
+	       (funcall proc-def (evaluate-operands (MAKE-FRAME-2 operands))))
 
 	      ((primitive-procedure-p proc-def)
 	       (apply-primitive-procedure (primitive-procedure-implementation proc-def)
@@ -336,9 +336,15 @@
   (env.b.extend (make-list size)
 		parent-frame))
 
+(defun MAKE-FRAME-2 (operands)
+  operands)
+
 (defun STORE-ARGUMENT (frame value index)
   (send-message frame :set-value value index)
   frame)
+
+(defun STORE-ARGUMENT-2 (value other-values)
+  (cons value other-values))
 
 (defun SEQUENCE_ (body)
   (lambda (bind-env)
