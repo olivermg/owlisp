@@ -311,39 +311,30 @@
 (defun APPLICATION (operator operands)
   (lambda (bind-env)
     (let ((proc-def (funcall operator bind-env)))
-      (labels ((evaluate-operands-env (operands frame &optional (index 0))
+      (labels ((evaluate-operands (operands) ; TODO: make this recursive (separate operands into combinator calls)
 		 (if operands
-		     (STORE-ARGUMENT (evaluate-operands-env (rest operands) frame (1+ index)) ; TODO: make tail call
-				     (funcall (first operands) bind-env)
-				     index)
-		     frame))
-
-	       (evaluate-operands (operands) ; TODO: make this recursive (separate operands into combinator calls)
-		 (if operands
-		     (STORE-ARGUMENT-2 (funcall (first operands) bind-env)
+		     (STORE-ARGUMENT (funcall (first operands) bind-env)
 				       (evaluate-operands (rest operands)))))) ; TODO: make tail call
 
 	(cond ((functionp proc-def)
-	       (funcall proc-def (evaluate-operands (MAKE-FRAME-2 operands))))
+	       (funcall proc-def (evaluate-operands (MAKE-FRAME operands))))
 
-	      ((primitive-procedure-p proc-def)
-	       (apply-primitive-procedure (primitive-procedure-implementation proc-def)
-					  (evaluate-operands-env operands
-								 (MAKE-FRAME (length operands))))) ; TODO: length at compiletime
 	      (t (error "unknown function")))))))
 
+#|
 (defun MAKE-FRAME (size &optional parent-frame)
   (env.b.extend (make-list size)
 		parent-frame))
 
-(defun MAKE-FRAME-2 (operands)
-  operands)
-
 (defun STORE-ARGUMENT (frame value index)
   (send-message frame :set-value value index)
   frame)
+|#
 
-(defun STORE-ARGUMENT-2 (value other-values)
+(defun MAKE-FRAME (operands)
+  operands)
+
+(defun STORE-ARGUMENT (value other-values)
   (cons value other-values))
 
 (defun SEQUENCE_ (body)

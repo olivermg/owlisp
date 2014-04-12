@@ -42,8 +42,8 @@
 
 (defun primitive-procedure-objects ()
   (mapcar #'(lambda (proc-impl)
-	      (list 'primitive-procedure
-		    proc-impl))
+	      (lambda (args)
+		(cl:apply proc-impl args)))
 	  (primitive-procedure-implementations)))
 
 
