@@ -311,7 +311,7 @@
 (defun APPLICATION (operator operands)
   (lambda (bind-env)
     (let ((proc-def (funcall operator bind-env)))
-      (labels ((evaluate-operands (operands) ; TODO: make this recursive (separate operands into combinator calls)
+      (labels ((evaluate-operands (operands)
 		 (if operands
 		     (STORE-ARGUMENT (funcall (first operands) bind-env)
 				       (evaluate-operands (rest operands)))))) ; TODO: make tail call
