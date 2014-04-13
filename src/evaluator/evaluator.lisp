@@ -54,9 +54,9 @@
 |#
 
 (defun evaluate-form (expr decl-env bind-env machine)
-  (let ((result (funcall (analyze expr decl-env machine)
-			 bind-env)))
-    result))
+  (let ((analyzed-expr (analyze expr decl-env machine)))
+    (send-message machine :run
+		  bind-env)))
 
 
 
@@ -222,20 +222,31 @@
 
 
 
+(defun add-instruction (machine instruction)
+  (send-message machine :add-instructions
+		(list instruction)))
+
+
+
 (defun analyze-self-evaluating (expr decl-env machine)
   (declare (ignore decl-env))
   (format t "CONSTANT ~a" expr)
-;  (send-message machine :add-instructions (list (CONSTANT expr)))
+  (add-instruction machine
+		   (CONSTANT expr))
   (CONSTANT expr))
 
 (defun analyze-quote (expr decl-env machine)
   (declare (ignore decl-env))
   (format t "CONSTANT ~a" (quoted-text expr))
+  (add-instruction machine
+		   (CONSTANT (quoted-text expr)))
   (CONSTANT (quoted-text expr)))
 
 (defun analyze-variable (expr decl-env machine)
   (let ((address (lookup-variable-address expr decl-env)))
     (format t "REFERENCE ~a" address)
+    (add-instruction machine
+		     (REFERENCE address))
     (REFERENCE address)))
 
 (defun analyze-lambda (expr decl-env machine)
@@ -243,6 +254,8 @@
   (let* ((params (lambda-parameters expr))
 	 (extended-decl-env (env.d.extend params decl-env))
 	 (bodyproc (analyze-sequence (lambda-body expr) extended-decl-env machine)))
+    (add-instruction machine
+		     (ABSTRACTION bodyproc))
     (ABSTRACTION bodyproc)))
 
 (defun analyze-let (expr decl-env machine)
@@ -252,6 +265,8 @@
 					  (analyze val-expr decl-env machine))
 				      (let-bindings-vals expr)))
 	 (bodyproc (analyze-sequence (let-body expr) extended-decl-env machine)))
+    (add-instruction machine
+		     (LET-BINDING analyzed-vals-procs bodyproc))
     (LET-BINDING analyzed-vals-procs bodyproc)))
 
 (defun analyze-if (expr decl-env machine)
@@ -259,6 +274,10 @@
   (let ((predicate-proc (analyze (if-predicate expr) decl-env machine))
 	(then-proc (analyze (if-then expr) decl-env machine))
 	(else-proc (analyze (if-else expr) decl-env machine)))
+    (add-instruction machine
+		     (ALTERNATIVE predicate-proc
+				  then-proc
+				  else-proc))
     (ALTERNATIVE predicate-proc
 		 then-proc
 		 else-proc)))
@@ -269,6 +288,9 @@
 	(operands-procs (mapcar #'(lambda (operand)
 				    (analyze operand decl-env machine))
 				(operands expr))))
+    (add-instruction machine
+		     (APPLICATION operator-proc
+				  operands-procs))
     (APPLICATION operator-proc
 		 operands-procs)))
 
@@ -276,6 +298,8 @@
   (let ((procs (mapcar #'(lambda (expr)
 			   (analyze expr decl-env machine))
 		       exprs)))
+    (add-instruction machine
+		     (SEQUENCE_ procs))
     (SEQUENCE_ procs)))
 
 
