@@ -263,7 +263,8 @@
 	 (extended-decl-env (env.d.extend params decl-env))
 	 (bodyproc (analyze-sequence (lambda-body expr) extended-decl-env machine)))
     (add-instruction machine
-		     (ABSTRACTION bodyproc))))
+		     (ABSTRACTION machine
+				  bodyproc))))
 
 (defun analyze-let (expr decl-env machine)
   (format t "LET-BINDING ...")
@@ -292,7 +293,8 @@
 				    (analyze operand decl-env machine))
 				(operands expr))))
     (add-instruction machine
-		     (APPLICATION operator-proc
+		     (APPLICATION machine
+				  operator-proc
 				  operands-procs))))
 
 (defun analyze-sequence (exprs decl-env machine)
@@ -313,10 +315,15 @@
   (lambda (bind-env)
     (lookup-variable-value address bind-env)))
 
-(defun ABSTRACTION (body)
+(defun ABSTRACTION (machine body)
   (lambda (bind-env)
-    (lambda (evaluated-args)
-      (funcall body (env.b.extend evaluated-args bind-env)))))
+    (lambda ()
+      (labels ((fetch-args ()
+		 (let ((arg (GET-ARGUMENT machine))) ; TODO: find sensible criteria for arity
+		   (if arg
+		       (cons arg (fetch-args)))))) ; TODO: make tail call
+	(funcall body (env.b.extend (fetch-args)
+				    bind-env))))))
 
 (defun LET-BINDING (bound-values-procs body)
   (lambda (bind-env)
@@ -332,16 +339,18 @@
 	(funcall then bind-env)
 	(funcall else bind-env))))
 
-(defun APPLICATION (operator operands)
+(defun APPLICATION (machine operator operands)
   (lambda (bind-env)
     (let ((proc-def (funcall operator bind-env)))
       (labels ((evaluate-operands (operands)
-		 (if operands
-		     (STORE-ARGUMENT (funcall (first operands) bind-env)
-				       (evaluate-operands (rest operands)))))) ; TODO: make tail call
+		 (when operands
+		   (STORE-ARGUMENT machine
+				   (funcall (first operands) bind-env))
+		   (evaluate-operands (rest operands))))) ; TODO: make tail call
 
 	(cond ((functionp proc-def)
-	       (funcall proc-def (evaluate-operands (MAKE-FRAME operands))))
+	       (evaluate-operands (MAKE-FRAME operands))
+	       (funcall proc-def))
 
 	      (t (error "unknown function")))))))
 
@@ -358,8 +367,12 @@
 (defun MAKE-FRAME (operands)
   operands)
 
-(defun STORE-ARGUMENT (value other-values)
-  (cons value other-values))
+(defun STORE-ARGUMENT (machine value)
+  (put-arg machine
+	   value))
+
+(defun GET-ARGUMENT (machine)
+  (get-arg machine))
 
 (defun SEQUENCE_ (body)
   (lambda (bind-env)
