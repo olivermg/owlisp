@@ -53,8 +53,7 @@
 
 	     (push-arg (arg)
 	       (setf stack
-		     (cons arg stack))
-	       stack)
+		     (cons arg stack)))
 
 	     (pop-arg ()
 	       (let ((arg (first stack)))
