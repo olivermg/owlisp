@@ -54,7 +54,8 @@
 |#
 
 (defun evaluate-form (expr decl-env bind-env machine)
-  (let ((result (funcall (analyze expr decl-env machine)
+  (declare (ignore machine))
+  (let ((result (funcall (analyze expr decl-env)
 			 bind-env)))
     result))
 
@@ -62,31 +63,31 @@
 
 (defparameter *indentation* "")
 
-(defun analyze (expr decl-env machine)
+(defun analyze (expr decl-env)
   (let ((*indentation*
 	 (concatenate 'string *indentation* "  ")))
     (format t "~%~a(" *indentation*)
     (let ((evaluated-expr
 	   (cond ((self-evaluating-p expr)
-		  (analyze-self-evaluating expr decl-env machine))
+		  (analyze-self-evaluating expr decl-env))
 
 		 ((quote-p expr)
-		  (analyze-quote expr decl-env machine))
+		  (analyze-quote expr decl-env))
 
 		 ((variable-p expr)
-		  (analyze-variable expr decl-env machine))
+		  (analyze-variable expr decl-env))
 
 		 ((lambda-p expr)
-		  (analyze-lambda expr decl-env machine))
+		  (analyze-lambda expr decl-env))
 
 		 ((let-p expr)
-		  (analyze-let expr decl-env machine))
+		  (analyze-let expr decl-env))
 
 		 ((if-p expr)
-		  (analyze-if expr decl-env machine))
+		  (analyze-if expr decl-env))
 
 		 ((application-p expr)
-		  (analyze-application expr decl-env machine)))))
+		  (analyze-application expr decl-env)))))
 
       (format t ")")
       evaluated-expr)))
@@ -117,9 +118,11 @@
 		  :name proc-def))))
 |#
 
+#|
 (defun apply-primitive-procedure (implementation bind-env)
   (cl:apply implementation
 	    (send-message bind-env :get-current-bindings)))
+|#
 
 
 
@@ -129,8 +132,10 @@
 	(if (symbolp head)
 	    (symbol-name-equals head tag)))))
 
+#|
 (defun primitive-procedure-p (expr)
   (is-tagged-list expr :primitive-procedure))
+|#
 
 (defun self-evaluating-p (expr)
   (or
@@ -185,8 +190,10 @@
 (defun operands (expr)
   (rest expr))
 
+#|
 (defun primitive-procedure-implementation (proc-definition)
   (second proc-definition))
+|#
 
 #|
 (defun let-environment (bindings base-env)
@@ -222,59 +229,58 @@
 
 
 
-(defun analyze-self-evaluating (expr decl-env machine)
+(defun analyze-self-evaluating (expr decl-env)
   (declare (ignore decl-env))
   (format t "CONSTANT ~a" expr)
-;  (send-message machine :add-instructions (list (CONSTANT expr)))
   (CONSTANT expr))
 
-(defun analyze-quote (expr decl-env machine)
+(defun analyze-quote (expr decl-env)
   (declare (ignore decl-env))
   (format t "CONSTANT ~a" (quoted-text expr))
   (CONSTANT (quoted-text expr)))
 
-(defun analyze-variable (expr decl-env machine)
+(defun analyze-variable (expr decl-env)
   (let ((address (lookup-variable-address expr decl-env)))
     (format t "REFERENCE ~a" address)
     (REFERENCE address)))
 
-(defun analyze-lambda (expr decl-env machine)
+(defun analyze-lambda (expr decl-env)
   (format t "ABSTRACTION ...")
   (let* ((params (lambda-parameters expr))
 	 (extended-decl-env (env.d.extend params decl-env))
-	 (bodyproc (analyze-sequence (lambda-body expr) extended-decl-env machine)))
+	 (bodyproc (analyze-sequence (lambda-body expr) extended-decl-env)))
     (ABSTRACTION bodyproc)))
 
-(defun analyze-let (expr decl-env machine)
+(defun analyze-let (expr decl-env)
   (format t "LET-BINDING ...")
   (let* ((extended-decl-env (env.d.extend (let-bindings-vars expr) decl-env))
 	 (analyzed-vals-procs (mapcar #'(lambda (val-expr)
-					  (analyze val-expr decl-env machine))
+					  (analyze val-expr decl-env))
 				      (let-bindings-vals expr)))
-	 (bodyproc (analyze-sequence (let-body expr) extended-decl-env machine)))
+	 (bodyproc (analyze-sequence (let-body expr) extended-decl-env)))
     (LET-BINDING analyzed-vals-procs bodyproc)))
 
-(defun analyze-if (expr decl-env machine)
+(defun analyze-if (expr decl-env)
   (format t "ALTERNATIVE ...")
-  (let ((predicate-proc (analyze (if-predicate expr) decl-env machine))
-	(then-proc (analyze (if-then expr) decl-env machine))
-	(else-proc (analyze (if-else expr) decl-env machine)))
+  (let ((predicate-proc (analyze (if-predicate expr) decl-env))
+	(then-proc (analyze (if-then expr) decl-env))
+	(else-proc (analyze (if-else expr) decl-env)))
     (ALTERNATIVE predicate-proc
 		 then-proc
 		 else-proc)))
 
-(defun analyze-application (expr decl-env machine)
+(defun analyze-application (expr decl-env)
   (format t "APPLICATION ...")
-  (let ((operator-proc (analyze (operator expr) decl-env machine))
+  (let ((operator-proc (analyze (operator expr) decl-env))
 	(operands-procs (mapcar #'(lambda (operand)
-				    (analyze operand decl-env machine))
+				    (analyze operand decl-env))
 				(operands expr))))
     (APPLICATION operator-proc
 		 operands-procs)))
 
-(defun analyze-sequence (exprs decl-env machine)
+(defun analyze-sequence (exprs decl-env)
   (let ((procs (mapcar #'(lambda (expr)
-			   (analyze expr decl-env machine))
+			   (analyze expr decl-env))
 		       exprs)))
     (SEQUENCE_ procs)))
 
