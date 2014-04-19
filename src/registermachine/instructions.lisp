@@ -1,6 +1,7 @@
 (in-package :owlisp/register)
 
 (export '(make-machine
+	  make-default-machine
 	  define-opcode
 	  define-opcode-set))
 
@@ -13,6 +14,7 @@
 ;	(csp '())
 	(code '())
 	(val nil)
+	(stack '())
 	(interpretation-fn nil))
     (labels ((get-register (reg)
 	       (lookup-in-keyvalue-map gp-registers
@@ -29,8 +31,26 @@
 	     ((setf get-code) (val)
 	       (setf code val))
 
+	     (get-val ()
+	       val)
+
+	     ((setf get-val) (new-val)
+	       (setf val new-val))
+
+	     (push-stack (value)
+	       (setf stack
+		     (cons value stack)))
+
+	     (pop-stack ()
+	       (let ((value (first stack)))
+		 (setf stack
+		       (rest stack))
+		 value))
+
 	     (reset ()
-	       (setf pc code))
+	       (setf pc code)
+	       (setf stack '())
+	       (setf val nil))
 
 	     (add-instructions (instrs)
 	       (setf (get-code)
@@ -87,9 +107,14 @@
 	  (:get-register #'get-register)
 	  (:set-register #'(lambda (reg val)
 			     (setf (get-register reg) val)))
+	  (:get-val #'get-val)
+	  (:set-val #'(lambda (new-val)
+			(setf (get-val) new-val)))
 	  (:get-code #'get-code)
 	  (:set-code #'(lambda (new-code)
 			 (setf (get-code) new-code)))
+	  (:push #'push-stack)
+	  (:pop #'pop-stack)
 	  (:reset #'reset)
 	  (:disassemble-all #'disassemble-all)
 	  (:step-instruction #'step-instruction)
@@ -99,7 +124,7 @@
 	  (:run #'run)
 	  (:next-byte #'next-byte)
 	  (:print #'(lambda ()
-		      (format t "pc:~a~%code:~a~%" pc code)
+		      (format t "val:~a~%pc:~a~%code:~a~%stack:~a~%" val pc code stack)
 		      (maphash #'(lambda (k v)
 				   (format t "~a:~a~%" k v))
 			       gp-registers))))))))
@@ -137,7 +162,21 @@
 				`((,code) (step-instruction ,machine ,args ,@body))))
 		       (t (error "unknown opcode ~a" ,opcode)))))))
 
-#|
-(defmacro define-opcode (name code (&rest args) &body body)
-  `(list ,name ,code ,args ,body))
-|#
+
+(defun make-default-machine ()
+  (let ((machine (make-machine)))
+    (define-opcode-set machine
+
+      (define-opcode PUSH #x01 ()
+	(send-message machine :push
+		      (send-message machine :get-val)))
+
+      (define-opcode POP #x02 ()
+	(send-message machine :set-val
+		      (send-message machine :pop)))
+
+      (define-opcode CONSTANT #x10 (value)
+	(send-message machine :set-val
+		      value)))
+
+    machine))
