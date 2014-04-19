@@ -80,7 +80,13 @@
 
 	     (set-run (implementation)
 	       (setf run-fn
-		     implementation)))
+		     implementation))
+
+	     (next-byte ()
+	       (let ((byte (car pc)))
+		 (setf pc
+		       (rest pc))
+		 byte)))
 
       (setf run-fn #'run)
 
@@ -98,14 +104,20 @@
 	  (:add-instructions #'add-instructions)
 	  (:run run-fn)
 	  (:set-run #'set-run)
+	  (:next-byte #'next-byte)
 	  (:print #'(lambda ()
 		      (format t "pc:~a~%code:~a~%" pc code)
 		      (maphash #'(lambda (k v)
 				   (format t "~a:~a~%" k v))
 			       gp-registers))))))))
 
-(defmacro step-instruction ((&rest args) &body body)
-  `(funcall (lambda ,args ,@body) 1 2))
+(defmacro step-instruction (machine (&rest args) &body body)
+  (case (length args)
+    (0 `(funcall (lambda () ,@body)))
+    (1 `(funcall (lambda ,args ,@body) (send-message ,machine :next-byte)))
+    (2 `(funcall (lambda ,args ,@body) (send-message ,machine :next-byte)
+		 (send-message ,machine :next-byte)))
+    (t (error "can't handle opcode with ~a arguments" (length args)))))
 
 (defmacro define-opcode-set (machine &body body)
   (let ((instruction (gensym)))
@@ -118,15 +130,15 @@
 		      (define-opcode name code (&rest args) &body body)
 		    opcode-definition
 
+		  (declare (type integer code))
 		  (if (not (equal (symbol-name define-opcode)
 				  "DEFINE-OPCODE"))
 		      (error "unknown expression for define-opcode-set: ~a" define-opcode))
-		  (if (or (not (integerp code))
-			  (< code 0)
+		  (if (or (< code 0)
 			  (> code 255))
 		      (error "code must be an integer between 0 and 255"))
 
-		  `((,code) (step-instruction ,args ,@body))))))))
+		  `((,code) (step-instruction ,machine ,args ,@body))))))))
 
 #|
 (defmacro define-opcode (name code (&rest args) &body body)
