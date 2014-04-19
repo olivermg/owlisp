@@ -9,11 +9,11 @@
 (defun make-machine ()
   (let ((gp-registers (make-keyvalue-map))
 	(pc '())
-	(callstack '())
-	(csp '())
+;	(callstack '())
+;	(csp '())
 	(code '())
 	(val nil)
-	(run-fn nil))
+	(interpretation-fn nil))
     (labels ((get-register (reg)
 	       (lookup-in-keyvalue-map gp-registers
 				       reg))
@@ -64,31 +64,23 @@
 		   result)))
 
 	     (step-instruction ()
-	       (let* ((instr (first pc)))
-		 (format t "DISASSEMBLY OF ~a: ~a~%" instr (disassemble-instruction instr))
-;		 (funcall instr)
-		 (setf pc
-		       (rest pc))))
+		 (funcall interpretation-fn (next-byte)))
 
 	     (run ()
 	       (reset)
 	       (labels ((run-instruction ()
 			  (when pc
-			    (step-instruction)
-			    (run-instruction))))
+			    (setf val
+				  (step-instruction))
+			    (run-instruction)
+			    val)))
 		 (run-instruction)))
-
-	     (set-run (implementation)
-	       (setf run-fn
-		     implementation))
 
 	     (next-byte ()
 	       (let ((byte (car pc)))
 		 (setf pc
 		       (rest pc))
 		 byte)))
-
-      (setf run-fn #'run)
 
       (lambda (action)
 	(case action
@@ -101,9 +93,10 @@
 	  (:reset #'reset)
 	  (:disassemble-all #'disassemble-all)
 	  (:step-instruction #'step-instruction)
+	  (:set-interpretation-fn #'(lambda (fn)
+				      (setf interpretation-fn fn)))
 	  (:add-instructions #'add-instructions)
-	  (:run run-fn)
-	  (:set-run #'set-run)
+	  (:run #'run)
 	  (:next-byte #'next-byte)
 	  (:print #'(lambda ()
 		      (format t "pc:~a~%code:~a~%" pc code)
@@ -112,31 +105,37 @@
 			       gp-registers))))))))
 
 (defmacro step-instruction (machine (&rest args) &body body)
-  `(let ((param-bytes (loop
-			 for arg in ',args
-			 collect (send-message ,machine :next-byte))))
-     (apply (lambda ,args ,@body) param-bytes)))
+  (let ((param-bytes (gensym))
+	(iteration-arg (gensym)))
+    `(let ((,param-bytes (loop
+			   for ,iteration-arg in ',args
+			   collect (send-message ,machine :next-byte))))
+       (apply #'(lambda ,args ,@body) ,param-bytes))))
 
 (defmacro define-opcode-set (machine &body body)
-  (let ((instruction (gensym)))
-    `(lambda (,instruction)
-       (case ,instruction
-	 ,@(loop
-	      for opcode-definition in body
-	      collect
-		(destructuring-bind
-		      (define-opcode name code (&rest args) &body body)
-		    opcode-definition
+  (let ((opcode (gensym)))
+    `(send-message ,machine :set-interpretation-fn
+		   (lambda (,opcode)
+		     (case ,opcode
+		       ,@(loop
+			    for opcode-definition in body
+			    collect
+			      (destructuring-bind
+				    (define-opcode name code (&rest args) &body body)
+				  opcode-definition
 
-		  (declare (type integer code))
-		  (if (not (equal (symbol-name define-opcode)
-				  "DEFINE-OPCODE"))
-		      (error "unknown expression for define-opcode-set: ~a" define-opcode))
-		  (if (or (< code 0)
-			  (> code 255))
-		      (error "code must be an integer between 0 and 255"))
+				(declare (type integer code)
+					 (ignore name))
+				(if (not (equal (symbol-name define-opcode)
+						"DEFINE-OPCODE"))
+				    (error "unknown expression for define-opcode-set: ~a"
+					   define-opcode))
+				(if (or (< code 0)
+					(> code 255))
+				    (error "code must be an integer between 0 and 255"))
 
-		  `((,code) (step-instruction ,machine ,args ,@body))))))))
+				`((,code) (step-instruction ,machine ,args ,@body))))
+		       (t (error "unknown opcode ~a" ,opcode)))))))
 
 #|
 (defmacro define-opcode (name code (&rest args) &body body)
