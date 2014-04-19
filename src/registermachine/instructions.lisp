@@ -1,6 +1,8 @@
 (in-package :owlisp/register)
 
-(export '(make-machine))
+(export '(make-machine
+	  define-opcode
+	  define-opcode-set))
 
 
 
@@ -10,7 +12,8 @@
 	(callstack '())
 	(csp '())
 	(code '())
-	(val nil))
+	(val nil)
+	(run-fn nil))
     (labels ((get-register (reg)
 	       (lookup-in-keyvalue-map gp-registers
 				       reg))
@@ -34,9 +37,36 @@
 		     (append (get-code)
 			     instrs)))
 
+	     (disassemble-instruction (opcode)
+	       (case opcode
+		 ((10) 'constant)
+		 ((11) 'reference)
+		 ((12) 'abstraction)
+		 ((13) 'let)
+		 ((14) 'alternative)
+		 ((15) 'application)
+		 ((16) 'sequence)
+		 ((nil) nil)
+		 (t opcode)))
+
+	     (disassemble-all ()
+	       (reset)
+	       (labels ((disassemble-step (disassembly)
+			  (let ((cur-instr (first pc)))
+			    (setf pc
+				  (rest pc))
+			    (if cur-instr
+				(disassemble-step
+				 (cons (disassemble-instruction cur-instr)
+				       disassembly))
+				disassembly))))
+		 (let ((result (disassemble-step '())))
+		   result)))
+
 	     (step-instruction ()
 	       (let* ((instr (first pc)))
-		 (funcall instr)
+		 (format t "DISASSEMBLY OF ~a: ~a~%" instr (disassemble-instruction instr))
+;		 (funcall instr)
 		 (setf pc
 		       (rest pc))))
 
@@ -45,7 +75,14 @@
 	       (labels ((run-instruction ()
 			  (when pc
 			    (step-instruction)
-			    (run-instruction)))))))
+			    (run-instruction))))
+		 (run-instruction)))
+
+	     (set-run (implementation)
+	       (setf run-fn
+		     implementation)))
+
+      (setf run-fn #'run)
 
       (lambda (action)
 	(case action
@@ -56,11 +93,42 @@
 	  (:set-code #'(lambda (new-code)
 			 (setf (get-code) new-code)))
 	  (:reset #'reset)
+	  (:disassemble-all #'disassemble-all)
 	  (:step-instruction #'step-instruction)
 	  (:add-instructions #'add-instructions)
-	  (:run #'run)
+	  (:run run-fn)
+	  (:set-run #'set-run)
 	  (:print #'(lambda ()
 		      (format t "pc:~a~%code:~a~%" pc code)
 		      (maphash #'(lambda (k v)
 				   (format t "~a:~a~%" k v))
 			       gp-registers))))))))
+
+(defmacro step-instruction ((&rest args) &body body)
+  `(funcall (lambda ,args ,@body) 1 2))
+
+(defmacro define-opcode-set (machine &body body)
+  (let ((instruction (gensym)))
+    `(lambda (,instruction)
+       (case ,instruction
+	 ,@(loop
+	      for opcode-definition in body
+	      collect
+		(destructuring-bind
+		      (define-opcode name code (&rest args) &body body)
+		    opcode-definition
+
+		  (if (not (equal (symbol-name define-opcode)
+				  "DEFINE-OPCODE"))
+		      (error "unknown expression for define-opcode-set: ~a" define-opcode))
+		  (if (or (not (integerp code))
+			  (< code 0)
+			  (> code 255))
+		      (error "code must be an integer between 0 and 255"))
+
+		  `((,code) (step-instruction ,args ,@body))))))))
+
+#|
+(defmacro define-opcode (name code (&rest args) &body body)
+  `(list ,name ,code ,args ,body))
+|#

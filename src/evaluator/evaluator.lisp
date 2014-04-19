@@ -54,10 +54,13 @@
 |#
 
 (defun evaluate-form (expr decl-env bind-env machine)
-  (declare (ignore machine))
-  (let ((result (funcall (analyze expr decl-env)
-			 bind-env)))
-    result))
+  (let* ((analyzed-expr (analyze expr decl-env))
+	 ;(result (funcall bind-env))
+	 )
+    ;result
+    (send-message machine :set-code analyzed-expr)
+    (format t "~%DISASSMBLY: ~A~%"
+	    (send-message machine :disassemble-all))))
 
 
 
@@ -289,16 +292,19 @@
 (defun CONSTANT (value)
   (lambda (bind-env)
     (declare (ignore bind-env))
-    value))
+    value)
+  (list 10 value))
 
 (defun REFERENCE (address)
   (lambda (bind-env)
-    (lookup-variable-value address bind-env)))
+    (lookup-variable-value address bind-env))
+  (list 11))
 
 (defun ABSTRACTION (body)
   (lambda (bind-env)
     (lambda (evaluated-args)
-      (funcall body (env.b.extend evaluated-args bind-env)))))
+      (funcall body (env.b.extend evaluated-args bind-env))))
+  (list 12))
 
 (defun LET-BINDING (bound-values-procs body)
   (lambda (bind-env)
@@ -306,13 +312,15 @@
 				     (funcall bound-value-proc bind-env))
 				 bound-values-procs))
 	   (extended-bind-env (env.b.extend runtime-vals bind-env)))
-      (funcall body extended-bind-env))))
+      (funcall body extended-bind-env)))
+  (list 13 bound-values-procs body))
 
 (defun ALTERNATIVE (predicate then else)
   (lambda (bind-env)
     (if (funcall predicate bind-env)
 	(funcall then bind-env)
-	(funcall else bind-env))))
+	(funcall else bind-env)))
+  (list 14))
 
 (defun APPLICATION (operator operands)
   (lambda (bind-env)
@@ -325,7 +333,18 @@
 	(cond ((functionp proc-def)
 	       (funcall proc-def (evaluate-operands (MAKE-FRAME operands))))
 
-	      (t (error "unknown function")))))))
+	      (t (error "unknown function"))))))
+  (list 15))
+
+(defun SEQUENCE_ (body)
+  (lambda (bind-env)
+    (let ((last-val nil))
+      (loop
+	 for proc in body
+	 do (setf last-val
+		  (funcall proc bind-env)))
+      last-val))
+  (list 16))
 
 #|
 (defun MAKE-FRAME (size &optional parent-frame)
@@ -342,12 +361,3 @@
 
 (defun STORE-ARGUMENT (value other-values)
   (cons value other-values))
-
-(defun SEQUENCE_ (body)
-  (lambda (bind-env)
-    (let ((last-val nil))
-      (loop
-	 for proc in body
-	 do (setf last-val
-		  (funcall proc bind-env)))
-      last-val)))
