@@ -112,12 +112,10 @@
 			       gp-registers))))))))
 
 (defmacro step-instruction (machine (&rest args) &body body)
-  (case (length args)
-    (0 `(funcall (lambda () ,@body)))
-    (1 `(funcall (lambda ,args ,@body) (send-message ,machine :next-byte)))
-    (2 `(funcall (lambda ,args ,@body) (send-message ,machine :next-byte)
-		 (send-message ,machine :next-byte)))
-    (t (error "can't handle opcode with ~a arguments" (length args)))))
+  `(let ((param-bytes (loop
+			 for arg in ',args
+			 collect (send-message ,machine :next-byte))))
+     (apply (lambda ,args ,@body) param-bytes)))
 
 (defmacro define-opcode-set (machine &body body)
   (let ((instruction (gensym)))
