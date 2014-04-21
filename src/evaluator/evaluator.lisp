@@ -59,8 +59,7 @@
 	 )
     ;result
     (send-message machine :set-code analyzed-expr)
-    (format t "~%DISASSMBLY: ~A~%"
-	    (send-message machine :disassemble-all))))
+    (format t "~%OPCODES: ~a~%" (send-message machine :get-code))))
 
 
 
@@ -293,12 +292,12 @@
   (lambda (bind-env)
     (declare (ignore bind-env))
     value)
-  (list 10 value))
+  (list #x10 value))
 
 (defun REFERENCE (address)
   (lambda (bind-env)
     (lookup-variable-value address bind-env))
-  (list 11))
+  (list #x11 (car address) (cdr address)))
 
 (defun ABSTRACTION (body)
   (lambda (bind-env)
