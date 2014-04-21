@@ -100,7 +100,8 @@
 		   (:module
 		    registermachine
 		    :components ((:file "instructions"))
-		    :depends-on ("helper")))
+		    :depends-on ("helper"
+				 "environment")))
 
 		  :depends-on ("packages"))))
 

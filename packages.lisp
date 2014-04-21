@@ -5,7 +5,7 @@
   (:use cl owlisp))
 
 (defpackage #:owlisp/register
-  (:use cl owlisp))
+  (:use cl owlisp owlisp/environment))
 
 (defpackage #:owlisp/evaluator
   (:use cl owlisp owlisp/environment owlisp/register)

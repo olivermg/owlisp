@@ -14,6 +14,7 @@
 ;	(csp '())
 	(code '())
 	(val nil)
+	(env nil)
 	(stack '())
 	(interpretation-fn nil))
     (labels ((get-register (reg)
@@ -36,6 +37,18 @@
 
 	     ((setf get-val) (new-val)
 	       (setf val new-val))
+
+	     (get-env ()
+	       env)
+
+	     ((setf get-env) (new-env)
+	       (setf env new-env))
+
+	     (get-pc ()
+	       pc)
+
+	     ((setf get-pc) (new-pc)
+	       (setf pc new-pc))
 
 	     (push-stack (value)
 	       (setf stack
@@ -113,6 +126,12 @@
 	  (:get-code #'get-code)
 	  (:set-code #'(lambda (new-code)
 			 (setf (get-code) new-code)))
+	  (:get-env #'get-env)
+	  (:set-env #'(lambda (new-env)
+			(setf (get-env) new-env)))
+	  (:get-pc #'get-pc)
+	  (:set-pc #'(lambda (new-pc)
+		       (setf (get-pc) new-pc)))
 	  (:push #'push-stack)
 	  (:pop #'pop-stack)
 	  (:reset #'reset)
@@ -124,7 +143,8 @@
 	  (:run #'run)
 	  (:next-byte #'next-byte)
 	  (:print #'(lambda ()
-		      (format t "val:~a~%pc:~a~%code:~a~%stack:~a~%" val pc code stack)
+		      (format t "val:~a~%pc:~a~%code:~a~%stack:~a~%env:~a~%" val pc code stack
+			      (send-message env :get-current-bindings))
 		      (maphash #'(lambda (k v)
 				   (format t "~a:~a~%" k v))
 			       gp-registers))))))))
@@ -177,6 +197,33 @@
 
       (define-opcode CONSTANT #x10 (value)
 	(send-message machine :set-val
-		      value)))
+		      value))
+
+      (define-opcode REFERENCE #x11 (address.frame address.var)
+	(let ((env (send-message machine :get-env))
+	      (address (cons address.frame address.var)))
+	  (send-message env :lookup
+			address)))
+
+      (define-opcode ALLOCATE-FRAME #x20 (size)
+	(let* ((dummy-values (make-list size))
+	       (env (send-message machine :get-env))
+	       (extended-env (env.b.extend dummy-values env)))
+	  (send-message machine :set-env extended-env)))
+
+      (define-opcode SET-FRAME-VALUE #x21 (address.var)
+	(let ((env (send-message machine :get-env))
+	      (value (send-message machine :get-val)))
+	  (send-message env :set-value
+			value
+			address.var)))
+
+      (define-opcode GOTO #x30 (offset)
+	(labels ((advance-pc (count)
+		   (when (> count 0)
+		     (send-message machine :set-pc
+				   (rest (send-message machine :get-pc)))
+		     (advance-pc (- count 1)))))
+	  (advance-pc offset))))
 
     machine))
