@@ -7,6 +7,15 @@
 
 
 
+(defun make-closure (code env)
+  (lambda (action)
+    (case action
+      (:code code)
+      (:env env)
+      (t (error "unknown action ~a" action)))))
+
+
+
 (defun symbol-name-equals (symbol name)
   (string-equal (symbol-name symbol)
 		(symbol-name name)))
@@ -250,8 +259,8 @@
   (format t "ABSTRACTION ...")
   (let* ((params (lambda-parameters expr))
 	 (extended-decl-env (env.d.extend params decl-env))
-	 (bodyproc (analyze-sequence (lambda-body expr) extended-decl-env)))
-    (ABSTRACTION bodyproc)))
+	 (analyzed-body (analyze-sequence (lambda-body expr) extended-decl-env)))
+    (ABSTRACTION analyzed-body)))
 
 (defun analyze-let (expr decl-env)
   (format t "LET-BINDING ...")
@@ -281,10 +290,10 @@
 		 operands-procs)))
 
 (defun analyze-sequence (exprs decl-env)
-  (let ((procs (mapcar #'(lambda (expr)
-			   (analyze expr decl-env))
-		       exprs)))
-    (SEQUENCE_ procs)))
+  (let ((analyzed-body-list (mapcar #'(lambda (expr)
+					(analyze expr decl-env))
+				    exprs)))
+    (SEQUENCE_ analyzed-body-list)))
 
 
 
@@ -303,7 +312,11 @@
   (lambda (bind-env)
     (lambda (evaluated-args)
       (funcall body (env.b.extend evaluated-args bind-env))))
-  (list 12))
+  (let* ((the-function (append body (RETURN_)))
+	 (the-goto (GOTO (length the-function))))
+    (append (list #x40 (length the-goto))
+	    the-goto
+	    the-function)))
 
 (defun LET-BINDING (bound-values-procs body)
   (lambda (bind-env)
@@ -343,7 +356,18 @@
 	 do (setf last-val
 		  (funcall proc bind-env)))
       last-val))
-  (list 16))
+  (labels ((flatten (flattened remaining)
+	     (if remaining
+		 (flatten (append flattened (first remaining))
+			  (rest remaining))
+		 flattened)))
+    (flatten '() body)))
+
+(defun GOTO (offset)
+  (list #x30 offset))
+
+(defun RETURN_ ()
+  (list #x31))
 
 #|
 (defun MAKE-FRAME (size &optional parent-frame)

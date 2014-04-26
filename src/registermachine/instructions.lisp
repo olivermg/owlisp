@@ -200,10 +200,11 @@
 		      value))
 
       (define-opcode REFERENCE #x11 (address.frame address.var)
-	(let ((env (send-message machine :get-env))
-	      (address (cons address.frame address.var)))
-	  (send-message env :lookup
-			address)))
+	(let* ((env (send-message machine :get-env))
+	       (address (cons address.frame address.var))
+	       (value (send-message env :lookup address)))
+	  (send-message machine :set-val
+			value)))
 
       (define-opcode ALLOCATE-FRAME #x20 (size)
 	(let* ((dummy-values (make-list size))
@@ -224,6 +225,14 @@
 		     (send-message machine :set-pc
 				   (rest (send-message machine :get-pc)))
 		     (advance-pc (- count 1)))))
-	  (advance-pc offset))))
+	  (advance-pc offset)))
+
+      (define-opcode RETURN #x31 ()
+		     (send-message machine :set-pc
+				   (send-message machine :pop)))
+
+      (define-opcode CREATE-CLOSURE #x40 (offset)
+	(send-message machine :set-val
+		      )))
 
     machine))
