@@ -337,7 +337,14 @@
 	       (funcall proc-def (evaluate-operands (MAKE-FRAME operands))))
 
 	      (t (error "unknown function"))))))
-  (list 15))
+  (labels ((make-push-args (opcodes operands)
+	     (if operands
+		 (make-push-args (append opcodes (list #x01) (first operands))
+				 (rest operands))
+		 opcodes)))
+    (let ((the-pushes (make-push-args '() operands))
+	  (the-goto ))
+      (append the-pushes))))
 
 (defun SEQUENCE_ (body)
   (lambda (bind-env)

@@ -22,6 +22,7 @@
 	(code '())
 	(val nil)
 	(env nil)
+	(fun nil)
 	(stack '())
 	(interpretation-fn nil))
     (labels ((get-register (reg)
@@ -50,6 +51,12 @@
 
 	     ((setf get-env) (new-env)
 	       (setf env new-env))
+
+	     (get-fun ()
+	       fun)
+
+	     ((setf get-fun) (new-fun)
+	       (setf fun new-fun))
 
 	     (get-pc ()
 	       pc)
@@ -135,6 +142,9 @@
 	  (:get-env #'get-env)
 	  (:set-env #'(lambda (new-env)
 			(setf (get-env) new-env)))
+	  (:get-fun #'get-fun)
+	  (:set-fun #'(lambda (new-fun)
+			(setf (get-fun) new-fun)))
 	  (:get-pc #'get-pc)
 	  (:set-pc #'(lambda (new-pc)
 		       (setf (get-pc) new-pc)))
@@ -190,9 +200,9 @@
   (let ((machine (make-machine)))
     (define-opcode-set machine
 
-      (define-opcode PUSH #x01 ()
+      (define-opcode PUSH #x01 (value)
 	(send-message machine :push
-		      (send-message machine :get-val)))
+		      value))
 
       (define-opcode POP #x02 ()
 	(send-message machine :set-val
@@ -242,6 +252,13 @@
 		       (send-message machine :set-val
 				     (make-closure (advance (send-message machine :get-pc)
 							    offset)
-						   (send-message machine :get-env))))))
+						   (send-message machine :get-env)))))
+
+      (define-opcode CALL #x41 ()
+		     (let* ((closure (send-message machine :get-fun))
+			    (code (funcall closure :code))
+			    (env (funcall closure :env)))
+		       (send-message machine :set-env env)
+		       (send-message machine :set-pc code))))
 
     machine))
