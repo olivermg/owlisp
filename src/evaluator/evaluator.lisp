@@ -7,15 +7,6 @@
 
 
 
-(defun make-closure (code env)
-  (lambda (action)
-    (case action
-      (:code code)
-      (:env env)
-      (t (error "unknown action ~a" action)))))
-
-
-
 (defun symbol-name-equals (symbol name)
   (string-equal (symbol-name symbol)
 		(symbol-name name)))

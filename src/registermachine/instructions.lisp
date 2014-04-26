@@ -7,11 +7,18 @@
 
 
 
+(defun make-closure (code env)
+  (lambda (action)
+    (case action
+      (:code code)
+      (:env env)
+      (t (error "unknown action ~a" action)))))
+
 (defun make-machine ()
   (let ((gp-registers (make-keyvalue-map))
 	(pc '())
-;	(callstack '())
-;	(csp '())
+					;	(callstack '())
+					;	(csp '())
 	(code '())
 	(val nil)
 	(env nil)
@@ -103,8 +110,7 @@
 	       (reset)
 	       (labels ((run-instruction ()
 			  (when pc
-			    (setf val
-				  (step-instruction))
+			    (step-instruction)
 			    (run-instruction)
 			    val)))
 		 (run-instruction)))
@@ -143,11 +149,8 @@
 	  (:run #'run)
 	  (:next-byte #'next-byte)
 	  (:print #'(lambda ()
-		      (format t "val:~a~%pc:~a~%code:~a~%stack:~a~%env:~a~%" val pc code stack
-			      (send-message env :get-current-bindings))
-		      (maphash #'(lambda (k v)
-				   (format t "~a:~a~%" k v))
-			       gp-registers))))))))
+		      (format t "val:~a~%pc:~a~%code:~a~%stack:~a~%env:~a~%"
+			      val pc code stack env))))))))
 
 (defmacro step-instruction (machine (&rest args) &body body)
   (let ((param-bytes (gensym))
@@ -232,7 +235,13 @@
 				   (send-message machine :pop)))
 
       (define-opcode CREATE-CLOSURE #x40 (offset)
-	(send-message machine :set-val
-		      )))
+		     (labels ((advance (code count)
+				(if (> count 0)
+				    (advance (rest code) (- count 1))
+				    code)))
+		       (send-message machine :set-val
+				     (make-closure (advance (send-message machine :get-pc)
+							    offset)
+						   (send-message machine :get-env))))))
 
     machine))
