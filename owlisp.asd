@@ -51,7 +51,7 @@
 				 "environment"
 				 "compiler"
 				 "interpreter"
-				 "registermachine"))
+				 "machines"))
 
 		   (:module
 		    compiler
@@ -95,11 +95,15 @@
 		    :depends-on ("owlisp"
 				 "helper"
 				 "environment"
-				 "registermachine"))
+				 "machines"))
 
 		   (:module
-		    registermachine
-		    :components ((:file "instructions"))
+		    machines
+		    :components ((:file "machines")
+				 (:file "register"
+					:depends-on ("machines"))
+				 (:file "secd"
+					:depends-on ("machines")))
 		    :depends-on ("helper"
 				 "environment")))
 
