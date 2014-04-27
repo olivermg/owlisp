@@ -339,12 +339,13 @@
 	      (t (error "unknown function"))))))
   (labels ((make-push-args (opcodes operands)
 	     (if operands
-		 (make-push-args (append opcodes (list #x01) (first operands))
+		 (make-push-args (append opcodes (first operands) (list #x01))
 				 (rest operands))
 		 opcodes)))
     (let ((the-pushes (make-push-args '() operands))
-	  (the-goto ))
-      (append the-pushes))))
+	  (operator-push (append operator (list #x01)))
+	  (the-goto (list #x41)))
+      (append the-pushes operator-push the-goto))))
 
 (defun SEQUENCE_ (body)
   (lambda (bind-env)

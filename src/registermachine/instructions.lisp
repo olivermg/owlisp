@@ -24,7 +24,8 @@
 	(env nil)
 	(fun nil)
 	(stack '())
-	(interpretation-fn nil))
+	(interpretation-fn nil)
+	(disassemble-fn nil))
     (labels ((get-register (reg)
 	       (lookup-in-keyvalue-map gp-registers
 				       reg))
@@ -84,32 +85,6 @@
 		     (append (get-code)
 			     instrs)))
 
-	     (disassemble-instruction (opcode)
-	       (case opcode
-		 ((10) 'constant)
-		 ((11) 'reference)
-		 ((12) 'abstraction)
-		 ((13) 'let)
-		 ((14) 'alternative)
-		 ((15) 'application)
-		 ((16) 'sequence)
-		 ((nil) nil)
-		 (t opcode)))
-
-	     (disassemble-all ()
-	       (reset)
-	       (labels ((disassemble-step (disassembly)
-			  (let ((cur-instr (first pc)))
-			    (setf pc
-				  (rest pc))
-			    (if cur-instr
-				(disassemble-step
-				 (cons (disassemble-instruction cur-instr)
-				       disassembly))
-				disassembly))))
-		 (let ((result (disassemble-step '())))
-		   result)))
-
 	     (step-instruction ()
 		 (funcall interpretation-fn (next-byte)))
 
@@ -151,10 +126,12 @@
 	  (:push #'push-stack)
 	  (:pop #'pop-stack)
 	  (:reset #'reset)
-	  (:disassemble-all #'disassemble-all)
 	  (:step-instruction #'step-instruction)
 	  (:set-interpretation-fn #'(lambda (fn)
 				      (setf interpretation-fn fn)))
+	  (:set-disassemble-fn #'(lambda (fn)
+				   (setf disassemble-fn fn)))
+	  (:disassemble disassemble-fn)
 	  (:add-instructions #'add-instructions)
 	  (:run #'run)
 	  (:next-byte #'next-byte)
@@ -171,74 +148,112 @@
        (apply #'(lambda ,args ,@body) ,param-bytes))))
 
 (defmacro define-opcode-set (machine &body body)
-  (let ((opcode (gensym)))
-    `(send-message ,machine :set-interpretation-fn
-		   (lambda (,opcode)
-		     (case ,opcode
-		       ,@(loop
-			    for opcode-definition in body
-			    collect
-			      (destructuring-bind
-				    (define-opcode name code (&rest args) &body body)
-				  opcode-definition
+  (let ((opcode (gensym))
+	(opcodes (gensym))
+	(disassembled (gensym))
+	(new-opcodes (gensym)))
+    `(progn
+       (send-message ,machine :set-interpretation-fn
+		     (lambda (,opcode)
+		       (case ,opcode
+			 ,@(loop
+			      for opcode-definition in body
+			      collect
+				(destructuring-bind
+				      (define-opcode name code (&rest args) &body body)
+				    opcode-definition
 
-				(declare (type integer code)
-					 (ignore name))
-				(if (not (equal (symbol-name define-opcode)
-						"DEFINE-OPCODE"))
-				    (error "unknown expression for define-opcode-set: ~a"
-					   define-opcode))
-				(if (or (< code 0)
-					(> code 255))
-				    (error "code must be an integer between 0 and 255"))
+				  (declare (type integer code)
+					   (ignore name))
+				  (if (not (equal (symbol-name define-opcode)
+						  "DEFINE-OPCODE"))
+				      (error "unknown expression for define-opcode-set: ~a"
+					     define-opcode))
+				  (if (or (< code 0)
+					  (> code 255))
+				      (error "code must be an integer between 0 and 255"))
 
-				`((,code) (step-instruction ,machine ,args ,@body))))
-		       (t (error "unknown opcode ~a" ,opcode)))))))
+				  `((,code) (step-instruction ,machine ,args ,@body))))
+			 (t (error "unknown opcode ~a" ,opcode)))))
+       (send-message ,machine :set-disassemble-fn
+		     (lambda ()
+		       (labels ((disassemble-instruction (,disassembled ,opcodes)
+				  (if ,opcodes
+				      (let ((,new-opcodes nil))
+					(disassemble-instruction
+					 (format nil "~a ~a"
+						 ,disassembled
+						 (case (first ,opcodes)
+						   ,@(loop
+							for opcode-definition in body
+							collect
+							  (destructuring-bind
+								(define-opcode name code (&rest args) &body body)
+							      opcode-definition
+
+							    (declare (ignore define-opcode body))
+							    `((,code)
+							      (setf ,new-opcodes (subseq ,opcodes
+											 (1+ (length ',args))))
+							      (format nil "~a"
+								      (append (list ',name)
+									      (subseq (rest ,opcodes)
+										      0
+										      (length ',args)))))))))
+					 ,new-opcodes))
+				      ,disassembled)))
+			 (disassemble-instruction '() (send-message ,machine :get-code))))))))
+
 
 
 (defun make-default-machine ()
   (let ((machine (make-machine)))
     (define-opcode-set machine
 
-      (define-opcode PUSH #x01 (value)
-	(send-message machine :push
-		      value))
+      (define-opcode PUSH #x01 ()
+		     (send-message machine :push
+				   (send-message machine :get-val)))
 
       (define-opcode POP #x02 ()
-	(send-message machine :set-val
-		      (send-message machine :pop)))
+		     (send-message machine :set-val
+				   (send-message machine :pop)))
 
       (define-opcode CONSTANT #x10 (value)
-	(send-message machine :set-val
-		      value))
+		     (send-message machine :set-val
+				   value))
 
       (define-opcode REFERENCE #x11 (address.frame address.var)
-	(let* ((env (send-message machine :get-env))
-	       (address (cons address.frame address.var))
-	       (value (send-message env :lookup address)))
-	  (send-message machine :set-val
-			value)))
+		     (let* ((env (send-message machine :get-env))
+			    (address (cons address.frame address.var))
+			    (value (send-message env :lookup address)))
+		       (send-message machine :set-val
+				     value)))
 
       (define-opcode ALLOCATE-FRAME #x20 (size)
-	(let* ((dummy-values (make-list size))
-	       (env (send-message machine :get-env))
-	       (extended-env (env.b.extend dummy-values env)))
-	  (send-message machine :set-env extended-env)))
+		     (let* ((dummy-values (make-list size))
+			    (env (send-message machine :get-env))
+			    (extended-env (env.b.extend dummy-values env)))
+		       (send-message machine :set-env extended-env)))
 
-      (define-opcode SET-FRAME-VALUE #x21 (address.var)
-	(let ((env (send-message machine :get-env))
-	      (value (send-message machine :get-val)))
-	  (send-message env :set-value
-			value
-			address.var)))
+      (define-opcode SET-FRAME-VALUE #x21 (address.frame address.var)
+		     (let ((env (send-message machine :get-env))
+			   (value (send-message machine :get-val)))
+		       (send-message env :set-value
+				     value
+				     (cons address.frame address.var))))
+
+      (define-opcode GET-FRAME-VALUE #x22 (address.frame address.var)
+		     (let ((env (send-message machine :get-env)))
+		       (send-message env :get-value
+				     (cons address.frame address.var))))
 
       (define-opcode GOTO #x30 (offset)
-	(labels ((advance-pc (count)
-		   (when (> count 0)
-		     (send-message machine :set-pc
-				   (rest (send-message machine :get-pc)))
-		     (advance-pc (- count 1)))))
-	  (advance-pc offset)))
+		     (labels ((advance-pc (count)
+				(when (> count 0)
+				  (send-message machine :set-pc
+						(rest (send-message machine :get-pc)))
+				  (advance-pc (- count 1)))))
+		       (advance-pc offset)))
 
       (define-opcode RETURN #x31 ()
 		     (send-message machine :set-pc

@@ -22,13 +22,20 @@
 	       (let ((frameindex (first address)))
 		 (if (>= frameindex 0)
 		     (if (= current-frameindex frameindex)
-			 (lookup-in-frame (rest address))
+			 (lookup-in-frame (cdr address))
 			 (lookup-in-parent address current-frameindex))
 		     (error "binding not found"))))
 
-	     (set-value (value varindex) ; TODO: allow address here instead of just varindex?
-	       (setf (svref bindings varindex)
-		     value))
+	     (set-value (value address)
+	       (let ((frameindex (first address))
+		     (varindex (cdr address)))
+		 (if (= frameindex 0)
+		     (setf (svref bindings varindex)
+			   value)
+		     (send-message parent :set-value
+				   value
+				   (cons (- frameindex 1)
+					 varindex)))))
 
 	     (get-current-bindings ()
 	       (coerce bindings 'list)))
