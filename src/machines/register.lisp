@@ -134,72 +134,79 @@
 
 (defun make-default-machine ()
   (let ((machine (make-machine)))
-    (define-opcode-set machine
+    (multiple-value-bind
+	  (interpretation-fn disassemble-fn)
 
-      (define-opcode PUSH #x01 ()
-		     (send-message machine :push
-				   (send-message machine :get-val)))
+	(define-opcode-set
+	    (funcall machine :next-byte)
+	    (funcall machine :get-code)
 
-      (define-opcode POP #x02 ()
-		     (send-message machine :set-val
-				   (send-message machine :pop)))
+	  (define-opcode PUSH #x01 ()
+			 (send-message machine :push
+				       (send-message machine :get-val)))
 
-      (define-opcode CONSTANT #x10 (value)
-		     (send-message machine :set-val
-				   value))
+	  (define-opcode POP #x02 ()
+			 (send-message machine :set-val
+				       (send-message machine :pop)))
 
-      (define-opcode REFERENCE #x11 (address.frame address.var)
-		     (let* ((env (send-message machine :get-env))
-			    (address (cons address.frame address.var))
-			    (value (send-message env :lookup address)))
-		       (send-message machine :set-val
-				     value)))
+	  (define-opcode CONSTANT #x10 (value)
+			 (send-message machine :set-val
+				       value))
 
-      (define-opcode ALLOCATE-FRAME #x20 (size)
-		     (let* ((dummy-values (make-list size))
-			    (env (send-message machine :get-env))
-			    (extended-env (env.b.extend dummy-values env)))
-		       (send-message machine :set-env extended-env)))
+	  (define-opcode REFERENCE #x11 (address.frame address.var)
+			 (let* ((env (send-message machine :get-env))
+				(address (cons address.frame address.var))
+				(value (send-message env :lookup address)))
+			   (send-message machine :set-val
+					 value)))
 
-      (define-opcode SET-FRAME-VALUE #x21 (address.frame address.var)
-		     (let ((env (send-message machine :get-env))
-			   (value (send-message machine :get-val)))
-		       (send-message env :set-value
-				     value
-				     (cons address.frame address.var))))
+	  (define-opcode ALLOCATE-FRAME #x20 (size)
+			 (let* ((dummy-values (make-list size))
+				(env (send-message machine :get-env))
+				(extended-env (env.b.extend dummy-values env)))
+			   (send-message machine :set-env extended-env)))
 
-      (define-opcode GET-FRAME-VALUE #x22 (address.frame address.var)
-		     (let ((env (send-message machine :get-env)))
-		       (send-message env :get-value
-				     (cons address.frame address.var))))
+	  (define-opcode SET-FRAME-VALUE #x21 (address.frame address.var)
+			 (let ((env (send-message machine :get-env))
+			       (value (send-message machine :get-val)))
+			   (send-message env :set-value
+					 value
+					 (cons address.frame address.var))))
 
-      (define-opcode GOTO #x30 (offset)
-		     (labels ((advance-pc (count)
-				(when (> count 0)
-				  (send-message machine :set-pc
-						(rest (send-message machine :get-pc)))
-				  (advance-pc (- count 1)))))
-		       (advance-pc offset)))
+	  (define-opcode GET-FRAME-VALUE #x22 (address.frame address.var)
+			 (let ((env (send-message machine :get-env)))
+			   (send-message env :get-value
+					 (cons address.frame address.var))))
 
-      (define-opcode RETURN #x31 ()
-		     (send-message machine :set-pc
-				   (send-message machine :pop)))
+	  (define-opcode GOTO #x30 (offset)
+			 (labels ((advance-pc (count)
+				    (when (> count 0)
+				      (send-message machine :set-pc
+						    (rest (send-message machine :get-pc)))
+				      (advance-pc (- count 1)))))
+			   (advance-pc offset)))
 
-      (define-opcode CREATE-CLOSURE #x40 (offset)
-		     (labels ((advance (code count)
-				(if (> count 0)
-				    (advance (rest code) (- count 1))
-				    code)))
-		       (send-message machine :set-val
-				     (make-closure (advance (send-message machine :get-pc)
-							    offset)
-						   (send-message machine :get-env)))))
+	  (define-opcode RETURN #x31 ()
+			 (send-message machine :set-pc
+				       (send-message machine :pop)))
 
-      (define-opcode CALL #x41 ()
-		     (let* ((closure (send-message machine :get-fun))
-			    (code (funcall closure :code))
-			    (env (funcall closure :env)))
-		       (send-message machine :set-env env)
-		       (send-message machine :set-pc code))))
+	  (define-opcode CREATE-CLOSURE #x40 (offset)
+			 (labels ((advance (code count)
+				    (if (> count 0)
+					(advance (rest code) (- count 1))
+					code)))
+			   (send-message machine :set-val
+					 (make-closure (advance (send-message machine :get-pc)
+								offset)
+						       (send-message machine :get-env)))))
 
-    machine))
+	  (define-opcode CALL #x41 ()
+			 (let* ((closure (send-message machine :get-fun))
+				(code (funcall closure :code))
+				(env (funcall closure :env)))
+			   (send-message machine :set-env env)
+			   (send-message machine :set-pc code))))
+
+      (send-message machine :set-interpretation-fn interpretation-fn)
+      (send-message machine :set-disassemble-fn disassemble-fn)
+      machine)))
