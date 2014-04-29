@@ -13,6 +13,56 @@
 
 
 
+(defmacro render-template ((&rest values) (&body template))
+  (labels ((symbolize (name)
+	     (intern
+	      (concatenate
+	       'string
+	       "$"
+	       (if (integerp name)
+		   (write-to-string name)
+		   (symbol-name name)))))
+
+	   (build-value-alist (value-definitions)
+	     (let ((value-alist '())
+		   (value-index 0))
+	       (loop
+		  for val-def in value-definitions
+		  do (progn
+		       (setf value-alist
+			     (acons (symbolize (incf value-index))
+				    val-def
+				    value-alist))
+		       (if (consp val-def)
+			   (setf value-alist
+				 (acons (symbolize (first val-def))
+					(second val-def)
+					value-alist)))))
+	       value-alist))
+
+	   (resolve (value-alist expr)
+	     (if (consp expr)
+		 (loop
+		    for elem in expr
+		    collect (resolve value-alist elem))
+		 (let ((found-var (assoc expr value-alist)))
+		   (if found-var
+		       (cdr found-var)
+		       expr)))))
+
+    (let ((value-alist (build-value-alist values)))
+      (loop
+	 for expr in template
+	 collect (resolve value-alist expr)))))
+
+#|
+(defmacro destructure-define-opcode (definition)
+  (destructuring-bind
+	(define-opcode name code (&rest args) &body body)
+      definition
+    ))
+|#
+
 (defmacro step-instruction (next-byte-fn (&rest args) &body body)
   (let ((param-bytes (gensym))
 	(iteration-arg (gensym)))
