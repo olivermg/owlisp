@@ -28,15 +28,21 @@
 		   (value-index 0))
 	       (loop
 		  for val-def in value-definitions
-		  do (progn
+		  do (multiple-value-bind
+			   (val-key val-val)
+			 (if (consp val-def)
+			     (values (first val-def)
+				     (second val-def))
+			     (values nil
+				     val-def))
 		       (setf value-alist
 			     (acons (symbolize (incf value-index))
-				    val-def
+				    val-val
 				    value-alist))
-		       (if (consp val-def)
+		       (if val-key
 			   (setf value-alist
-				 (acons (symbolize (first val-def))
-					(second val-def)
+				 (acons (symbolize val-key)
+					val-val
 					value-alist)))))
 	       value-alist))
 
