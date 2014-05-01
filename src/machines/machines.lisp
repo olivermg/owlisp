@@ -14,60 +14,74 @@
 
 
 (defmacro render-template ((&rest values) (&body template))
-  (labels ((symbolize (name)
-	     (intern
-	      (concatenate
-	       'string
-	       "$"
-	       (if (integerp name)
-		   (write-to-string name)
-		   (symbol-name name)))))
+  (labels ((numerize (prefix expr-name)
+	     (parse-integer
+	      (subseq expr-name (length prefix))))
+
+	   (prefixed-p (prefix expr-name)
+	     (let ((substring1 (subseq expr-name 0 (length prefix))))
+	       (if (string-equal substring1 prefix)
+		   t
+		   nil)))
+
+	   (lookup (value-alist key)
+	     (cdr (assoc key value-alist)))
 
 	   (build-value-alist (value-definitions)
 	     (let ((value-alist '())
 		   (value-index 0))
 	       (loop
-		  for val-def in value-definitions
-		  do (multiple-value-bind
-			   (val-key val-val)
-			 (if (consp val-def)
-			     (values (first val-def)
-				     (second val-def))
-			     (values nil
-				     val-def))
-		       (setf value-alist
-			     (acons (symbolize (incf value-index))
-				    val-val
-				    value-alist))
-		       (if val-key
-			   (setf value-alist
-				 (acons (symbolize val-key)
-					val-val
-					value-alist)))))
+		  for val in value-definitions
+		  do (setf value-alist
+			   (acons (incf value-index)
+				  val
+				  value-alist)))
 	       value-alist))
 
 	   (resolve (value-alist expr)
-	     (if (consp expr)
-		 (loop
-		    for elem in expr
-		    collect (resolve value-alist elem))
-		 (let ((found-var (assoc expr value-alist)))
-		   (if found-var
-		       (cdr found-var)
-		       expr)))))
+	     (cond
+	       ((consp expr) (loop
+				for elem in expr
+				collect (resolve value-alist elem)))
+	       ((symbolp expr) (let ((expr-name (symbol-name expr)))
+				 (cond
+				   ((prefixed-p "$@" expr-name)
+				    `(progn ,@(lookup value-alist
+						      (numerize "$@" expr-name))))
+				   ((prefixed-p "$" expr-name)
+				    (lookup value-alist
+					    (numerize "$" expr-name)))
+				   (t expr))))
+	       (t expr))))
 
     (let ((value-alist (build-value-alist values)))
       (loop
 	 for expr in template
 	 collect (resolve value-alist expr)))))
 
-#|
-(defmacro destructure-define-opcode (definition)
+(defun destructuring-bind-for-define-opcode (definition)
   (destructuring-bind
 	(define-opcode name code (&rest args) &body body)
       definition
-    ))
-|#
+    (declare (type integer code)
+	     (type symbol name))
+    (if (not (equal (symbol-name define-opcode)
+		    "DEFINE-OPCODE"))
+	(error "unknown instruction for define-opcode-set: ~a" define-opcode))
+    (if (or (< code 0)
+	    (> code 255))
+	(error "opcode must be an integer between 0 and 255"))
+    (values name code args body)))
+
+(defmacro destructure-define-opcodes (definitions template)
+  (loop
+     for definition in definitions
+     collect (multiple-value-bind
+		   (name code args body)
+		 (destructuring-bind-for-define-opcode definition)
+	       `(render-template
+		 (,name ,code ,args ,body)
+		 ,template))))
 
 (defmacro step-instruction (next-byte-fn (&rest args) &body body)
   (let ((param-bytes (gensym))
@@ -96,24 +110,9 @@
 
 	(lambda (,opcode)
 	  (case ,opcode
-	    ,@(loop
-		 for opcode-definition in body
-		 collect
-		   (destructuring-bind
-			 (define-opcode name code (&rest args) &body body)
-		       opcode-definition
-
-		     (declare (type integer code)
-			      (ignore name))
-		     (if (not (equal (symbol-name define-opcode)
-				     "DEFINE-OPCODE"))
-			 (error "unknown expression for define-opcode-set: ~a"
-				define-opcode))
-		     (if (or (< code 0)
-			     (> code 255))
-			 (error "code must be an integer between 0 and 255"))
-
-		     `((,code) (step-instruction ,nb-fn ,args ,@body))))
+	    ,@`(destructure-define-opcodes
+		,body
+		(($2) (step-instruction ,nb-fn $3 $@4)))
 	    (t (error "unknown opcode ~a" ,opcode))))
 
 	(lambda ()
@@ -125,22 +124,16 @@
 			(format nil "~a ~a"
 				,disassembled
 				(case (first ,opcodes)
-				  ,@(loop
-				       for opcode-definition in body
-				       collect
-					 (destructuring-bind
-					       (define-opcode name code (&rest args) &body body)
-					     opcode-definition
-
-					   (declare (ignore define-opcode body))
-					   `((,code)
-					     (setf ,new-opcodes (subseq ,opcodes
-									(1+ (length ',args))))
-					     (format nil "~a"
-						     (append (list ',name)
-							     (subseq (rest ,opcodes)
-								     0
-								     (length ',args)))))))))
+				  ,@`(destructure-define-opcodes
+				      ,body
+				      (($2)
+				       (setf ,new-opcodes (subseq ,opcodes
+								  (1+ (length '$3))))
+				       (format nil "~a"
+					       (append (list '$1)
+						       (subseq (rest ,opcodes)
+							       0
+							       (length '$3))))))))
 			,new-opcodes))
 		     ,disassembled)))
 	    (disassemble-instruction '() (funcall ,gc-fn))))))))
