@@ -55,9 +55,9 @@
 	       (t expr))))
 
     (let ((value-alist (build-value-alist values)))
-      (loop
-	 for expr in template
-	 collect (resolve value-alist expr)))))
+      `',(loop
+	    for expr in template
+	    collect (resolve value-alist expr)))))
 
 (defun destructuring-bind-for-define-opcode (definition)
   (destructuring-bind
@@ -73,15 +73,16 @@
 	(error "opcode must be an integer between 0 and 255"))
     (values name code args body)))
 
-(defmacro destructure-define-opcodes (definitions template)
-  (loop
-     for definition in definitions
-     collect (multiple-value-bind
-		   (name code args body)
-		 (destructuring-bind-for-define-opcode definition)
-	       `(render-template
-		 (,name ,code ,args ,body)
-		 ,template))))
+(defmacro destructure-define-opcodes (opcode-var definitions template)
+  `(case ,opcode-var
+     ,@(loop
+	  for definition in definitions
+	  collect (multiple-value-bind
+			(name code args body)
+		      (destructuring-bind-for-define-opcode definition)
+		    (eval `(render-template
+			    (,name ,code ,args ,body)
+			    ,template))))))
 
 (defmacro step-instruction (next-byte-fn (&rest args) &body body)
   (let ((param-bytes (gensym))
@@ -109,12 +110,9 @@
        (values
 
 	(lambda (,opcode)
-	  (case ,opcode
-	    ,@`(destructure-define-opcodes
-		,body
-		(($2) (step-instruction ,nb-fn $3 $@4)))
-	    (t (error "unknown opcode ~a" ,opcode))))
-
+	  (destructure-define-opcodes ,opcode
+				      ,body
+				      (($2) (step-instruction ,nb-fn $3 $@4))))
 	(lambda ()
 	  (labels
 	      ((disassemble-instruction (,disassembled ,opcodes)
@@ -123,17 +121,17 @@
 		       (disassemble-instruction
 			(format nil "~a ~a"
 				,disassembled
-				(case (first ,opcodes)
-				  ,@`(destructure-define-opcodes
-				      ,body
-				      (($2)
-				       (setf ,new-opcodes (subseq ,opcodes
-								  (1+ (length '$3))))
-				       (format nil "~a"
-					       (append (list '$1)
-						       (subseq (rest ,opcodes)
-							       0
-							       (length '$3))))))))
+				(destructure-define-opcodes
+				 (first ,opcodes)
+				 ,body
+				 (($2)
+				  (setf ,new-opcodes (subseq ,opcodes
+							     (1+ (length '$3))))
+				  (format nil "~a"
+					  (append (list '$1)
+						  (subseq (rest ,opcodes)
+							  0
+							  (length '$3)))))))
 			,new-opcodes))
 		     ,disassembled)))
 	    (disassemble-instruction '() (funcall ,gc-fn))))))))

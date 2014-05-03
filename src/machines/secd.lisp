@@ -11,7 +11,10 @@
 	(code '())
 	(dump '()))
 
-    (define-opcode-set 123
+    (define-opcode-set
+
+	#'(lambda () 1)
+	#'(lambda () 1)
 
       (define-opcode NIL #x10 ()
 		     (setf stack
