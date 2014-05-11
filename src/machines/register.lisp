@@ -84,8 +84,8 @@
 	       (labels ((run-instruction ()
 			  (when pc
 			    (step-instruction)
-			    (run-instruction)
-			    val)))
+			    (run-instruction))
+			  val))
 		 (run-instruction)))
 
 	     (next-byte ()

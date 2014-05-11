@@ -113,6 +113,7 @@
 	  (destructure-define-opcodes ,opcode
 				      ,body
 				      (($2) (step-instruction ,nb-fn $3 $@4))))
+
 	(lambda ()
 	  (labels
 	      ((disassemble-instruction (,disassembled ,opcodes)
