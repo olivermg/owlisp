@@ -10,11 +10,13 @@
 	(env nil)
 	(code the-code)
 	(dump '())
+	(pc 0)
 	(interpretation-fn nil)
 	(disassemble-fn nil))
 
     (labels ((next-byte ()
 	       (let ((curbyte (car code)))
+		 (incf pc)
 		 (setf code
 		       (rest code))
 		 curbyte))
@@ -23,6 +25,7 @@
 	       code)
 
 	     (reset ()
+	       (setf pc 0)
 	       (setf code the-code)
 	       (setf stack '())
 	       (setf dump '()))
@@ -39,12 +42,13 @@
 		 (run-instruction)))
 
 	     (gotoa-code (absolute-address)
+	       (setf pc absolute-address)
 	       (let ((temp-code the-code))
 		 (dotimes (n absolute-address temp-code)
 		   (setf temp-code (rest temp-code)))))
 
 	     (gotor-code (relative-address)
-	       nil))
+	       (gotoa-code (+ pc relative-address))))
 
       (macrolet ((pushv (the-stack value)
 		   `(setf ,the-stack
@@ -81,11 +85,13 @@
 			     (send-message env :lookup
 					   (cons address.frame address.var)))
 
-	      (define-opcode SEL #x13 (address-then address-else)
+	      (define-opcode SEL #x13 (code-then code-else)
 			     (let ((value (popv stack)))
 			       (if value
-				   (setf code (gotoa-code address-then))
-				   (setf code (gotoa-code address-else))))))
+				   ;(setf code (gotor-code address-then))
+				   (setf code code-then)
+				   ;(setf code (gotor-code address-else))
+				   (setf code code-else)))))
 
 	  (setf interpretation-fn interpretation-fn-tmp)
 	  (setf disassemble-fn disassemble-fn-tmp)))
