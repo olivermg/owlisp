@@ -86,12 +86,16 @@
 					   (cons address.frame address.var)))
 
 	      (define-opcode SEL #x13 (code-then code-else)
+			     (pushv dump code)
 			     (let ((value (popv stack)))
 			       (if value
 				   ;(setf code (gotor-code address-then))
 				   (setf code code-then)
 				   ;(setf code (gotor-code address-else))
-				   (setf code code-else)))))
+				   (setf code code-else))))
+
+	      (define-opcode JOIN #x14 ()
+			     (setf code (popv dump))))
 
 	  (setf interpretation-fn interpretation-fn-tmp)
 	  (setf disassemble-fn disassemble-fn-tmp)))
