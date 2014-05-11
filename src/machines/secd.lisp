@@ -36,7 +36,15 @@
 			    (step-instruction)
 			    (run-instruction))
 			  (first stack)))
-		 (run-instruction))))
+		 (run-instruction)))
+
+	     (gotoa-code (absolute-address)
+	       (let ((temp-code the-code))
+		 (dotimes (n absolute-address temp-code)
+		   (setf temp-code (rest temp-code)))))
+
+	     (gotor-code (relative-address)
+	       nil))
 
       (macrolet ((pushv (the-stack value)
 		   `(setf ,the-stack
@@ -73,11 +81,11 @@
 			     (send-message env :lookup
 					   (cons address.frame address.var)))
 
-	      (define-opcode SEL #x13 (code-then code-else)
+	      (define-opcode SEL #x13 (address-then address-else)
 			     (let ((value (popv stack)))
 			       (if value
-				   (pushl code code-then)
-				   (pushl code code-else)))))
+				   (setf code (gotoa-code address-then))
+				   (setf code (gotoa-code address-else))))))
 
 	  (setf interpretation-fn interpretation-fn-tmp)
 	  (setf disassemble-fn disassemble-fn-tmp)))
@@ -89,4 +97,4 @@
 	  (:print (format t "STACK:~a~%ENV:~a~%CODE:~a~%DUMP:~a~%"
 			  stack env code dump))
 	  (:disassemble (funcall disassemble-fn))
-	  (t (error "unknown action ~a" action)))))))
+	  (t (error "unknown machine action ~a" action)))))))
