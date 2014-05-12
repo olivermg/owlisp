@@ -28,6 +28,7 @@
 	       (setf pc 0)
 	       (setf code the-code)
 	       (setf stack '())
+	       (setf env nil)
 	       (setf dump '()))
 
 	     (run+ ()
@@ -61,9 +62,12 @@
 			      (rest ,the-stack))
 			,value)))
 
+#|
 		 (pushl (the-stack the-list)
 		   `(setf ,the-stack
-			  (append ,the-list ,the-stack))))
+			  (append ,the-list ,the-stack)))
+|#
+		 )
 
 	(multiple-value-bind
 	      (interpretation-fn-tmp disassemble-fn-tmp)
@@ -95,7 +99,49 @@
 				   (setf code code-else))))
 
 	      (define-opcode JOIN #x14 ()
-			     (setf code (popv dump))))
+			     (setf code (popv dump)))
+
+	      (define-opcode LDF #x15 (function)
+			     (let ((closure (make-closure function env)))
+			       (pushv stack closure)))
+
+	      (define-opcode AP #x16 ()
+			     (let* ((closure (popv stack))
+				    (closure-code (funcall closure :code))
+				    (closure-env (funcall closure :env))
+				    (params (popv stack))
+				    (new-env (env.b.extend params closure-env)))
+			       (pushv dump stack)
+			       (pushv dump env)
+			       (pushv dump code)
+			       (setf stack '())
+			       (setf env (list new-env))
+			       (setf code closure-code)))
+
+	      (define-opcode RET #x17 ()
+			     (let ((ret-value (popv stack)))
+			       (pushv code (popv dump))
+			       (pushv code (popv env))
+			       (pushv code (popv stack))
+			       (pushv stack ret-value)))
+
+	      (define-opcode DUM #x18 ()
+			     (setf env (env.b.extend '() env)))
+
+	      (define-opcode RAP #x19 ()
+			     (let* ((closure (popv stack))
+				    (closure-code (funcall closure :code))
+				    (closure-env (funcall closure :env))
+				    (params (popv stack))
+				    (new-env (env.b.extend params closure-env)))
+			       (pushv dump stack)
+			       (pushv dump env)
+			       (pushv dump code)
+			       (setf stack '())
+			       (send-message new-env :set-current-bindings
+					     (send-message env :get-current-bindings))
+			       (setf env new-env)
+			       (setf code closure-code))))
 
 	  (setf interpretation-fn interpretation-fn-tmp)
 	  (setf disassemble-fn disassemble-fn-tmp)))

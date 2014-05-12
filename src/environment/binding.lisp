@@ -37,6 +37,9 @@
 				   (cons (- frameindex 1)
 					 varindex)))))
 
+	     (set-current-bindings (new-bindings)
+	       (setf bindings (coerce new-bindings 'vector)))
+
 	     (get-current-bindings ()
 	       (coerce bindings 'list)))
 
@@ -44,5 +47,6 @@
 	(case msg
 	  (:lookup #'lookup)
 	  (:set-value #'set-value)
+	  (:set-current-bindings #'set-current-bindings)
 	  (:get-current-bindings #'get-current-bindings)
 	  (t (error "unknown message")))))))
