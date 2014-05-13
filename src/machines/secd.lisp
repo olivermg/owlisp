@@ -7,7 +7,7 @@
 (defun make-default-machine-secd (the-code)
 
   (let ((stack '())
-	(env nil)
+	(env (env.b.extend '()))
 	(code the-code)
 	(dump '())
 	(pc 0)
@@ -28,7 +28,7 @@
 	       (setf pc 0)
 	       (setf code the-code)
 	       (setf stack '())
-	       (setf env nil)
+	       (setf env (env.b.extend '()))
 	       (setf dump '()))
 
 	     (run+ ()
@@ -88,48 +88,42 @@
 				 (`(nil . ,s) e c d)))
 
 	      (define-opcode LDC #x11 (value)
-			     (setf stack
-				   (cons value stack)))
+			     (define-state-transition
+				 (s e c d)
+				 (`(,value . ,s) e c d)))
 
 	      (define-opcode LD #x12 (address.frame address.var)
-			     (send-message env :lookup
-					   (cons address.frame address.var)))
+			     (let ((value
+				    (send-message env :lookup
+						  (cons address.frame address.var))))
+			       (define-state-transition
+				   (s e c d)
+				   (`(,value . ,s) e c d))))
 
 	      (define-opcode SEL #x13 (code-then code-else)
-			     (pushv dump code)
-			     (let ((value (popv stack)))
-			       (if value
-				   ;(setf code (gotor-code address-then))
-				   (setf code code-then)
-				   ;(setf code (gotor-code address-else))
-				   (setf code code-else))))
+			     (define-state-transition
+				 ((x . s) e c d)
+				 (s e (if x code-then code-else) `(,c . ,d))))
 
 	      (define-opcode JOIN #x14 ()
-			     (setf code (popv dump)))
+			     (define-state-transition
+				 (s e c (cr . d))
+				 (s e cr d)))
 
 	      (define-opcode LDF #x15 (function)
-			     (let ((closure (make-closure function env)))
-			       (pushv stack closure)))
+			     (define-state-transition
+				 (s e c d)
+				 (`((,function . ,e) . ,s) e c d)))
 
 	      (define-opcode AP #x16 ()
-			     (let* ((closure (popv stack))
-				    (closure-code (funcall closure :code))
-				    (closure-env (funcall closure :env))
-				    (params (popv stack))
-				    (new-env (env.b.extend params closure-env)))
-			       (pushv dump stack)
-			       (pushv dump env)
-			       (pushv dump code)
-			       (setf stack '())
-			       (setf env (list new-env))
-			       (setf code closure-code)))
+			     (define-state-transition
+				 (((cc . ec) v . s) e c d)
+				 (nil (env.b.extend v ec) cc `(,s ,e ,c . ,d))))
 
 	      (define-opcode RET #x17 ()
-			     (let ((ret-value (popv stack)))
-			       (setf code (popv dump))
-			       (setf env (popv dump))
-			       (setf stack (popv dump))
-			       (pushv stack ret-value)))
+			     (define-state-transition
+				 ((x) ec cc (s e c . d))
+				 (`(,x . ,s) e c d)))
 
 	      (define-opcode DUM #x18 ()
 			     (setf env (env.b.extend '() env)))
