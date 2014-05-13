@@ -82,7 +82,8 @@
 		      (destructuring-bind-for-define-opcode definition)
 		    (eval `(render-template
 			    (,name ,code ,args ,body)
-			    ,template))))))
+			    ,template))))
+     (t (error "unknown opcode ~a" ,opcode-var))))
 
 (defmacro step-instruction (next-byte-fn (&rest args) &body body)
   (let ((param-bytes (gensym))

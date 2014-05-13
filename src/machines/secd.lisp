@@ -120,9 +120,9 @@
 
 	      (define-opcode RET #x17 ()
 			     (let ((ret-value (popv stack)))
-			       (pushv code (popv dump))
-			       (pushv code (popv env))
-			       (pushv code (popv stack))
+			       (setf code (popv dump))
+			       (setf env (popv dump))
+			       (setf stack (popv dump))
 			       (pushv stack ret-value)))
 
 	      (define-opcode DUM #x18 ()
@@ -140,7 +140,7 @@
 			       (setf stack '())
 			       (send-message new-env :set-current-bindings
 					     (send-message env :get-current-bindings))
-			       (setf env new-env)
+			       (setf env (list new-env))
 			       (setf code closure-code))))
 
 	  (setf interpretation-fn interpretation-fn-tmp)
