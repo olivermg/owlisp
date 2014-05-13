@@ -67,7 +67,12 @@
 		   `(setf ,the-stack
 			  (append ,the-list ,the-stack)))
 |#
-		 )
+		 (define-state-transition (before after)
+		   `(multiple-value-setq
+			(stack env code dump)
+		      (destructuring-bind ,before
+			  (list stack env code dump)
+			(values-list (list ,@after))))))
 
 	(multiple-value-bind
 	      (interpretation-fn-tmp disassemble-fn-tmp)
@@ -78,8 +83,9 @@
 		#'get-code
 
 	      (define-opcode NIL #x10 ()
-			     (setf stack
-				   (cons nil stack)))
+			     (define-state-transition
+				 (s e c d)
+				 (`(nil . ,s) e c d)))
 
 	      (define-opcode LDC #x11 (value)
 			     (setf stack
