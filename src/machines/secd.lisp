@@ -1,6 +1,6 @@
 (in-package :owlisp/machines)
 
-(export '())
+(export '(make-default-machine-secd))
 
 
 
@@ -67,6 +67,7 @@
 		   `(setf ,the-stack
 			  (append ,the-list ,the-stack)))
 |#
+
 		 (define-state-transition (before after)
 		   `(multiple-value-setq
 			(stack env code dump)
@@ -126,22 +127,16 @@
 				 (`(,x . ,s) e c d)))
 
 	      (define-opcode DUM #x18 ()
-			     (setf env (env.b.extend '() env)))
+			     (define-state-transition
+				 (s e c d)
+				 (s (env.b.extend '() e) c d)))
 
 	      (define-opcode RAP #x19 ()
-			     (let* ((closure (popv stack))
-				    (closure-code (funcall closure :code))
-				    (closure-env (funcall closure :env))
-				    (params (popv stack))
-				    (new-env (env.b.extend params closure-env)))
-			       (pushv dump stack)
-			       (pushv dump env)
-			       (pushv dump code)
-			       (setf stack '())
-			       (send-message new-env :set-current-bindings
-					     (send-message env :get-current-bindings))
-			       (setf env (list new-env))
-			       (setf code closure-code))))
+			     (send-message (cdar stack) :set-current-bindings
+					   (cadr stack))
+			     (define-state-transition
+				 (((cc . ec) v . s) e c d)
+				 (nil ec cc `(,s ,e ,c . ,d)))))
 
 	  (setf interpretation-fn interpretation-fn-tmp)
 	  (setf disassemble-fn disassemble-fn-tmp)))
