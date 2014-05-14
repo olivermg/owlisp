@@ -136,7 +136,27 @@
 					   (cadr stack))
 			     (define-state-transition
 				 (((cc . ec) v . s) e c d)
-				 (nil ec cc `(,s ,e ,c . ,d)))))
+				 (nil ec cc `(,s ,e ,c . ,d))))
+
+	      (define-opcode CAR #x20 ()
+			     (define-state-transition
+				 (((a . b) . s) e c d)
+				 (`(,a . ,s) e c d)))
+
+	      (define-opcode CDR #x21 ()
+			     (define-state-transition
+				 (((a . b) . s) e c d)
+				 (`(,b . ,s) e c d)))
+
+	      (define-opcode ATOM #x22 ()
+			     (define-state-transition
+				 ((a . s) e c d)
+				 (`(,(atom a) . ,s) e c d)))
+
+	      (define-opcode CONS #x23 ()
+			     (define-state-transition
+				 ((a b . s) e c d)
+				 (`((,a . ,b) . ,s) e c d))))
 
 	  (setf interpretation-fn interpretation-fn-tmp)
 	  (setf disassemble-fn disassemble-fn-tmp)))
