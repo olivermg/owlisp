@@ -355,12 +355,12 @@
 	 do (setf last-val
 		  (funcall proc bind-env)))
       last-val))
-  (labels ((flatten (flattened remaining)
+  (labels ((flatten-sub (flattened remaining)
 	     (if remaining
-		 (flatten (append flattened (first remaining))
-			  (rest remaining))
+		 (flatten-sub (append flattened (first remaining))
+			      (rest remaining))
 		 flattened)))
-    (flatten '() body)))
+    (flatten-sub '() body)))
 
 (defun GOTO (offset)
   (list #x30 offset))
