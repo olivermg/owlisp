@@ -156,7 +156,12 @@
 	      (define-opcode CONS #x23 ()
 			     (define-state-transition
 				 ((a b . s) e c d)
-				 (`((,a . ,b) . ,s) e c d))))
+				 (`((,a . ,b) . ,s) e c d)))
+
+	      (define-opcode STOP #x24 ()
+			     (define-state-transition
+				 (s e c d)
+				 (s e `(,#x24 . ,c) d))))
 
 	  (setf interpretation-fn interpretation-fn-tmp)
 	  (setf disassemble-fn disassemble-fn-tmp)))

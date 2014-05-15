@@ -292,12 +292,14 @@
   (lambda (bind-env)
     (declare (ignore bind-env))
     value)
-  (list #x10 value))
+  (list #x10 value)
+  (list #x11 value))
 
 (defun REFERENCE (address)
   (lambda (bind-env)
     (lookup-variable-value address bind-env))
-  (list #x11 (car address) (cdr address)))
+  (list #x11 (car address) (cdr address))
+  (list #x12 (car address) (cdr address)))
 
 (defun ABSTRACTION (body)
   (lambda (bind-env)
@@ -307,7 +309,8 @@
 	 (the-goto (GOTO (length the-function))))
     (append (list #x40 (length the-goto))
 	    the-goto
-	    the-function)))
+	    the-function)
+    (list #x15 the-function)))
 
 (defun LET-BINDING (bound-values-procs body)
   (lambda (bind-env)
@@ -345,7 +348,15 @@
     (let ((the-pushes (make-push-args '() operands))
 	  (operator-push (append operator (list #x01)))
 	  (the-goto (list #x41)))
-      (append the-pushes operator-push the-goto))))
+      (append the-pushes operator-push the-goto)
+      (append
+       (list #x11
+	     (reduce #'(lambda (r e)
+			 (append r (cdr e)))
+		     operands
+		     :initial-value nil))
+       operator
+       (list #x16)))))
 
 (defun SEQUENCE_ (body)
   (lambda (bind-env)
@@ -366,7 +377,8 @@
   (list #x30 offset))
 
 (defun RETURN_ ()
-  (list #x31))
+  (list #x31)
+  (list #x17))
 
 #|
 (defun MAKE-FRAME (size &optional parent-frame)
