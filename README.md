@@ -31,13 +31,13 @@ http://blog.lambda-startup.com
 owlisp is not even alpha yet ;) :
 * it does not yet support all language features; currently supported lisp
   features (in their very basic form) include:
-    * constants, e.g. ```lisp 22```
-    * lambda, e.g. ```lisp (lambda () 1)```
-    * variable declarations & references (only lexically scoped), e.g. ```lisp (lambda (a) a)```
-    * function application, e.g. ```lisp ((lambda (a) a) 42)```
-    * if-statement, e.g. ```lisp (if 1 2 3)```
+    * constants, e.g. ```22```
+    * lambda, e.g. ```(lambda () 1)```
+    * variable declarations & references (only lexically scoped), e.g. ```(lambda (a) a)```
+    * function application, e.g. ```((lambda (a) a) 42)```
+    * if-statement, e.g. ```(if 1 2 3)```
 * it does not yet compile to LLVM-IR code
-* it is still a lisp-1 (meaning, that it does not use seperate namespaces
+* it is still a lisp-1 (meaning, that it does not use separate namespaces
   for variable vs. function bindings
 
 I created this project for my own mere fun and because I was searching for
@@ -84,7 +84,9 @@ For using owlisp (at least in this stage of development) you need:
    ```lisp
      CL-USER> (owlisp/evaluator:toplevel)
      owlisp> ((lambda (a b) (if a a b)) nil 22)
-     ...<some debug output>...
+
+     *...<some debug output>...*
+
      RESULT: 22
 
      owlisp> (exit)
@@ -114,7 +116,9 @@ will output the resulting LLVM-IR code to stdout.
 ```
 $ ./build/owlispc
 owlisp> ((lambda (a b) (if a a b)) 11 22)
-...<some debug output>...
+
+*...<some debug output>...*
+
 RESULT: 11
 
 owlisp> (exit)
