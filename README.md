@@ -85,7 +85,23 @@ For using owlisp (at least in this stage of development) you need:
      CL-USER> (owlisp/evaluator:toplevel)
      owlisp> ((lambda (a b) (if a a b)) nil 22)
 
-     *...<some debug output>...*
+          (APPLICATION ...
+            (ABSTRACTION ...
+              (ALTERNATIVE ...
+                (REFERENCE (0 . 0))
+                (REFERENCE (0 . 0))
+                (REFERENCE (0 . 1))))
+            (CONSTANT NIL)
+            (CONSTANT 22))
+        COMPILED CODE: (17 (NIL 22) 21 (18 0 0 19 (18 0 0) (18 0 1) 23) 22)
+
+        STACK: NIL
+        ENV: #<CLOSURE (LAMBDA (OWLISP/ENVIRONMENT::MSG)
+                         :IN
+                         OWLISP/ENVIRONMENT:ENV.B.EXTEND) {100454A03B}>
+        CODE: (17 (NIL 22) 21 (18 0 0 19 (18 0 0) (18 0 1) 23) 22)
+        DUMP: NIL
+        DISASSEMBLED CODE: NIL (LDC (NIL 22)) (LDF (18 0 0 19 (18 0 0) (18 0 1) 23)) (AP)
 
      RESULT: 22
 
@@ -103,6 +119,11 @@ For using owlisp (at least in this stage of development) you need:
    - when exiting the toplevel via "(exit)", the result of the last evaluation
      is being returned
 
+   As you can see, there is a lot of debug information that includes the status during
+   analysis of the expressions as well as the byte-code and virtual machine status.
+   Note, that the result of the evaluation is being printed in the line reading
+   **RESULT: 22**.
+
 ### Compiler Binary
 
 If you desire, you can also create a binary by running `make` in the root
@@ -117,7 +138,7 @@ will output the resulting LLVM-IR code to stdout.
 $ ./build/owlispc
 owlisp> ((lambda (a b) (if a a b)) 11 22)
 
-*...<some debug output>...*
+...<some debug output>...
 
 RESULT: 11
 
