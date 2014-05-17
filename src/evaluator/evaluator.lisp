@@ -326,7 +326,9 @@
     (if (funcall predicate bind-env)
 	(funcall then bind-env)
 	(funcall else bind-env)))
-  (list 14))
+  (list 14)
+  (append predicate
+	  (list #x13 then else)))
 
 (defun APPLICATION (operator operands)
   (lambda (bind-env)
