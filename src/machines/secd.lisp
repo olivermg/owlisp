@@ -170,7 +170,7 @@
 	(case action
 	  (:run (run+))
 	  (:reset (reset))
-	  (:print (format t "STACK:~a~%ENV:~a~%CODE:~a~%DUMP:~a~%"
-			  stack env code dump))
+	  (:print (format nil "STACK: ~a~%ENV: ~a~%CODE: ~a~%DUMP: ~a~%DISASSEMBLED CODE: ~a~%"
+			  stack env code dump (funcall disassemble-fn)))
 	  (:disassemble (funcall disassemble-fn))
 	  (t (error "unknown machine action ~a" action)))))))

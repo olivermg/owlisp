@@ -13,30 +13,30 @@
 
 
 
-(defun evaluate-stdin (decl-env bind-env machine)
-  (evaluate-stream *standard-input* decl-env bind-env machine))
+(defun evaluate-stdin (decl-env)
+  (evaluate-stream *standard-input* decl-env))
 
-(defun evaluate-stream (stream decl-env bind-env machine)
+(defun evaluate-stream (stream decl-env)
   (load-libraries)
   (initialize)
   (append
    (define-builtins)
-   (list (evaluate-forms (read-stream stream) decl-env bind-env machine))
+   (list (evaluate-forms (read-stream stream) decl-env))
    (write-compilation)))
 
-(defun evaluate-forms-to-last (forms decl-env bind-env machine)
+(defun evaluate-forms-to-last (forms decl-env)
   (let ((last-val nil))
     (dolist (form forms last-val)
-      (setf last-val (evaluate-form form decl-env bind-env machine)))
+      (setf last-val (evaluate-form form decl-env)))
     last-val))
 
-(defun evaluate-forms-to-list (forms decl-env bind-env machine)
+(defun evaluate-forms-to-list (forms decl-env)
   (mapcar #'(lambda (form)
-	      (evaluate-form form decl-env bind-env machine))
+	      (evaluate-form form decl-env))
 	  forms))
 
-(defun evaluate-forms (forms decl-env bind-env machine)
-  (evaluate-forms-to-last forms decl-env bind-env machine))
+(defun evaluate-forms (forms decl-env)
+  (evaluate-forms-to-last forms decl-env))
 
 #|
 (defun evaluate-form (expr env)
@@ -53,13 +53,14 @@
 				     (evaluate-forms-to-list (operands expr) env)))))
 |#
 
-(defun evaluate-form (expr decl-env bind-env machine)
+(defun evaluate-form (expr decl-env)
   (let* ((analyzed-expr (analyze expr decl-env))
 	 ;(result (funcall bind-env))
 	 )
     ;result
-    (send-message machine :set-code analyzed-expr)
-    (format t "~%OPCODES: ~a~%" (send-message machine :get-code))))
+    ;(send-message machine :set-code analyzed-expr)
+    ;(format t "~%OPCODES: ~a~%" (send-message machine :get-code))
+    analyzed-expr))
 
 
 

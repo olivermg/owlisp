@@ -1,18 +1,25 @@
 (in-package :owlisp/evaluator)
 
-(export '(owlisp-toplevel))
+(export '(toplevel))
 
 
 
-(defun owlisp-toplevel ()
+(defun toplevel ()
   (loop
      (format t "~&owlisp> ")
      (finish-output)
-     (print (evaluate-form (read)
-			   (make-initialized-declaration-environment)
-			   (make-initialized-binding-environment)
-			   (make-machine)))
-     (finish-output)))
+     (let* ((code (evaluate-form
+		   (read)
+		   (make-initialized-declaration-environment)
+		   ;(make-initialized-binding-environment)
+		   ))
+	    (machine (make-default-machine code)))
+       (format t "~%COMPILED CODE: ~a~%~%" code)
+       (format t "~a~%"
+	       (funcall machine :print))
+       (format t "RESULT: ~a~%~%"
+	       (funcall machine :run))
+       (finish-output))))
 
 
 

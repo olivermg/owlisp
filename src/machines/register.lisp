@@ -1,11 +1,11 @@
 (in-package :owlisp/machines)
 
-(export '(make-machine
-	  make-default-machine))
+(export '(make-generic-machine
+	  make-default-machine-register))
 
 
 
-(defun make-machine ()
+(defun make-generic-machine ()
   (let ((gp-registers (make-keyvalue-map))
 	(pc '())
 					;	(callstack '())
@@ -132,7 +132,7 @@
 
 
 
-(defun make-default-machine ()
+(defun make-default-machine-register ()
   (let ((machine (make-machine)))
     (multiple-value-bind
 	  (interpretation-fn disassemble-fn)

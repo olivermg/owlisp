@@ -1,6 +1,6 @@
 (in-package :owlisp/machines)
 
-(export '())
+(export '(make-default-machine))
 
 
 
@@ -137,3 +137,6 @@
 			,new-opcodes))
 		     ,disassembled)))
 	    (disassemble-instruction '() (funcall ,gc-fn))))))))
+
+(defun make-default-machine (code)
+  (make-default-machine-secd code))
