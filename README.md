@@ -4,6 +4,21 @@ owlisp is a compiler frontend to LLVM that compiles Common Lisp to LLVM-IR code,
 which then in turn can be processed further by LLVM Tools to translate it to any
 target that LLVM offers.
 
+### Technical background, briefly
+
+To translate from lisp code to LLVM-IR code, owlisp currently (this may be subject
+to changes) takes an intermediate step to abstract away some otherwise complex
+transformations.
+
+The intermediate step consists of translating the original code into an internal
+byte-code representation. This byte-code is then being interpreted by an internal
+SECD virtual machine (see http://en.wikipedia.org/wiki/SECD_machine ) and this
+finally is supposed to result in the final LLVM-IR code that can be processed
+with external programs of the LLVM distribution.
+
+(**NOTE**: The last step of transforming to LLVM-IR code is not yet implemented yet,
+see below)
+
 ## Blog
 
 For the current status of this project as well as ideas and thoughts that I
@@ -13,16 +28,17 @@ http://blog.lambda-startup.com
 
 ## Status
 
-> NOTE: Currently, the LLVM-IR generation described below does not work,
-> since as a first step, I am trying to establish an interpreter and then
-> advance to a compiler from there.
->
-> Instead of LLVM-IR generation, owlisp will currently try to interpret
-> all expressions immediately.
-
-owlisp is not even alpha yet ;)
-(...so it does not support any language features yet apart from things like
-lambda, let and calling functions)
+owlisp is not even alpha yet ;) :
+* it does not yet support all language features; currently supported lisp
+  features (in their very basic form) include:
+    * constants, e.g. ```22```
+    * lambda, e.g. ```(lambda () 1)```
+    * variable declarations & references (only lexically scoped), e.g. ```(lambda (a) a)```
+    * function application, e.g. ```((lambda (a) a) 42)```
+    * if-statement, e.g. ```(if 1 2 3)```
+* it does not yet compile to LLVM-IR code
+* it is still a lisp-1 (meaning, that it does not use separate namespaces
+  for variable vs. function bindings
 
 I created this project for my own mere fun and because I was searching for
 something that could translate Common Lisp to JavaScript. This would allow
@@ -63,69 +79,50 @@ For using owlisp (at least in this stage of development) you need:
      CL-USER> (asdf:load-system :owlisp)
    ```
 
-3. You can now compile something, e.g.
+3. You can now start a toplevel and evaluate & run lisp expressions, e.g.
 
    ```lisp
-     CL-USER> (with-input-from-string
-                  (s "((lambda (a b) (+ a b)) 22 33)")
-                (owlisp/evaluator:evaluate-stream s))
+     CL-USER> (owlisp/evaluator:toplevel)
+     owlisp> ((lambda (a b) (if a a b)) nil 22)
+
+     *...<some debug output>...*
+
+     RESULT: 22
+
+     owlisp> (exit)
+
+     22
+     CL-USER>
    ```
 
-   The compiler will print the resulting LLVM-IR code to stdout (if you
-   want to change this, edit **src/compiler/llvm-ir/globals.lisp**).
+   What happens behind the scenes during evaluation of the expression here is:
+   - analysis of the expression that has been entered
+   - compilation of the expression to byte-code for an owlisp-internal SECD-VM
+   - running the byte-code in the internal SECD-VM
+   - printing the result
+   - when exiting the toplevel via "(exit)", the result of the last evaluation
+     is being returned
 
 ### Compiler Binary
 
 If you desire, you can also create a binary by running `make` in the root
 directory of the project (NOTE: currently this assumes that you are using
 SBCL). This will create a binary **build/owlispc**
-that, when run, will read lisp code from stdin and after pressing **Ctrl+D**
+that, when run, will read lisp code from stdin and after entering **(exit)**
 will output the resulting LLVM-IR code to stdout.
-
-> NOTE: Currently, when running the binary, you will be presented with a
-> REPL that you can use to have expressions interpreted immediately (instead
-> of any compilation).
 
 #### Example
 
 ```
 $ ./build/owlispc
-(defun main () (+ 22 33)
+owlisp> ((lambda (a b) (if a a b)) 11 22)
 
-  <Ctrl+D pressed>
+*...<some debug output>...*
 
-; ModuleID = 'cl'
+RESULT: 11
 
-define i32 @owadd(i32, i32) {
-entry:
-  %2 = add i32 %0, %1
-  ret i32 %2
-}
-
-define i32 @main() {
-entry:
-  %0 = call i32 @owadd(i32 22, i32 33)
-  ret i32 %0
-}
-```
-
-## Running resulting LLVM-IR code
-
-You can run the resulting LLVM-IR code for example with `lli`, which is
-an interpreter for LLVM-IR that comes with the LLVM distribution:
-
-```
-$ ./build/owlispc >test.ll
-(defun main () (+ 22 33))
-
-  <press Ctrl+D>
-
-$ lli test.ll
-$ echo $?
-55
+owlisp> (exit)
+$
 ```
 
 Yay! :)
-
-For further instructions on how to compile this LLVM-IR code, please refer
-to the LLVM documentation on http://llvm.org .

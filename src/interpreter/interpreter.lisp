@@ -1,18 +1,39 @@
 (in-package :owlisp/evaluator)
 
-(export '(owlisp-toplevel))
+(export '(toplevel))
 
 
 
-(defun owlisp-toplevel ()
-  (loop
-     (format t "~&owlisp> ")
-     (finish-output)
-     (print (evaluate-form (read)
+(defun is-exit-command (expr)
+  (and (consp expr)
+       (= (length expr) 1)
+       (string-equal "EXIT"
+		     (symbol-name (car expr)))))
+
+(defun toplevel ()
+  (let ((last-result nil))
+    (loop
+       (format t "~&owlisp> ")
+       (finish-output)
+       (let ((expr (read)))
+	 (if (is-exit-command expr)
+
+	     (return)
+
+	     (let* ((code (evaluate-form
+			   expr
 			   (make-initialized-declaration-environment)
-			   (make-initialized-binding-environment)
-			   (make-machine)))
-     (finish-output)))
+			   ;(make-initialized-binding-environment)
+			   ))
+		    (machine (make-default-machine code)))
+	       (format t "~%COMPILED CODE: ~a~%~%" code)
+	       (format t "~a~%"
+		       (funcall machine :print))
+	       (setf last-result
+		     (funcall machine :run))
+	       (format t "RESULT: ~a~%~%" last-result)
+	       (finish-output)))))
+    last-result))
 
 
 

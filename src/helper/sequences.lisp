@@ -7,7 +7,8 @@
 	  insert-into-keyvalue-map
 	  lookup-in-keyvalue-map
 	  update-in-keyvalue-map
-	  delete-from-keyvalue-map))
+	  delete-from-keyvalue-map
+	  flatten))
 
 
 
@@ -49,3 +50,10 @@
 (defun delete-from-keyvalue-map (map key)
   (remhash key map)
   map)
+
+
+
+(defun flatten (s)
+  (cond
+    ((atom s) (list s))
+    (t (mapcan #'flatten s))))

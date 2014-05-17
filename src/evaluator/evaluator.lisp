@@ -13,30 +13,30 @@
 
 
 
-(defun evaluate-stdin (decl-env bind-env machine)
-  (evaluate-stream *standard-input* decl-env bind-env machine))
+(defun evaluate-stdin (decl-env)
+  (evaluate-stream *standard-input* decl-env))
 
-(defun evaluate-stream (stream decl-env bind-env machine)
+(defun evaluate-stream (stream decl-env)
   (load-libraries)
   (initialize)
   (append
    (define-builtins)
-   (list (evaluate-forms (read-stream stream) decl-env bind-env machine))
+   (list (evaluate-forms (read-stream stream) decl-env))
    (write-compilation)))
 
-(defun evaluate-forms-to-last (forms decl-env bind-env machine)
+(defun evaluate-forms-to-last (forms decl-env)
   (let ((last-val nil))
     (dolist (form forms last-val)
-      (setf last-val (evaluate-form form decl-env bind-env machine)))
+      (setf last-val (evaluate-form form decl-env)))
     last-val))
 
-(defun evaluate-forms-to-list (forms decl-env bind-env machine)
+(defun evaluate-forms-to-list (forms decl-env)
   (mapcar #'(lambda (form)
-	      (evaluate-form form decl-env bind-env machine))
+	      (evaluate-form form decl-env))
 	  forms))
 
-(defun evaluate-forms (forms decl-env bind-env machine)
-  (evaluate-forms-to-last forms decl-env bind-env machine))
+(defun evaluate-forms (forms decl-env)
+  (evaluate-forms-to-last forms decl-env))
 
 #|
 (defun evaluate-form (expr env)
@@ -53,11 +53,14 @@
 				     (evaluate-forms-to-list (operands expr) env)))))
 |#
 
-(defun evaluate-form (expr decl-env bind-env machine)
-  (declare (ignore machine))
-  (let ((result (funcall (analyze expr decl-env)
-			 bind-env)))
-    result))
+(defun evaluate-form (expr decl-env)
+  (let* ((analyzed-expr (analyze expr decl-env))
+	 ;(result (funcall bind-env))
+	 )
+    ;result
+    ;(send-message machine :set-code analyzed-expr)
+    ;(format t "~%OPCODES: ~a~%" (send-message machine :get-code))
+    analyzed-expr))
 
 
 
@@ -248,8 +251,8 @@
   (format t "ABSTRACTION ...")
   (let* ((params (lambda-parameters expr))
 	 (extended-decl-env (env.d.extend params decl-env))
-	 (bodyproc (analyze-sequence (lambda-body expr) extended-decl-env)))
-    (ABSTRACTION bodyproc)))
+	 (analyzed-body (analyze-sequence (lambda-body expr) extended-decl-env)))
+    (ABSTRACTION analyzed-body)))
 
 (defun analyze-let (expr decl-env)
   (format t "LET-BINDING ...")
@@ -279,26 +282,36 @@
 		 operands-procs)))
 
 (defun analyze-sequence (exprs decl-env)
-  (let ((procs (mapcar #'(lambda (expr)
-			   (analyze expr decl-env))
-		       exprs)))
-    (SEQUENCE_ procs)))
+  (let ((analyzed-body-list (mapcar #'(lambda (expr)
+					(analyze expr decl-env))
+				    exprs)))
+    (SEQUENCE_ analyzed-body-list)))
 
 
 
 (defun CONSTANT (value)
   (lambda (bind-env)
     (declare (ignore bind-env))
-    value))
+    value)
+  (list #x10 value)
+  (list #x11 value))
 
 (defun REFERENCE (address)
   (lambda (bind-env)
-    (lookup-variable-value address bind-env)))
+    (lookup-variable-value address bind-env))
+  (list #x11 (car address) (cdr address))
+  (list #x12 (car address) (cdr address)))
 
 (defun ABSTRACTION (body)
   (lambda (bind-env)
     (lambda (evaluated-args)
-      (funcall body (env.b.extend evaluated-args bind-env)))))
+      (funcall body (env.b.extend evaluated-args bind-env))))
+  (let* ((the-function (append body (RETURN_)))
+	 (the-goto (GOTO (length the-function))))
+    (append (list #x40 (length the-goto))
+	    the-goto
+	    the-function)
+    (list #x15 the-function)))
 
 (defun LET-BINDING (bound-values-procs body)
   (lambda (bind-env)
@@ -306,13 +319,17 @@
 				     (funcall bound-value-proc bind-env))
 				 bound-values-procs))
 	   (extended-bind-env (env.b.extend runtime-vals bind-env)))
-      (funcall body extended-bind-env))))
+      (funcall body extended-bind-env)))
+  (list 13 bound-values-procs body))
 
 (defun ALTERNATIVE (predicate then else)
   (lambda (bind-env)
     (if (funcall predicate bind-env)
 	(funcall then bind-env)
-	(funcall else bind-env))))
+	(funcall else bind-env)))
+  (list 14)
+  (append predicate
+	  (list #x13 then else)))
 
 (defun APPLICATION (operator operands)
   (lambda (bind-env)
@@ -325,7 +342,46 @@
 	(cond ((functionp proc-def)
 	       (funcall proc-def (evaluate-operands (MAKE-FRAME operands))))
 
-	      (t (error "unknown function")))))))
+	      (t (error "unknown function"))))))
+  (labels ((make-push-args (opcodes operands)
+	     (if operands
+		 (make-push-args (append opcodes (first operands) (list #x01))
+				 (rest operands))
+		 opcodes)))
+    (let ((the-pushes (make-push-args '() operands))
+	  (operator-push (append operator (list #x01)))
+	  (the-goto (list #x41)))
+      (append the-pushes operator-push the-goto)
+      (append
+       (list #x11
+	     (reduce #'(lambda (r e)
+			 (append r (cdr e)))
+		     operands
+		     :initial-value nil))
+       operator
+       (list #x16)))))
+
+(defun SEQUENCE_ (body)
+  (lambda (bind-env)
+    (let ((last-val nil))
+      (loop
+	 for proc in body
+	 do (setf last-val
+		  (funcall proc bind-env)))
+      last-val))
+  (labels ((flatten-sub (flattened remaining)
+	     (if remaining
+		 (flatten-sub (append flattened (first remaining))
+			      (rest remaining))
+		 flattened)))
+    (flatten-sub '() body)))
+
+(defun GOTO (offset)
+  (list #x30 offset))
+
+(defun RETURN_ ()
+  (list #x31)
+  (list #x17))
 
 #|
 (defun MAKE-FRAME (size &optional parent-frame)
@@ -342,12 +398,3 @@
 
 (defun STORE-ARGUMENT (value other-values)
   (cons value other-values))
-
-(defun SEQUENCE_ (body)
-  (lambda (bind-env)
-    (let ((last-val nil))
-      (loop
-	 for proc in body
-	 do (setf last-val
-		  (funcall proc bind-env)))
-      last-val)))
