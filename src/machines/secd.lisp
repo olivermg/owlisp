@@ -11,8 +11,9 @@
 	(code the-code)
 	(dump '())
 	(pc 0)
-	(interpretation-fn nil)
-	(disassemble-fn nil))
+	(interpretation-fn #'(lambda () nil))
+	(disassemble-fn #'(lambda () nil))
+	(compilation-fn #'(lambda () nil)))
 
     (labels ((next-byte ()
 	       (let ((curbyte (car code)))
@@ -164,7 +165,24 @@
 				 (s e `(,#x24 . ,c) d))))
 
 	  (setf interpretation-fn interpretation-fn-tmp)
-	  (setf disassemble-fn disassemble-fn-tmp)))
+	  (setf disassemble-fn disassemble-fn-tmp)
+
+	  (setf compilation-fn
+		#'(lambda ()
+		    (let ((current-i 0))
+		      (declare (special current-i))
+		      (labels ((compile-sub (compiled)
+				 (let ((opcode (next-byte)))
+				   (if opcode
+				       (compile-sub
+					(append
+					 compiled
+					 (list
+					  (case opcode
+					    (#x10 (format nil "~t$P~a = null" current-i))
+					    (#x11 (format nil "~t$P~a = ~a" current-i (next-byte)))))))
+				       compiled))))
+			(compile-sub '())))))))
 
       (lambda (action)
 	(case action
@@ -172,5 +190,6 @@
 	  (:reset (reset))
 	  (:print (format nil "STACK: ~a~%ENV: ~a~%CODE: ~a~%DUMP: ~a~%DISASSEMBLED CODE: ~a~%"
 			  stack env code dump (funcall disassemble-fn)))
+	  (:compile (funcall compilation-fn))
 	  (:disassemble (funcall disassemble-fn))
 	  (t (error "unknown machine action ~a" action)))))))
