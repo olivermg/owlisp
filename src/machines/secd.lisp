@@ -169,18 +169,21 @@
 
 	  (setf compilation-fn
 		#'(lambda ()
-		    (let ((current-i 0))
+		    (let ((current-i -1))
 		      (declare (special current-i))
 		      (labels ((compile-sub (compiled)
 				 (let ((opcode (next-byte)))
 				   (if opcode
-				       (compile-sub
-					(append
-					 compiled
-					 (list
-					  (case opcode
-					    (#x10 (format nil "~t$P~a = null" current-i))
-					    (#x11 (format nil "~t$P~a = ~a" current-i (next-byte)))))))
+				       (progn
+					 (incf current-i)
+					 (compile-sub
+					  (append
+					   compiled
+					   (list
+					    (case opcode
+					      (#x10 (format nil "~t$P~a = null" current-i))
+					      (#x11 (format nil "~t$P~a = new 'Integer'~%~t$P~a = ~a" current-i current-i (next-byte)))
+					      (#x12 nil))))))
 				       compiled))))
 			(compile-sub '())))))))
 
