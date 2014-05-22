@@ -38,7 +38,7 @@ static struct frame* find_frame( struct frame* f, const int frameindex )
   return found;
 }
 
-void set_binding( struct frame* f, const int frameindex, const int varindex, const int value )
+void set_binding( struct frame* f, const int frameindex, const int varindex, struct value_t value )
 {
   struct frame* correctframe = find_frame( f, frameindex );
 
@@ -49,7 +49,7 @@ void set_binding( struct frame* f, const int frameindex, const int varindex, con
   correctframe->values[varindex] = value;
 }
 
-int get_binding( struct frame* f, const int frameindex, const int varindex )
+struct value_t get_binding( struct frame* f, const int frameindex, const int varindex )
 {
   struct frame* correctframe = find_frame( f, frameindex );
 

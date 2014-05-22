@@ -9,3 +9,9 @@ void fatal_error( const char* message )
 
   exit( 1 );
 }
+
+void warning_error( const char* message )
+{
+  fprintf( stderr, "WARNING: %s\n", message );
+  fflush( stderr );
+}
