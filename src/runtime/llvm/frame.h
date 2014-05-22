@@ -8,7 +8,7 @@ struct frame {
 
 struct frame* new_frame( struct frame* parent );
 struct frame* delete_frame( struct frame* f );
-void set_binding( struct frame* f, int frameindex, int varindex, int value );
-int get_binding( struct frame* f, int frameindex, int varindex );
+void set_binding( struct frame* f, const int frameindex, const int varindex, const int value );
+int get_binding( struct frame* f, const int frameindex, const int varindex );
 
 #endif

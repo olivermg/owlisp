@@ -1,9 +1,29 @@
 CC = clang
-CFLAGS = -emit-llvm -S
+CLLFLAGS = -emit-llvm -S -Wall
+CFLAGS = -c -Wall -g
+LDFLAGS = -Wall -g
+LIBS = -lcheck
 
-runtime.ll: frame.ll
+
+
+runtime.ll: error.ll frame.ll
 %.ll: %.c
+	$(CC) $(CLLFLAGS) -o $@ $<
+
+
+
+test-run: test
+	@echo "\n=== TESTS START ==="
+	@./test
+	@echo "=== TESTS END ===\n"
+
+test: error.o frame.o test.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+%.o: %.c
 	$(CC) $(CFLAGS) -o $@ $<
 
+
+
 clean:
-	rm -vf *.ll runtime
+	rm -vf *.ll *.o runtime test
