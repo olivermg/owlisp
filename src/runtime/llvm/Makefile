@@ -2,7 +2,7 @@ CC = clang
 CLLFLAGS = -emit-llvm -S -Wall
 CFLAGS = -c -Wall -g
 LDFLAGS = -Wall -g
-LIBS = -lcheck
+LIBS = -lpthread -lm -lrt -lcheck
 
 
 

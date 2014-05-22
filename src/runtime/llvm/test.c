@@ -69,6 +69,7 @@ Suite* runtime_suite (void)
   tcase_add_test( tc_core, test_new_frame );
   tcase_add_test( tc_core, test_new_frame_with_parent );
   tcase_add_test( tc_core, test_bindings_flat );
+  tcase_add_test( tc_core, test_bindings_deep );
   suite_add_tcase( s, tc_core );
 
   return s;
