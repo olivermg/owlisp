@@ -6,7 +6,7 @@ LIBS = -lpthread -lm -lrt -lcheck
 
 
 
-runtime.ll: error.ll frame.ll
+runtime.ll: error.ll types.ll frame.ll
 %.ll: %.c
 	$(CC) $(CLLFLAGS) -o $@ $<
 
@@ -17,7 +17,7 @@ test-run: test
 	@./test
 	@echo "=== TESTS END ===\n"
 
-test: error.o frame.o test.o
+test: error.o types.o frame.o test.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 %.o: %.c

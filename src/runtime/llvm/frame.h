@@ -3,14 +3,14 @@
 
 #include "types.h"
 
-struct frame {
-  struct frame* parent;
-  value_t values[16];
-};
+typedef struct _frame_t {
+  struct _frame_t* parent;
+  value_t* values[16];
+} frame_t;
 
-struct frame* new_frame( struct frame* parent );
-struct frame* delete_frame( struct frame* f );
-void set_binding( struct frame* f, const int frameindex, const int varindex, struct value_t value );
-struct value_t get_binding( struct frame* f, const int frameindex, const int varindex );
+frame_t* new_frame( frame_t* parent );
+frame_t* free_frame( frame_t* f );
+void set_binding( frame_t* f, const int frameindex, const int varindex, value_t* value );
+value_t* get_binding( const frame_t* f, const int frameindex, const int varindex );
 
 #endif

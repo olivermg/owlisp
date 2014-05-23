@@ -1,7 +1,7 @@
 #ifndef __TYPES_H
 #define __TYPES_H 1
 
-typedef short type_t;
+typedef unsigned char type_t;
 
 #define TYPE_INT      0x01
 #define TYPE_FLOAT    0x02
@@ -10,11 +10,13 @@ typedef short type_t;
 #define TYPE_PATH     0x05
 #define TYPE_ARRAY    0x06
 
-struct value_t {
+typedef struct _value_t {
   type_t type;
   int value;
-};
+} value_t;
 
-struct value_t* new_value( int val );
+value_t* new_value_int( int val );
+void free_value( value_t* value );
+unsigned char values_equal( const value_t* value1, const value_t* value2 );
 
 #endif

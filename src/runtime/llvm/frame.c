@@ -1,19 +1,20 @@
 #include <stdlib.h>
 
 #include "frame.h"
+#include "types.h"
 #include "error.h"
 
-struct frame* new_frame( struct frame* parent )
+frame_t* new_frame( frame_t* parent )
 {
-  struct frame* newframe = calloc( 1, sizeof( struct frame ) );
+  frame_t* newframe = calloc( 1, sizeof( frame_t ) );
   newframe->parent = parent;
 
   return newframe;
 }
 
-struct frame* delete_frame( struct frame* f )
+frame_t* free_frame( frame_t* f )
 {
-  struct frame* parent = NULL;
+  frame_t* parent = NULL;
 
   if ( f ) {
     parent = f->parent;
@@ -23,9 +24,9 @@ struct frame* delete_frame( struct frame* f )
   return parent;
 }
 
-static struct frame* find_frame( struct frame* f, const int frameindex )
+static frame_t* find_frame( const frame_t* f, const int frameindex )
 {
-  struct frame* found = f;
+  frame_t* found = (frame_t*)f;
 
   for ( int i = 0; i < frameindex; i++ ) {
     found = found->parent;
@@ -38,9 +39,9 @@ static struct frame* find_frame( struct frame* f, const int frameindex )
   return found;
 }
 
-void set_binding( struct frame* f, const int frameindex, const int varindex, struct value_t value )
+void set_binding( frame_t* f, const int frameindex, const int varindex, value_t* value )
 {
-  struct frame* correctframe = find_frame( f, frameindex );
+  frame_t* correctframe = find_frame( f, frameindex );
 
   if ( varindex < 0 && varindex >= sizeof( correctframe->values ) ) {
     fatal_error( "binding not found in frame" );
@@ -49,9 +50,9 @@ void set_binding( struct frame* f, const int frameindex, const int varindex, str
   correctframe->values[varindex] = value;
 }
 
-struct value_t get_binding( struct frame* f, const int frameindex, const int varindex )
+value_t* get_binding( const frame_t* f, const int frameindex, const int varindex )
 {
-  struct frame* correctframe = find_frame( f, frameindex );
+  frame_t* correctframe = find_frame( f, frameindex );
 
   if ( varindex < 0 && varindex >= sizeof( correctframe->values ) ) {
     fatal_error( "binding not found in frame" );
