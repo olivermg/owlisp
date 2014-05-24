@@ -63,7 +63,6 @@ START_TEST( test_new_frame_with_parent )
 }
 END_TEST
 
-/*
 START_TEST( test_bindings_flat )
 {
   value_t* expected_value = new_value_int( 1337 );
@@ -74,26 +73,24 @@ START_TEST( test_bindings_flat )
   set_binding( frame, frameindex, varindex, expected_value );
   value_t* value = get_binding( frame, frameindex, varindex );
 
-  ck_assert( 1337 == value->value );
+  ck_assert( values_equal( expected_value, value ) );
 }
 END_TEST
-
 
 START_TEST( test_bindings_deep )
 {
-  const int expected_value = 1337;
+  value_t* expected_value = new_value_int( 1337 );
   const int frameindex = 1;
   const int varindex = 0;
 
-  struct frame* frame1 = new_frame( NULL );
-  struct frame* frame2 = new_frame( frame1 );
+  frame_t* frame1 = new_frame( NULL );
+  frame_t* frame2 = new_frame( frame1 );
   set_binding( frame2, frameindex, varindex, expected_value );
-  int value = get_binding( frame2, frameindex, varindex );
+  value_t* value = get_binding( frame2, frameindex, varindex );
 
-  ck_assert( expected_value == value );
+  ck_assert( values_equal( expected_value, value ) );
 }
 END_TEST
-*/
 
 
 
@@ -101,7 +98,6 @@ Suite* runtime_suite (void)
 {
   Suite *s = suite_create( "runtime" );
 
-  /* Core test case */
   TCase *tc_core = tcase_create( "Core" );
 
   tcase_add_test( tc_core, test_types_new_value_int );
@@ -111,8 +107,8 @@ Suite* runtime_suite (void)
   tcase_add_test( tc_core, test_new_frame );
   tcase_add_test( tc_core, test_new_frame_with_parent );
   tcase_add_test( tc_core, test_new_frame_with_parent );
-  //  tcase_add_test( tc_core, test_bindings_flat );
-  //  tcase_add_test( tc_core, test_bindings_deep );
+  tcase_add_test( tc_core, test_bindings_flat );
+  tcase_add_test( tc_core, test_bindings_deep );
 
   suite_add_tcase( s, tc_core );
 
