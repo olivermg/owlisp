@@ -26,4 +26,5 @@ test: error.o types.o frame.o test.o
 
 
 clean:
-	rm -vf *.ll *.o runtime test
+	rm -vf *.ll *.o *.bc *.s runtime test
+
