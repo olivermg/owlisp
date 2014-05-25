@@ -80,6 +80,7 @@
 		       (:file "llvm-ir"
 			      :depends-on ("builtins"
 					   "common"))
+		       (:file "llvm-ir-adapter")
 		       (:file "builtins"
 			      :depends-on ("common"))))
 		     (:module
