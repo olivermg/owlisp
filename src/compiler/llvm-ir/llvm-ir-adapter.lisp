@@ -15,12 +15,14 @@
    (string-upcase
     (subseq
      (symbol-name symbol)
-     (length prefix)))))
+     (length prefix)))
+   (symbol-package symbol)))
 
 (defun upcase-expr (expr)
   (cond ((consp expr) (mapcar #'upcase-expr
 			      expr))
-	((symbolp expr) (intern (string-upcase (symbol-name expr))))
+	((symbolp expr) (intern (string-upcase (symbol-name expr))
+				(symbol-package expr)))
 	(t expr)))
 
 (defun read-llvm-expr (stream char)
@@ -57,7 +59,6 @@
  (get-macro-character #\)))
 
 
-#|
 ;; native types
 
 (defun i32 ()
@@ -65,6 +66,7 @@
 
 
 
+#|
 ;; functions
 
 (defmacro define (return-type name &rest parameter-types)
