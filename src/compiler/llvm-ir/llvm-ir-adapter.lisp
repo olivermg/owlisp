@@ -1,6 +1,6 @@
 (in-package :owlisp/llvm-ir)
 
-(export '(i32))
+(export '())
 
 
 
@@ -40,15 +40,15 @@
 				(t
 				 (cons (symbol-name e) nil))))))
       (setf (readtable-case *readtable*) prev-case)
-      `(format nil
-	       ,(format nil "~{~a~^ ~}"
-			(mapcar #'(lambda (e)
-				    (car e))
-				result))
-	       ,@(remove-if #'null
-			    (mapcar #'(lambda (e)
-					(cdr e))
-				    result))))))
+      ``(format nil
+		,,(format nil "~{~a~^ ~}"
+			  (mapcar #'(lambda (e)
+				      (car e))
+				  result))
+		,@',(remove-if #'null
+			       (mapcar #'(lambda (e)
+					   (cdr e))
+				       result))))))
 
 (set-macro-character
  #\[
@@ -60,15 +60,16 @@
 
 
 ;; native types
-
 (defun i32 ()
   [i32])
 
+(defun bla ()
+  123)
 
 
-#|
 ;; functions
+#|
 
-(defmacro define (return-type name &rest parameter-types)
+(defun define (return-type name &rest parameter-types)
   [.return-type .name .parameter-types])
 |#
