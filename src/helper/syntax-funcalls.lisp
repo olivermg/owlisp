@@ -19,5 +19,6 @@
 	 (fn-args (cddr delimited-list)))
     `(call-map-function-macro ,map ,fn ,@fn-args)))
 
-(set-macro-character #\[ #'call-map-function)
-(set-macro-character #\] (get-macro-character #\)))
+;(set-macro-character #\[ #'call-map-function)
+;(set-macro-character #\] (get-macro-character #\)))
+
