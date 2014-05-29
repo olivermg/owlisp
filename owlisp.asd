@@ -77,10 +77,12 @@
 			:components
 			((:file "typesystem"))
 			:depends-on ("common"))
+		       (:file "llvm-ir-adapter-syntax")
+		       (:file "llvm-ir-adapter"
+			      :depends-on ("llvm-ir-adapter-syntax"))
 		       (:file "llvm-ir"
 			      :depends-on ("builtins"
 					   "common"))
-		       (:file "llvm-ir-adapter")
 		       (:file "builtins"
 			      :depends-on ("common"))))
 		     (:module
