@@ -40,15 +40,15 @@
 				(t
 				 (cons (symbol-name e) nil))))))
       (setf (readtable-case *readtable*) prev-case)
-      ``(format nil
-		,,(format nil "~{~a~^ ~}"
-			  (mapcar #'(lambda (e)
-				      (car e))
-				  result))
-		,@',(remove-if #'null
-			       (mapcar #'(lambda (e)
-					   (cdr e))
-				       result))))))
+      `(format nil
+	       ,(format nil "~{~a~^ ~}"
+			(mapcar #'(lambda (e)
+				    (car e))
+				result))
+	       ,@(remove-if #'null
+			    (mapcar #'(lambda (e)
+					(cdr e))
+				    result))))))
 
 (set-macro-character
  #\[
