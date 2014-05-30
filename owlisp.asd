@@ -103,7 +103,8 @@
 		   (:module
 		    machines
 		    :components ((:file "machines")
-				 (:file "target-compilation")
+				 (:file "target-compilation"
+					:depends-on ("machines"))
 				 (:file "register"
 					:depends-on ("machines"
 						     "target-compilation"))

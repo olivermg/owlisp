@@ -212,7 +212,7 @@
 	  (:run (run+))
 	  (:reset (reset))
 	  (:print (format nil "STACK: ~a~%ENV: ~a~%CODE: ~a~%DUMP: ~a~%DISASSEMBLED CODE: ~a~%TARGET CODE:~a~%"
-			  stack env code dump (funcall disassemble-fn code) (compile+)))
+			  stack env code dump (funcall disassemble-fn code) "N/A"))
 	  (:compile (compile+))
 	  (:disassemble (funcall disassemble-fn code))
 	  (t (error "unknown machine action ~a" action)))))))
