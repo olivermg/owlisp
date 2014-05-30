@@ -12,4 +12,4 @@
 ;; functions
 
 (defun define (return-type name &rest parameter-types)
-  [.return-type .name .parameter-types])
+  [define .return-type (format nil "@~a" name) .parameter-types])
