@@ -103,10 +103,13 @@
 		   (:module
 		    machines
 		    :components ((:file "machines")
+				 (:file "target-compilation")
 				 (:file "register"
-					:depends-on ("machines"))
+					:depends-on ("machines"
+						     "target-compilation"))
 				 (:file "secd"
-					:depends-on ("machines")))
+					:depends-on ("machines"
+						     "target-compilation")))
 		    :depends-on ("helper"
 				 "environment")))
 

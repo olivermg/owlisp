@@ -22,9 +22,6 @@
 		       (rest code))
 		 curbyte))
 
-	     (get-code ()
-	       code)
-
 	     (reset ()
 	       (setf pc 0)
 	       (setf code the-code)
@@ -50,7 +47,21 @@
 		   (setf temp-code (rest temp-code)))))
 
 	     (gotor-code (relative-address)
-	       (gotoa-code (+ pc relative-address))))
+	       (gotoa-code (+ pc relative-address)))
+
+	     (compile+ ()
+	       (reset)
+	       (let ((target-code '()))
+		 (labels ((step-instruction ()
+			      (setf target-code
+				    (append target-code
+					    (funcall compilation-fn (next-byte)))))
+			  (compile-instruction ()
+			    (when code
+			      (step-instruction)
+			      (compile-instruction))
+			    target-code))
+		   (compile-instruction)))))
 
       (macrolet ((pushv (the-stack value)
 		   `(setf ,the-stack
@@ -74,15 +85,14 @@
 			(stack env code dump)
 		      (destructuring-bind ,before
 			  (list stack env code dump)
-			(values-list (list ,@after))))))
+			(values ,@after)))))
 
-	(multiple-value-bind
-	      (interpretation-fn-tmp disassemble-fn-tmp)
+	(multiple-value-setq
+	      (interpretation-fn disassemble-fn)
 
 	    (define-opcode-set
 
 		#'next-byte
-		#'get-code
 
 	      (define-opcode NIL #x10 ()
 			     (define-state-transition
@@ -162,37 +172,47 @@
 	      (define-opcode STOP #x24 ()
 			     (define-state-transition
 				 (s e c d)
-				 (s e `(,#x24 . ,c) d))))
+				 (s e `(,#x24 . ,c) d)))))
 
-	  (setf interpretation-fn interpretation-fn-tmp)
-	  (setf disassemble-fn disassemble-fn-tmp)
+	(multiple-value-setq
+	      (compilation-fn)
 
-	  (setf compilation-fn
-		#'(lambda ()
-		    (let ((current-i -1))
-		      (declare (special current-i))
-		      (labels ((compile-sub (compiled)
-				 (let ((opcode (next-byte)))
-				   (if opcode
-				       (progn
-					 (incf current-i)
-					 (compile-sub
-					  (append
-					   compiled
-					   (list
-					    (case opcode
-					      (#x10 (format nil "~t$P~a = null" current-i))
-					      (#x11 (format nil "~t$P~a = new 'Integer'~%~t$P~a = ~a" current-i current-i (next-byte)))
-					      (#x12 nil))))))
-				       compiled))))
-			(compile-sub '())))))))
+	  (define-target-compilation-set
+
+	      #'next-byte
+
+	    (define-opcode NIL #x10 ()
+			   (owlisp/llvm-ir::i32)))
+
+#|
+	 (setf compilation-fn
+	       #'(lambda ()
+		   (let ((current-i -1))
+		     (declare (special current-i))
+		     (labels ((compile-sub (compiled)
+				(let ((opcode (next-byte)))
+				  (if opcode
+				      (progn
+					(incf current-i)
+					(compile-sub
+					 (append
+					  compiled
+					  (list
+					   (case opcode
+					     (#x10 (format nil "~t$P~a = null" current-i))
+					     (#x11 (format nil "~t$P~a = new 'Integer'~%~t$P~a = ~a" current-i current-i (next-byte)))
+					     (#x12 nil))))))
+				      compiled))))
+		       (compile-sub '())))))
+|#
+	  ))
 
       (lambda (action)
 	(case action
 	  (:run (run+))
 	  (:reset (reset))
-	  (:print (format nil "STACK: ~a~%ENV: ~a~%CODE: ~a~%DUMP: ~a~%DISASSEMBLED CODE: ~a~%"
-			  stack env code dump (funcall disassemble-fn)))
-	  (:compile (funcall compilation-fn))
-	  (:disassemble (funcall disassemble-fn))
+	  (:print (format nil "STACK: ~a~%ENV: ~a~%CODE: ~a~%DUMP: ~a~%DISASSEMBLED CODE: ~a~%TARGET CODE:~a~%"
+			  stack env code dump (funcall disassemble-fn code) (compile+)))
+	  (:compile (compile+))
+	  (:disassemble (funcall disassemble-fn code))
 	  (t (error "unknown machine action ~a" action)))))))

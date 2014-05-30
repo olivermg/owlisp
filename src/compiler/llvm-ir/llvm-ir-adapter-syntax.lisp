@@ -50,6 +50,7 @@
 					(cdr e))
 				    result))))))
 
+#|
 (set-macro-character
  #\[
  #'read-llvm-expr)
@@ -57,3 +58,4 @@
 (set-macro-character
  #\]
  (get-macro-character #\)))
+|#

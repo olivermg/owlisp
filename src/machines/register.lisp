@@ -122,7 +122,7 @@
 				      (setf interpretation-fn fn)))
 	  (:set-disassemble-fn #'(lambda (fn)
 				   (setf disassemble-fn fn)))
-	  (:disassemble disassemble-fn)
+	  (:disassemble #'(lambda () (funcall disassemble-fn (get-code))))
 	  (:add-instructions #'add-instructions)
 	  (:run #'run)
 	  (:next-byte #'next-byte)
@@ -139,7 +139,6 @@
 
 	(define-opcode-set
 	    (funcall machine :next-byte)
-	    (funcall machine :get-code)
 
 	  (define-opcode PUSH #x01 ()
 			 (send-message machine :push

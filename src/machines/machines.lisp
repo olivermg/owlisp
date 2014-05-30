@@ -85,28 +85,25 @@
 			    ,template))))
      (t (error "unknown opcode ~a" ,opcode-var))))
 
-(defmacro step-instruction (next-byte-fn (&rest args) &body body)
-  (let ((param-bytes (gensym))
-	(iteration-arg (gensym)))
+(defmacro read-args (next-byte-fn argscount)
+  ``(loop
+       repeat ,,argscount
+       collect (funcall ,,next-byte-fn)))
 
-    `(let ((,param-bytes
-	    ,(if args
-		 `(loop
-		     for ,iteration-arg in ',args
-		     collect (funcall ,next-byte-fn))
-		 '())))
+(defmacro step-instruction (next-byte-fn (&rest args) &body body)
+  (let ((param-bytes (gensym)))
+    `(let ((,param-bytes ,(read-args next-byte-fn (length args))))
        (apply #'(lambda ,args ,@body) ,param-bytes))))
 
-(defmacro define-opcode-set (next-byte-fn get-code-fn &body body)
+(defmacro define-opcode-set (next-byte-fn &body body)
   (let ((opcode (gensym))
+	(code (gensym))
 	(opcodes (gensym))
 	(disassembled (gensym))
 	(new-opcodes (gensym))
-	(nb-fn (gensym))
-	(gc-fn (gensym)))
+	(nb-fn (gensym)))
 
-    `(let ((,nb-fn ,next-byte-fn)
-	   (,gc-fn ,get-code-fn))
+    `(let ((,nb-fn ,next-byte-fn))
 
        (values
 
@@ -115,7 +112,7 @@
 				      ,body
 				      (($2) (step-instruction ,nb-fn $3 $@4))))
 
-	(lambda ()
+	(lambda (,code)
 	  (labels
 	      ((disassemble-instruction (,disassembled ,opcodes)
 		 (if ,opcodes
@@ -136,7 +133,9 @@
 							  (length '$3)))))))
 			,new-opcodes))
 		     ,disassembled)))
-	    (disassemble-instruction '() (funcall ,gc-fn))))))))
+	    (disassemble-instruction '() ,code)))))))
+
+
 
 (defun make-default-machine (code)
   (make-default-machine-secd code))
