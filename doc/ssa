@@ -1,0 +1,8 @@
+Thoughts about implementing SSA
+===============================
+- convert code to three address code (TAC) - does SECD conform?
+- identify basic blocks
+- create control flow graph (CFG)
+- SSA construction:
+  - insert phi (calculate join sets & dominance frontiers)
+  - rename variables
