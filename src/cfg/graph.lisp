@@ -4,7 +4,7 @@
 
 
 
-(defun make-node (&key (parents '()) (children '()))
+(defun make-node (&key content (parents '()) (children '()))
 
   (labels ((notify-others (others exists-action add-action)
 	     (loop
@@ -21,6 +21,9 @@
 	   (self (action &rest args)
 
 	     (case action
+
+	       ((:content) content)
+
 	       ((:parents) parents)
 
 	       ((:children) children)
@@ -49,31 +52,3 @@
     (notify-children children)
     #'self))
 
-(defun make-graph ()
-
-  (let ((nodes '())
-	(edges '())
-	(id -1))
-
-    (labels ((add-node (content)
-	       (setf nodes
-		     (cons (list (incf id)
-				 content)
-			   nodes)))
-
-	     (add-edge (source-node-id dest-node-id)
-	       (setf edges
-		     (cons (list source-node-id
-				 dest-node-id)
-			   edges)))
-
-	     (find-parents (node-id)
-	       )
-
-	     (find-children (node-id)
-	       ))
-
-     (lambda (action &rest args)
-       (case action
-	 ((:add-node (apply #'add-node args))
-	  (:add-edge (apply #'add-edge args))))))))
