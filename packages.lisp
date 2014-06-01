@@ -4,6 +4,9 @@
 (defpackage #:owlisp/environment
   (:use cl owlisp))
 
+(defpackage #:owlisp/cfg
+  (:use cl))
+
 (defpackage #:owlisp/machines
   (:use cl owlisp owlisp/environment))
 

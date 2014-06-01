@@ -41,6 +41,11 @@
 				 "helper"))
 
 		   (:module
+		    cfg
+		    :components
+		    ((:file "graph")))
+
+		   (:module
 		    evaluator
 		    :components
 		    ((:file "evaluator"
