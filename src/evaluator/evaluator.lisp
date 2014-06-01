@@ -355,7 +355,7 @@
       (append
        (list #x11
 	     (reduce #'(lambda (r e)
-			 (append r (cdr e)))
+			 (append r (cdr e))) ; Workaround - we need a list of values, but operands are entire opcodes defining constants
 		     operands
 		     :initial-value nil))
        operator
@@ -369,7 +369,7 @@
 	 do (setf last-val
 		  (funcall proc bind-env)))
       last-val))
-  (labels ((flatten-sub (flattened remaining)
+  (labels ((flatten-sub (flattened remaining) ; Workaround - we need to flatten, because we want the bytecode not to be multiple lists
 	     (if remaining
 		 (flatten-sub (append flattened (first remaining))
 			      (rest remaining))
