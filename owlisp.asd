@@ -14,8 +14,10 @@
     :author "Oliver Wegner <void1976@gmail.com"
     :licence "BSD"
     :description "owlisp"
+
     :depends-on (:cffi
 		 :cl-ppcre)
+
     :components ((:file "packages")
 		 (:module
 		  src
@@ -43,7 +45,8 @@
 		   (:module
 		    cfg
 		    :components
-		    ((:file "graph")))
+		    ((:file "graph")
+		     (:file "def-use-chain")))
 
 		   (:module
 		    evaluator
@@ -54,6 +57,7 @@
 		    :depends-on ("owlisp"
 				 "helper"
 				 "environment"
+				 "cfg"
 				 "compiler"
 				 "interpreter"
 				 "machines"))

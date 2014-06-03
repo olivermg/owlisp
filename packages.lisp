@@ -11,7 +11,7 @@
   (:use cl owlisp owlisp/environment))
 
 (defpackage #:owlisp/evaluator
-  (:use cl owlisp owlisp/environment owlisp/machines)
+  (:use cl owlisp owlisp/environment owlisp/cfg owlisp/machines)
   (:shadow apply))
 
 (defpackage #:owlisp/llvm-ir

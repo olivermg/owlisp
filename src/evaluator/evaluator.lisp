@@ -53,8 +53,8 @@
 				     (evaluate-forms-to-list (operands expr) env)))))
 |#
 
-(defun evaluate-form (expr decl-env)
-  (let* ((analyzed-expr (analyze expr decl-env))
+(defun evaluate-form (expr decl-env cfgraph)
+  (let* ((analyzed-expr (analyze expr decl-env cfgraph))
 	 ;(result (funcall bind-env))
 	 )
     ;result
@@ -66,31 +66,31 @@
 
 (defparameter *indentation* "")
 
-(defun analyze (expr decl-env)
+(defun analyze (expr decl-env cfgraph)
   (let ((*indentation*
 	 (concatenate 'string *indentation* "  ")))
     (format t "~%~a(" *indentation*)
     (let ((evaluated-expr
 	   (cond ((self-evaluating-p expr)
-		  (analyze-self-evaluating expr decl-env))
+		  (analyze-self-evaluating expr decl-env cfgraph))
 
 		 ((quote-p expr)
-		  (analyze-quote expr decl-env))
+		  (analyze-quote expr decl-env cfgraph))
 
 		 ((variable-p expr)
-		  (analyze-variable expr decl-env))
+		  (analyze-variable expr decl-env cfgraph))
 
 		 ((lambda-p expr)
-		  (analyze-lambda expr decl-env))
+		  (analyze-lambda expr decl-env cfgraph))
 
 		 ((let-p expr)
-		  (analyze-let expr decl-env))
+		  (analyze-let expr decl-env cfgraph))
 
 		 ((if-p expr)
-		  (analyze-if expr decl-env))
+		  (analyze-if expr decl-env cfgraph))
 
 		 ((application-p expr)
-		  (analyze-application expr decl-env)))))
+		  (analyze-application expr decl-env cfgraph)))))
 
       (format t ")")
       evaluated-expr)))
@@ -232,59 +232,64 @@
 
 
 
-(defun analyze-self-evaluating (expr decl-env)
+(defun analyze-self-evaluating (expr decl-env cfgraph)
   (declare (ignore decl-env))
   (format t "CONSTANT ~a" expr)
+  (funcall cfgraph :append-content expr)
   (CONSTANT expr))
 
-(defun analyze-quote (expr decl-env)
+(defun analyze-quote (expr decl-env cfgraph)
   (declare (ignore decl-env))
   (format t "CONSTANT ~a" (quoted-text expr))
+  (funcall cfgraph :append-content expr)
   (CONSTANT (quoted-text expr)))
 
-(defun analyze-variable (expr decl-env)
+(defun analyze-variable (expr decl-env cfgraph)
   (let ((address (lookup-variable-address expr decl-env)))
     (format t "REFERENCE ~a" address)
+    (funcall cfgraph :append-content expr)
     (REFERENCE address)))
 
-(defun analyze-lambda (expr decl-env)
+(defun analyze-lambda (expr decl-env cfgraph)
   (format t "ABSTRACTION ...")
   (let* ((params (lambda-parameters expr))
 	 (extended-decl-env (env.d.extend params decl-env))
-	 (analyzed-body (analyze-sequence (lambda-body expr) extended-decl-env)))
+	 (new-cfgraph (make-node :content expr :parents cfgraph))
+	 (analyzed-body (analyze-sequence (lambda-body expr) extended-decl-env new-cfgraph)))
     (ABSTRACTION analyzed-body)))
 
-(defun analyze-let (expr decl-env)
+(defun analyze-let (expr decl-env cfgraph)
   (format t "LET-BINDING ...")
   (let* ((extended-decl-env (env.d.extend (let-bindings-vars expr) decl-env))
 	 (analyzed-vals-procs (mapcar #'(lambda (val-expr)
-					  (analyze val-expr decl-env))
+					  (analyze val-expr decl-env cfgraph))
 				      (let-bindings-vals expr)))
-	 (bodyproc (analyze-sequence (let-body expr) extended-decl-env)))
+	 (bodyproc (analyze-sequence (let-body expr) extended-decl-env cfgraph)))
     (LET-BINDING analyzed-vals-procs bodyproc)))
 
-(defun analyze-if (expr decl-env)
+(defun analyze-if (expr decl-env cfgraph)
   (format t "ALTERNATIVE ...")
-  (let ((predicate-proc (analyze (if-predicate expr) decl-env))
-	(then-proc (analyze (if-then expr) decl-env))
-	(else-proc (analyze (if-else expr) decl-env)))
+  (let ((predicate-proc (analyze (if-predicate expr) decl-env cfgraph))
+	(then-proc (analyze (if-then expr) decl-env cfgraph))
+	(else-proc (analyze (if-else expr) decl-env cfgraph)))
     (ALTERNATIVE predicate-proc
 		 then-proc
 		 else-proc)))
 
-(defun analyze-application (expr decl-env)
+(defun analyze-application (expr decl-env cfgraph)
   (format t "APPLICATION ...")
-  (let ((operator-proc (analyze (operator expr) decl-env))
+  (let ((operator-proc (analyze (operator expr) decl-env cfgraph))
 	(operands-procs (mapcar #'(lambda (operand)
-				    (analyze operand decl-env))
+				    (analyze operand decl-env cfgraph))
 				(operands expr))))
     (APPLICATION operator-proc
 		 operands-procs)))
 
-(defun analyze-sequence (exprs decl-env)
+(defun analyze-sequence (exprs decl-env cfgraph)
   (let ((analyzed-body-list (mapcar #'(lambda (expr)
-					(analyze expr decl-env))
+					(analyze expr decl-env cfgraph))
 				    exprs)))
+    (funcall cfgraph :append-content exprs)
     (SEQUENCE_ analyzed-body-list)))
 
 

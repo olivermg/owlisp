@@ -20,11 +20,12 @@
 
 	     (return)
 
-	     (let* ((code (evaluate-form
+	     (let* ((cfgraph (make-node))
+		    (code (evaluate-form
 			   expr
 			   (make-initialized-declaration-environment)
 			   ;(make-initialized-binding-environment)
-			   ))
+			   cfgraph))
 		    (machine (make-default-machine code)))
 	       (format t "~%COMPILED CODE: ~a~%~%" code)
 	       (format t "~a~%"

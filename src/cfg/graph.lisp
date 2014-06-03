@@ -1,6 +1,6 @@
 (in-package :owlisp/cfg)
 
-(export '())
+(export '(make-node))
 
 
 
@@ -45,6 +45,14 @@
 		      (union args
 			     children))
 		(notify-children args))
+
+	       ((:append-content)
+		(setf content
+		      (append content
+			      args)))
+
+	       ((:print)
+		(format t "p:~a~%c:~a~%" parents children))
 
 	       (t (error "unknown action ~a" action)))))
 
