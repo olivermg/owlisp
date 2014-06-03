@@ -18,6 +18,11 @@
 	   (notify-children (children)
 	     (notify-others children :is-parent? :add-parents))
 
+	   (root-node ()
+	     (if parents
+		 (funcall (car parents) :root-node)
+		 #'self))
+
 	   (self (action &rest args)
 
 	     (case action
@@ -51,8 +56,15 @@
 		      (append content
 			      args)))
 
+	       ((:root-node)
+		(root-node))
+
 	       ((:print)
-		(format t "p:~a~%c:~a~%" parents children))
+		(format nil "content:~a~%children:~a~%"
+			content
+			(loop
+			   for child in children
+			   collect (funcall child :print))))
 
 	       (t (error "unknown action ~a" action)))))
 

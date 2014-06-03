@@ -30,6 +30,7 @@
 	       (format t "~%COMPILED CODE: ~a~%~%" code)
 	       (format t "~a~%"
 		       (funcall machine :print))
+	       (format t "GRAPH: ~a~%" (funcall (funcall cfgraph :root-node) :print))
 	       (setf last-result
 		     (funcall machine :run))
 	       (format t "RESULT: ~a~%~%" last-result)
