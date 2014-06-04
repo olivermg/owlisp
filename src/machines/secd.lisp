@@ -134,8 +134,8 @@
 
 	      (define-opcode RET #x17 ()
 			     (define-state-transition
-				 ((x) ec cc (s e c . d))
-				 (`(,x . ,s) e c d)))
+				 (x ec cc (s e c . d))
+				 (`(,(car x) . ,s) e c d)))
 
 	      (define-opcode DUM #x18 ()
 			     (define-state-transition
