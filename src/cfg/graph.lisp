@@ -23,6 +23,15 @@
 		 (funcall (car parents) :root-node)
 		 #'self))
 
+	   (print_ (&optional (indentation ""))
+	     (format nil "~aCONTENT:~%~a~a~%~aCHILDREN:~%~a~a~%"
+		     indentation indentation content
+		     indentation indentation
+		     (loop
+			for child in children
+			collect (funcall child :print
+					 (concatenate 'string indentation " ")))))
+
 	   (self (action &rest args)
 
 	     (case action
@@ -60,11 +69,9 @@
 		(root-node))
 
 	       ((:print)
-		(format nil "content:~a~%children:~a~%"
-			content
-			(loop
-			   for child in children
-			   collect (funcall child :print))))
+		(apply #'print_
+		       (if args
+			   (list (car args)))))
 
 	       (t (error "unknown action ~a" action)))))
 
