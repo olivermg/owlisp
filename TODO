@@ -1,0 +1,10 @@
+TODO notepad
+============
+
+- remove secd code generation (not necessary for llvm-ir generation)
+- insert pass to generate cfgraph - most probably _before_ analyze-pass?
+- work out how to generate "merge" basic block after if-clause
+
+- secd generation for if is not correct (missing RET opcode in the end of then- & else-clauses?)
+  => expressions after "if" (in a sequence) don't get evaluated
+
