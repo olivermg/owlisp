@@ -6,7 +6,8 @@
 
 (defun is-exit-command (expr)
   (and (consp expr)
-       (= (length expr) 1)
+       (and (= (length expr) 1)
+	    (symbolp (car expr)))
        (string-equal "EXIT"
 		     (symbol-name (car expr)))))
 
