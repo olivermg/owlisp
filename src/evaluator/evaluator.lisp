@@ -254,7 +254,7 @@
   (format t "ABSTRACTION ...")
   (let* ((params (lambda-parameters expr))
 	 (extended-decl-env (env.d.extend params decl-env))
-	 (new-cfgraph (make-node :content expr :parents (list cfgraph)))
+	 (new-cfgraph (make-node :content (list expr) :parents (list cfgraph)))
 	 (analyzed-body (analyze-sequence (lambda-body expr) extended-decl-env new-cfgraph)))
     (ABSTRACTION analyzed-body)))
 
@@ -270,9 +270,9 @@
 (defun analyze-if (expr decl-env cfgraph)
   (format t "ALTERNATIVE ...")
   (let* ((predicate-proc (analyze (if-predicate expr) decl-env cfgraph))
-	 (then-cfgraph (make-node :content expr :parents (list cfgraph)))
+	 (then-cfgraph (make-node :content (list expr) :parents (list cfgraph)))
 	 (then-proc (analyze (if-then expr) decl-env then-cfgraph))
-	 (else-cfgraph (make-node :content expr :parents (list cfgraph)))
+	 (else-cfgraph (make-node :content (list expr) :parents (list cfgraph)))
 	 (else-proc (analyze (if-else expr) decl-env else-cfgraph)))
     (ALTERNATIVE predicate-proc
 		 then-proc
@@ -291,7 +291,7 @@
   (let ((analyzed-body-list (mapcar #'(lambda (expr)
 					(analyze expr decl-env cfgraph))
 				    exprs)))
-    (funcall cfgraph :append-content exprs)
+    ;(funcall cfgraph :append-content exprs)
     (SEQUENCE_ analyzed-body-list)))
 
 
