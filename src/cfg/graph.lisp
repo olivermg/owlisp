@@ -1,6 +1,7 @@
 (in-package :owlisp/cfg)
 
-(export '(make-node))
+(export '(make-node
+	  make-graph))
 
 
 
@@ -18,19 +19,8 @@
 	   (notify-children (children)
 	     (notify-others children :is-parent? :add-parents))
 
-	   (root-node ()
-	     (if parents
-		 (funcall (car parents) :root-node)
-		 #'self))
-
 	   (print_ (&optional (indentation ""))
-	     (format nil "~aCONTENT:~%~a~a~%~aCHILDREN:~%~a~a~%"
-		     indentation indentation content
-		     indentation indentation
-		     (loop
-			for child in children
-			collect (funcall child :print
-					 (concatenate 'string indentation " ")))))
+	     (format t "~aCONTENT:~a (~a)~%" indentation content #'self))
 
 	   (self (action &rest args)
 
@@ -65,9 +55,6 @@
 		      (append content
 			      args)))
 
-	       ((:root-node)
-		(root-node))
-
 	       ((:print)
 		(apply #'print_
 		       (if args
@@ -79,3 +66,37 @@
     (notify-children children)
     #'self))
 
+
+
+(defun make-graph ()
+
+  (let ((root-node (make-node)))
+
+    (labels ((traverse-node (node node-action)
+	       (declare (special visited))
+	       (when (and node
+			  (not (member node visited)))
+		 (setf visited
+		       (adjoin node visited))
+		 (funcall node-action node)
+		 (loop
+		    for child in (funcall node :children)
+		    collect (traverse-node child node-action))))
+
+	     (traverse (node-action)
+	       (let ((visited '()))
+		 (declare (special visited))
+		 (traverse-node root-node node-action))))
+
+      #'(lambda (action &rest args)
+
+	  (case action
+
+	    ((:root-node) root-node)
+
+	    ((:traverse) (traverse (car args)))
+
+	    ((:print) (traverse #'(lambda (node)
+				    (funcall node :print))))
+
+	    (t (error "unknown action ~a" action)))))))

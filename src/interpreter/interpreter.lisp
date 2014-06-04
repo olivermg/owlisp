@@ -21,21 +21,24 @@
 
 	     (return)
 
-	     (let* ((cfgraph (make-node))
+	     (let* ((cfgraph (make-graph))
 		    (code (evaluate-form
 			   expr
 			   (make-initialized-declaration-environment)
 			   ;(make-initialized-binding-environment)
-			   cfgraph))
+			   (funcall cfgraph :root-node)))
 		    (machine (make-default-machine code)))
 	       (format t "~%COMPILED CODE: ~a~%~%" code)
 	       (format t "~a~%"
 		       (funcall machine :print))
-	       (format t "GRAPH:~%~a~%" (funcall (funcall cfgraph :root-node) :print))
+	       (format t "GRAPH:~%")
+	       (funcall cfgraph :print)
+	       (format t "~%")
 	       (setf last-result
 		     (funcall machine :run))
 	       (format t "RESULT: ~a~%~%" last-result)
 	       (finish-output)))))
+
     last-result))
 
 
