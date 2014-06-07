@@ -8,4 +8,5 @@ build/
 src/runtime/llvm/*.ll
 src/runtime/llvm/*.o
 src/runtime/llvm/test
+src/runtime/llvm/runtime.lisp
 
