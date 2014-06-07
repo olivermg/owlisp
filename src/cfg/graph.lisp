@@ -20,7 +20,9 @@
 	     (notify-others children :is-parent? :add-parents))
 
 	   (print_ (&optional (indentation ""))
-	     (format t "~aCONTENT:~a (~a)~%" indentation content #'self))
+	     (format t "~aCONTENT:~a (~a)~%~a CHILDREN:~a~%~%"
+		     indentation content #'self
+		     indentation children))
 
 	   (self (action &rest args)
 

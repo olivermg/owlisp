@@ -47,3 +47,7 @@
 
 (defun write-compilation ()
   (LLVMPrintModuleToFile *module* +OUTPUTFILE+ (cffi:null-pointer)))
+
+
+
+(defun LLVM-REFERENCE ())
