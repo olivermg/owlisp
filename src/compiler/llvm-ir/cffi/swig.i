@@ -1,6 +1,11 @@
 %module llvmcffi
-%{
-#include <llvm-c/Core.h>
+
+%insert(lisphead) %{
+(in-package :owlisp/llvm-ir)
 %}
+
+%{
+%}
+
 %include <llvm-c/Core.h>
 

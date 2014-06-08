@@ -1,5 +1,12 @@
 %module runtime
-%{
-#include "runtime.h"
+
+%insert(lisphead) %{
+(in-package :owlisp/runtime)
 %}
-%include "runtime.h"
+
+%{
+%}
+
+%rename("RT_%(upper)s") "";
+%include "runtime.h";
+

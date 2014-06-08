@@ -50,4 +50,16 @@
 
 
 
-(defun LLVM-REFERENCE ())
+(defun LLVM-TYPE-INT ()
+  (LLVMInt64type))
+
+(defun LLVM-BOOL (value)
+  (if value 1 0))
+
+(defun LLVM-CONSTANT (value)
+  (LLVMConstint (LLVM-TYPE-INT)
+		value
+		(LLVM-BOOL nil)))
+
+(defun LLVM-REFERENCE (frame frameindex varindex)
+  (RT_GET_BINDING frame frameindex varindex))

@@ -7,6 +7,9 @@
 (defpackage #:owlisp/cfg
   (:use cl))
 
+(defpackage #:owlisp/runtime
+  (:use cl))
+
 (defpackage #:owlisp/machines
   (:use cl owlisp owlisp/environment))
 
@@ -15,7 +18,7 @@
   (:shadow apply))
 
 (defpackage #:owlisp/llvm-ir
-  (:use cl))
+  (:use cl owlisp/runtime))
 
 (defpackage #:owlisp/parrot
   (:use cl))

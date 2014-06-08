@@ -6,6 +6,6 @@
 
 (defun load-llvm-library ()
   (cffi:define-foreign-library libllvm-runtime
-    (t (:default "libLLVM-3.2")))
+    (t (:default "libLLVM-3.4")))
   (cffi:use-foreign-library libllvm-runtime))
 

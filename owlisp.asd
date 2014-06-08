@@ -63,6 +63,14 @@
 				 "machines"))
 
 		   (:module
+		    runtime
+		    :components
+		    ((:module
+		      llvm
+		      :components
+		      ((:file "runtime")))))
+
+		   (:module
 		    compiler
 		    :components
 		    ((:file "compiler"
@@ -91,15 +99,18 @@
 			      :depends-on ("llvm-ir-adapter-syntax"))
 		       (:file "llvm-ir"
 			      :depends-on ("builtins"
+					   "cffi"
 					   "common"))
 		       (:file "builtins"
 			      :depends-on ("common"))))
+
 		     (:module
 		      parrot
 		      :components
 		      ((:file "instructions"))))
 		    :depends-on ("owlisp"
-				 "helper"))
+				 "helper"
+				 "runtime"))
 
 		   (:module
 		    interpreter
