@@ -68,7 +68,9 @@
 		    ((:module
 		      llvm
 		      :components
-		      ((:file "runtime")))))
+		      ((:file "loader")
+		       (:file "runtime"
+			      :depends-on ("loader"))))))
 
 		   (:module
 		    compiler

@@ -8,7 +8,7 @@ SWIGFLAGS = -includeall
 
 
 
-all: runtime.ll runtime.lisp
+all: runtime.ll runtime.lisp libowlisp-rt.so
 
 
 
@@ -23,6 +23,15 @@ runtime.lisp: swig.i runtime.h frame.h types.h error.h
 
 
 
+libowlisp-rt.so: error.o types.o frame.o
+	$(CC) $(LDFLAGS) -shared -Wl,-soname,$@.0 -o $@.0 $^
+	ln -s $@.0 $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) -fpic -o $@ $<
+
+
+
 test-run: test
 	@echo "\n=== TESTS START ==="
 	@./test
@@ -31,10 +40,7 @@ test-run: test
 test: error.o types.o frame.o test.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-%.o: %.c
-	$(CC) $(CFLAGS) -o $@ $<
-
 
 
 clean:
-	rm -vf *.ll *.o *.bc *.s runtime runtime.lisp test
+	rm -vf *.ll *.o *.bc *.s runtime runtime.lisp libowlisp-rt.so* test
