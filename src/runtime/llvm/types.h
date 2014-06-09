@@ -18,5 +18,6 @@ typedef struct _value_t {
 value_t* new_value_int( int val );
 void free_value( value_t* value );
 unsigned char values_equal( const value_t* value1, const value_t* value2 );
+void dump_value( value_t* value );
 
 #endif

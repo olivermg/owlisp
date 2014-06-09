@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "frame.h"
 #include "types.h"
@@ -59,4 +60,15 @@ value_t* get_binding( const frame_t* f, const int frameindex, const int varindex
   }
 
   return correctframe->values[varindex];
+}
+
+void dump_frame( const frame_t* f )
+{
+  if ( f ) {
+    fprintf( stderr, "FRAME: %p\n", f );
+    for ( int i = 0; i < MAX_FRAME_VALUES; i++ ) {
+      dump_value( f->values[i] );
+    }
+    dump_frame( f->parent );
+  }
 }

@@ -94,7 +94,12 @@
   (value1 :pointer)
   (value2 :pointer))
 
+(cffi:defcfun ("dump_value" dump_value) :void
+  (value :pointer))
+
 (cl:defconstant __FRAME_H 1)
+
+(cl:defconstant MAX_FRAME_VALUES 16)
 
 (cffi:defcstruct frame_t
 	(parent :pointer)
@@ -116,5 +121,8 @@
   (f :pointer)
   (frameindex :int)
   (varindex :int))
+
+(cffi:defcfun ("dump_frame" dump_frame) :void
+  (f :pointer))
 
 

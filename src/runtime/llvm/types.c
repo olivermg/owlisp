@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "types.h"
 
@@ -25,4 +26,13 @@ unsigned char values_equal( const value_t* value1, const value_t* value2 )
   }
 
   return equal;
+}
+
+void dump_value( value_t* value )
+{
+  if ( value ) {
+    fprintf( stderr, "(p%p,t%d,v%d)\n", value, value->type, value->value );
+  } else {
+    fprintf( stderr, "(undef)\n" );
+  }
 }

@@ -25,7 +25,7 @@ runtime_api.lisp: swig.i runtime.h frame.h types.h error.h
 
 libowlisp-rt.so: error.o types.o frame.o
 	$(CC) $(LDFLAGS) -shared -Wl,-soname,$@.0 -o $@.0 $^
-	ln -s $@.0 $@
+	ln -sf $@.0 $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -fpic -o $@ $<

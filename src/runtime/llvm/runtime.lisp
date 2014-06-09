@@ -4,10 +4,12 @@
 	  RT-NEW-VALUE
 	  RT-FREE-VALUE
 	  RT-VALUES-EQUAL
+	  RT-DUMP-VALUE
 	  RT-NEW-FRAME
 	  RT-FREE-FRAME
 	  RT-SET-BINDING
-	  RT-GET-BINDING))
+	  RT-GET-BINDING
+	  RT-DUMP-FRAME))
 
 
 
@@ -23,6 +25,9 @@
 (defun RT-VALUES-EQUAL (value1 value2)
   (values_equal value1 value2))
 
+(defun RT-DUMP-VALUE (value)
+  (dump_value value))
+
 
 (defun RT-NEW-FRAME (&optional (parent-frame (cffi:null-pointer)))
   (new_frame parent-frame))
@@ -35,3 +40,6 @@
 
 (defun RT-GET-BINDING (frame frameindex varindex)
   (get_binding frame frameindex varindex))
+
+(defun RT-DUMP-FRAME (frame)
+  (dump_frame frame))
