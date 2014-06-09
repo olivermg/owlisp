@@ -7,6 +7,5 @@
 %{
 %}
 
-%rename("RT_%(upper)s") "";
 %include "runtime.h";
 
