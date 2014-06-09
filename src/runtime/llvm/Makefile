@@ -8,7 +8,7 @@ SWIGFLAGS = -includeall
 
 
 
-all: runtime.ll runtime.lisp libowlisp-rt.so
+all: runtime.ll runtime_api.lisp libowlisp-rt.so
 
 
 
@@ -18,7 +18,7 @@ runtime.ll: error.ll types.ll frame.ll
 
 
 
-runtime.lisp: swig.i runtime.h frame.h types.h error.h
+runtime_api.lisp: swig.i runtime.h frame.h types.h error.h
 	$(SWIG) $(SWIGFLAGS) -cffi swig.i
 
 
@@ -43,4 +43,4 @@ test: error.o types.o frame.o test.o
 
 
 clean:
-	rm -vf *.ll *.o *.bc *.s runtime runtime.lisp libowlisp-rt.so* test
+	rm -vf *.ll *.o *.bc *.s runtime runtime_api.lisp libowlisp-rt.so* test

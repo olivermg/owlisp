@@ -69,8 +69,10 @@
 		      llvm
 		      :components
 		      ((:file "loader")
+		       (:file "runtime_api"
+			      :depends-on ("loader"))
 		       (:file "runtime"
-			      :depends-on ("loader"))))))
+			      :depends-on ("runtime_api"))))))
 
 		   (:module
 		    compiler
