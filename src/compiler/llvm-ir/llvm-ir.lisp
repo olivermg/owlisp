@@ -51,13 +51,45 @@
 
 
 
-(defun LLVM-TYPE-INT ()
-  (LLVMInt64type))
+#|
+(defparameter *value_t*
+  (LLVMStructtype (list (LLVMInt8type)
+			(LLVMInt32type))
+		  2
+		  nil))
+
+(defparameter *value_p*
+  (LLVMPointertype *value_t* 0))
+
+(defparameter *frame_t*
+  (LLVMStructtype (list (LLVMPointertype *frame_t* 0)
+			(LLVMArraytype *value_p* 16))
+		  2
+		  nil))
+
+(defparameter *frame_p*
+  (LLVMPointertype *frame_t* 0))
+
+(defparameter *fn-type*
+  ())
+|#
+
+(defvar *module*)
+
+(defun LLVM-SET-MODULE (module)
+  (setf *module* module))
+
+(defun LLVM-CREATE-MODULE (name)
+  (LLVMModulecreatewithname name))
+
+(defun LLVM-DUMP-MODULE (module)
+  (LLVMDumpmodule module))
 
 (defun LLVM-CONSTANT (value)
-  (LLVMConstint (LLVM-TYPE-INT)
-		value
-		0))
+  (RT-NEW-VALUE value))
 
 (defun LLVM-REFERENCE (frame frameindex varindex)
   (RT-GET-BINDING frame frameindex varindex))
+
+(defun LLVM-ABSTRACTION (fn-name fn-type body)
+  (LLVMAddfunction *module* fn-name fn-type))
