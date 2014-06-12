@@ -51,30 +51,64 @@
 
 
 
-#|
+(defparameter *context*
+  (LLVMGetGlobalcontext))
+
+(defparameter *addressspace*
+  0)
+
+(defparameter *builder*
+  (LLVMCreatebuilderincontext *context*))
+
 (defparameter *value_t*
-  (LLVMStructtype (list (LLVMInt8type)
-			(LLVMInt32type))
-		  2
-		  nil))
+  (cffi:with-foreign-object
+      (types :pointer 2)
+    (setf (cffi:mem-aref types :pointer 0)
+	  (LLVMInt8type))
+    (setf (cffi:mem-aref types :pointer 1)
+	  (LLVMInt32type))
+    (LLVMStructtypeincontext *context*
+			     types
+			     2
+			     0)))
 
 (defparameter *value_p*
-  (LLVMPointertype *value_t* 0))
+  (LLVMPointertype *value_t*
+		   *addressspace*))
 
 (defparameter *frame_t*
-  (LLVMStructtype (list (LLVMPointertype *frame_t* 0)
-			(LLVMArraytype *value_p* 16))
-		  2
-		  nil))
+  (let* ((frame_t (LLVMStructcreatenamed *context*
+					 "struct._frame_t"))
+	 (frame_p (LLVMPointertype frame_t
+				   *addressspace*)))
+    (cffi:with-foreign-object
+	(types :pointer 2)
+      (setf (cffi:mem-aref types :pointer 0)
+	    frame_p)
+      (setf (cffi:mem-aref types :pointer 1)
+	    (LLVMArraytype *value_p* 16))
+      (LLVMStructsetbody frame_t
+			 types
+			 2
+			 0)
+      frame_t)))
 
 (defparameter *frame_p*
-  (LLVMPointertype *frame_t* 0))
+  (LLVMPointertype *frame_t*
+		   *addressspace*))
 
 (defparameter *fn-type*
-  ())
-|#
+  (cffi:with-foreign-object
+      (types :pointer 1)
+    (setf (cffi:mem-aref types :pointer 0)
+	  *frame_t*)
+    (LLVMFunctiontype *value_t*
+		      types
+		      1
+		      0)))
 
 (defvar *module*)
+
 
 (defun LLVM-SET-MODULE (module)
   (setf *module* module))
