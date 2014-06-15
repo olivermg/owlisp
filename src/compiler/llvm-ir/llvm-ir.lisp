@@ -125,5 +125,5 @@
 (defun LLVM-REFERENCE (frame frameindex varindex)
   (RT-GET-BINDING frame frameindex varindex))
 
-(defun LLVM-ABSTRACTION (fn-name fn-type body)
-  (LLVMAddfunction *module* fn-name fn-type))
+(defun LLVM-ABSTRACTION (fn-name body)
+  (LLVMAddfunction *module* fn-name *fn-type*))
