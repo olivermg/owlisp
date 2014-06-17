@@ -51,70 +51,87 @@
 
 
 
-(defparameter *context*
-  (LLVMGetGlobalcontext))
-
-(defparameter *addressspace*
-  0)
-
-(defparameter *builder*
-  (LLVMCreatebuilderincontext *context*))
-
-(defparameter *value_t*
-  (cffi:with-foreign-object
-      (types :pointer 2)
-    (setf (cffi:mem-aref types :pointer 0)
-	  (LLVMInt8type))
-    (setf (cffi:mem-aref types :pointer 1)
-	  (LLVMInt32type))
-    (LLVMStructtypeincontext *context*
-			     types
-			     2
-			     0)))
-
-(defparameter *value_p*
-  (LLVMPointertype *value_t*
-		   *addressspace*))
-
-(defparameter *frame_t*
-  (let* ((frame_t (LLVMStructcreatenamed *context*
-					 "struct._frame_t"))
-	 (frame_p (LLVMPointertype frame_t
-				   *addressspace*)))
-    (cffi:with-foreign-object
-	(types :pointer 2)
-      (setf (cffi:mem-aref types :pointer 0)
-	    frame_p)
-      (setf (cffi:mem-aref types :pointer 1)
-	    (LLVMArraytype *value_p* 16))
-      (LLVMStructsetbody frame_t
-			 types
-			 2
-			 0)
-      frame_t)))
-
-(defparameter *frame_p*
-  (LLVMPointertype *frame_t*
-		   *addressspace*))
-
-(defparameter *fn-type*
-  (cffi:with-foreign-object
-      (types :pointer 1)
-    (setf (cffi:mem-aref types :pointer 0)
-	  *frame_t*)
-    (LLVMFunctiontype *value_t*
-		      types
-		      1
-		      0)))
-
+(defvar *value_t*)
+(defvar *value_p*)
+(defvar *frame_t*)
+(defvar *frame_p*)
+(defvar *fn-type*)
+(defvar *context*)
+(defvar *addressspace*)
+(defvar *builder*)
 (defvar *module*)
+(defvar *bb-position-stack*)
 
+(defun init-types ()
+
+  (setf *value_t*
+	(cffi:with-foreign-object
+	    (types :pointer 2)
+	  (setf (cffi:mem-aref types :pointer 0)
+		(LLVMInt8type))
+	  (setf (cffi:mem-aref types :pointer 1)
+		(LLVMInt32type))
+	  (LLVMStructtypeincontext *context*
+				   types
+				   2
+				   0)))
+
+  (setf *value_p*
+	(LLVMPointertype *value_t*
+			 *addressspace*))
+
+  (setf *frame_t*
+	(let* ((frame_t (LLVMStructcreatenamed *context*
+					       "struct._frame_t"))
+	       (frame_p (LLVMPointertype frame_t
+					 *addressspace*)))
+	  (cffi:with-foreign-object
+	      (types :pointer 2)
+	    (setf (cffi:mem-aref types :pointer 0)
+		  frame_p)
+	    (setf (cffi:mem-aref types :pointer 1)
+		  (LLVMArraytype *value_p* 16))
+	    (LLVMStructsetbody frame_t
+			       types
+			       2
+			       0)
+	    frame_t)))
+
+  (setf *frame_p*
+	(LLVMPointertype *frame_t*
+			 *addressspace*))
+
+  (setf *fn-type*
+	(cffi:with-foreign-object
+	    (types :pointer 1)
+	  (setf (cffi:mem-aref types :pointer 0)
+		*frame_t*)
+	  (LLVMFunctiontype *value_t*
+			    types
+			    1
+			    0))))
+
+(defun push-position (new-pos)
+  (setf *bb-position-stack*
+	(cons new-pos *bb-position-stack*)))
+
+(defun LLVM-INIT (main-module-name)
+  (setf *context* (LLVMGetglobalcontext))
+  (setf *addressspace* 0)
+  (setf *builder* (LLVMCreatebuilderincontext *context*))
+  (setf *module* (LLVM-CREATE-MODULE main-module-name))
+  (init-types)
+  (let* ((main-fn (LLVM-DEFINE "main"))
+	 (main-fn-bb0 (LLVMAppendbasicblockincontext *context* main-fn "bb0")))
+    (LLVMPositionbuilderatend *builder* main-fn-bb0)
+    (push-position main-fn-bb0)))
 
 (defun LLVM-SET-MODULE (module)
   (setf *module* module))
 
 (defun LLVM-CREATE-MODULE (name)
-  (LLVMModulecreatewithname name))
+  (LLVMModulecreatewithnameincontext name
+				     *context*))
 
 (defun LLVM-DUMP-MODULE (module)
   (LLVMDumpmodule module))
@@ -125,5 +142,7 @@
 (defun LLVM-REFERENCE (frame frameindex varindex)
   (RT-GET-BINDING frame frameindex varindex))
 
-(defun LLVM-ABSTRACTION (fn-name body)
-  (LLVMAddfunction *module* fn-name *fn-type*))
+(defun LLVM-DEFINE (fn-name)
+  (let* ((fn (LLVMAddfunction *module* fn-name *fn-type*))
+	 (bb (LLVMAppendbasicblock fn "entry")))
+    (LLVMPositionbuilderatend *builder* bb)))

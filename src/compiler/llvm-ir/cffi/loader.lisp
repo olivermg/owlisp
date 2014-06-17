@@ -9,3 +9,4 @@
     (t (:default "libLLVM-3.4")))
   (cffi:use-foreign-library libllvm-runtime))
 
+(load-llvm-library)
