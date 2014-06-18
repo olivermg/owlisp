@@ -111,9 +111,11 @@
 			    1
 			    0))))
 
-(defun push-position (new-pos)
+(defun push-position (bb)
   (setf *bb-position-stack*
-	(cons new-pos *bb-position-stack*)))
+	(cons bb *bb-position-stack*))
+  (LLVMPositionbuilderatend *builder* bb)
+  *bb-position-stack*)
 
 (defun LLVM-INIT (main-module-name)
   (setf *context* (LLVMGetglobalcontext))
@@ -145,4 +147,18 @@
 (defun LLVM-DEFINE (fn-name)
   (let* ((fn (LLVMAddfunction *module* fn-name *fn-type*))
 	 (bb (LLVMAppendbasicblock fn "entry")))
-    (LLVMPositionbuilderatend *builder* bb)))
+    (push-position bb)
+    fn))
+
+(defun LLVM-CALL (fn &rest args)
+  (let ((frame (RT-NEW-FRAME)))
+    (RT-SET-BINDINGS frame args)
+    (cffi:with-foreign-object
+	(args :pointer 1)
+      (setf (cffi:mem-aref args :pointer 0)
+	    frame)
+      (LLVMBuildCall *builder*
+		     fn
+		     args
+		     1
+		     (cffi:null-pointer)))))

@@ -9,7 +9,8 @@
 	  RT-FREE-FRAME
 	  RT-SET-BINDING
 	  RT-GET-BINDING
-	  RT-DUMP-FRAME))
+	  RT-DUMP-FRAME
+	  RT-SET-BINDINGS))
 
 
 
@@ -19,7 +20,7 @@
 (defun RT-NEW-VALUE (value)
   (RT-NEW-VALUE-INT value))
 
-(defun RT-FREE_VALUE (value)
+(defun RT-FREE-VALUE (value)
   (free_value value))
 
 (defun RT-VALUES-EQUAL (value1 value2)
@@ -43,3 +44,10 @@
 
 (defun RT-DUMP-FRAME (frame)
   (dump_frame frame))
+
+
+(defun RT-SET-BINDINGS (frame values)
+  (loop
+     for v in values
+     for i from 0 to (- (length values) 1)
+     do (RT-SET-BINDING frame 0 i v)))
