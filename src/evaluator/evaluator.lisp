@@ -13,30 +13,30 @@
 
 
 
-(defun evaluate-stdin (decl-env cfgraph)
-  (evaluate-stream *standard-input* decl-env cfgraph))
+(defun evaluate-stdin (decl-env)
+  (evaluate-stream *standard-input* decl-env))
 
-(defun evaluate-stream (stream decl-env cfgraph)
+(defun evaluate-stream (stream decl-env)
   (load-libraries)
   (initialize)
   (append
    (define-builtins)
-   (list (evaluate-forms (read-stream stream) decl-env cfgraph))
+   (list (evaluate-forms (read-stream stream) decl-env))
    (write-compilation)))
 
-(defun evaluate-forms-to-last (forms decl-env cfgraph)
+(defun evaluate-forms-to-last (forms decl-env)
   (let ((last-val nil))
     (dolist (form forms last-val)
-      (setf last-val (evaluate-form form decl-env cfgraph)))
+      (setf last-val (evaluate-form form decl-env)))
     last-val))
 
-(defun evaluate-forms-to-list (forms decl-env cfgraph)
+(defun evaluate-forms-to-list (forms decl-env)
   (mapcar #'(lambda (form)
-	      (evaluate-form form decl-env cfgraph))
+	      (evaluate-form form decl-env))
 	  forms))
 
-(defun evaluate-forms (forms decl-env cfgraph)
-  (evaluate-forms-to-last forms decl-env cfgraph))
+(defun evaluate-forms (forms decl-env)
+  (evaluate-forms-to-last forms decl-env))
 
 #|
 (defun evaluate-form (expr env)
@@ -53,8 +53,8 @@
 				     (evaluate-forms-to-list (operands expr) env)))))
 |#
 
-(defun evaluate-form (expr decl-env cfgraph)
-  (let* ((analyzed-expr (analyze expr decl-env cfgraph))
+(defun evaluate-form (expr decl-env)
+  (let* ((analyzed-expr (analyze expr decl-env))
 	 ;(result (funcall bind-env))
 	 )
     ;result
@@ -66,36 +66,35 @@
 
 (defparameter *indentation* "")
 
-(defun analyze (expr decl-env cfgraph)
+(defun analyze (expr decl-env)
   (let ((*indentation*
 	 (concatenate 'string *indentation* "  ")))
     (format t "~%~a(" *indentation*)
     (multiple-value-bind
-	  (analyzed-expr analyzed-cfgraph)
+	  (analyzed-expr)
 	(cond ((self-evaluating-p expr)
-	       (analyze-self-evaluating expr decl-env cfgraph))
+	       (analyze-self-evaluating expr decl-env))
 
 	      ((quote-p expr)
-	       (analyze-quote expr decl-env cfgraph))
+	       (analyze-quote expr decl-env))
 
 	      ((variable-p expr)
-	       (analyze-variable expr decl-env cfgraph))
+	       (analyze-variable expr decl-env))
 
 	      ((lambda-p expr)
-	       (analyze-lambda expr decl-env cfgraph))
+	       (analyze-lambda expr decl-env))
 
 	      ((let-p expr)
-	       (analyze-let expr decl-env cfgraph))
+	       (analyze-let expr decl-env))
 
 	      ((if-p expr)
-	       (analyze-if expr decl-env cfgraph))
+	       (analyze-if expr decl-env))
 
 	      ((application-p expr)
-	       (analyze-application expr decl-env cfgraph)))
+	       (analyze-application expr decl-env)))
 
       (format t ")")
-      (values analyzed-expr
-	      analyzed-cfgraph))))
+      (values analyzed-expr))))
 
 #|
 (defun analyze-bindings (bindings decl-env)
@@ -234,102 +233,53 @@
 
 
 
-(defun analyze-self-evaluating (expr decl-env cfgraph)
+(defun analyze-self-evaluating (expr decl-env)
   (declare (ignore decl-env))
   (format t "CONSTANT ~a" expr)
-  (funcall cfgraph :append-content (CONSTANT expr))
-  (values (CONSTANT expr)
-	  cfgraph))
+  (CONSTANT expr))
 
-(defun analyze-quote (expr decl-env cfgraph)
+(defun analyze-quote (expr decl-env)
   (declare (ignore decl-env))
   (format t "CONSTANT ~a" (quoted-text expr))
-  (funcall cfgraph :append-content (CONSTANT (quoted-text expr)))
-  (values (CONSTANT (quoted-text expr))
-	  cfgraph))
+  (CONSTANT (quoted-text expr)))
 
-(defun analyze-variable (expr decl-env cfgraph)
+(defun analyze-variable (expr decl-env)
   (let ((address (lookup-variable-address expr decl-env)))
     (format t "REFERENCE ~a" address)
-    (funcall cfgraph :append-content (REFERENCE address))
-    (values (REFERENCE address)
-	    cfgraph)))
+    (REFERENCE address)))
 
-(defun analyze-lambda (expr decl-env cfgraph)
+(defun analyze-lambda (expr decl-env)
   (format t "ABSTRACTION ...")
   (let* ((params (lambda-parameters expr))
 	 (extended-decl-env (env.d.extend params decl-env))
-	 (new-cfgraph (make-node :parents (list cfgraph))))
-    (multiple-value-bind
-	  (analyzed-body analyzed-cfgraph)
-	(analyze-sequence (lambda-body expr) extended-decl-env new-cfgraph)
-      ;(funcall analyzed-cfgraph :append-content (ABSTRACTION analyzed-body))
-      (values (ABSTRACTION analyzed-body)
-	      analyzed-cfgraph))))
+	 (analyzed-body (analyze-sequence (lambda-body expr) extended-decl-env)))
+    (ABSTRACTION analyzed-body)))
 
-(defun analyze-let (expr decl-env cfgraph)
+(defun analyze-let (expr decl-env)
   (format t "LET-BINDING ...")
   (let* ((extended-decl-env (env.d.extend (let-bindings-vars expr) decl-env))
-	 (analyzed-vals-procs (mapcar #'(lambda (val-expr)
-					  (analyze val-expr decl-env cfgraph))
-				      (let-bindings-vals expr))))
-    (multiple-value-bind
-	  (analyzed-body analyzed-cfgraph)
-	(analyze-sequence (let-body expr) extended-decl-env cfgraph)
-      (values (LET-BINDING analyzed-vals-procs analyzed-body)
-	      analyzed-cfgraph))))
+	 (analyzed-vals-procs (analyze-sequence (let-bindings-vals expr) decl-env))
+	 (analyzed-body (analyze-sequence (let-body expr) extended-decl-env)))
+    (LET-BINDING analyzed-vals-procs analyzed-body)))
 
-(defun analyze-if (expr decl-env cfgraph)
+(defun analyze-if (expr decl-env)
   (format t "ALTERNATIVE ...")
-  (multiple-value-bind
-	(analyzed-predicate analyzed-cfgraph)
-      (analyze (if-predicate expr) decl-env cfgraph)
-    ;(funcall analyzed-cfgraph :append-content analyzed-predicate)
-    (let* ((then-cfgraph (make-node :parents (list analyzed-cfgraph)))
-	   (else-cfgraph (make-node :parents (list analyzed-cfgraph))))
-      (multiple-value-bind
-	    (analyzed-then analyzed-then-cfgraph)
-	  (analyze (if-then expr) decl-env then-cfgraph)
-	(multiple-value-bind
-	      (analyzed-else analyzed-else-cfgraph)
-	    (analyze (if-else expr) decl-env else-cfgraph)
-	  (let ((merge-cfgraph (make-node :parents
-					  (list analyzed-then-cfgraph
-						analyzed-else-cfgraph))))
-	    (values (ALTERNATIVE analyzed-predicate analyzed-then analyzed-else)
-		    merge-cfgraph)))))))
+  (let ((analyzed-predicate (analyze (if-predicate expr) decl-env))
+	(analyzed-then (analyze (if-then expr) decl-env))
+	(analyzed-else (analyze (if-else expr) decl-env)))
+    (ALTERNATIVE analyzed-predicate analyzed-then analyzed-else)))
 
-(defun analyze-application (expr decl-env cfgraph)
+(defun analyze-application (expr decl-env)
   (format t "APPLICATION ...")
-  (multiple-value-bind
-	(analyzed-operator analyzed-op-cfgraph)
-      (analyze (operator expr) decl-env cfgraph)
-    (let* ((analyzed-sequence (reduce #'(lambda (cur-result operand)
-					  (let* ((prev-operands (car cur-result))
-						 (prev-graphs (cdr cur-result))
-						 (last-graph (car (last prev-graphs))))
-					    (multiple-value-bind
-						  (analyzed-operand analyzed-cfgraph)
-						(analyze operand decl-env last-graph)
-					      (cons (append prev-operands
-							    (list analyzed-operand))
-						    (append prev-graphs
-							    (list analyzed-cfgraph))))))
-				      (operands expr)
-				      :initial-value (cons '()
-							   (list analyzed-op-cfgraph))))
-	   (analyzed-operands (car analyzed-sequence))
-	   (analyzed-cfgraph (car (last (cdr analyzed-sequence)))))
-      (values (APPLICATION analyzed-operator analyzed-operands)
-	      analyzed-cfgraph))))
+  (let ((analyzed-operator (analyze (operator expr) decl-env))
+	(analyzed-operands (analyze-sequence (operands expr) decl-env)))
+    (APPLICATION analyzed-operator analyzed-operands)))
 
-(defun analyze-sequence (exprs decl-env cfgraph)
+(defun analyze-sequence (exprs decl-env)
   (let ((analyzed-body-list (mapcar #'(lambda (expr)
-					(analyze expr decl-env cfgraph))
+					(analyze expr decl-env))
 				    exprs)))
-    ;(funcall cfgraph :append-content exprs)
-    (values (SEQUENCE_ analyzed-body-list)
-	    cfgraph)))
+    (SEQUENCE_ analyzed-body-list)))
 
 
 
@@ -340,7 +290,10 @@
     value)
   (list #x10 value)
 |#
-  (list #x11 value))
+#|
+  (list #x11 value)
+|#
+  (LLVM-CONSTANT value))
 
 (defun REFERENCE (address)
 #|
@@ -348,7 +301,10 @@
     (lookup-variable-value address bind-env))
   (list #x11 (car address) (cdr address))
 |#
-  (list #x12 (car address) (cdr address)))
+#|
+  (list #x12 (car address) (cdr address))
+|#
+  (LLVM-REFERENCE (car address) (cdr address)))
 
 (defun ABSTRACTION (body)
 #|
@@ -356,12 +312,15 @@
     (lambda (evaluated-args)
       (funcall body (env.b.extend evaluated-args bind-env))))
 |#
+#|
   (let* ((the-function (append body (RETURN_)))
 	 (the-goto (GOTO (length the-function))))
     (append (list #x40 (length the-goto))
 	    the-goto
 	    the-function)
-    (list #x15 the-function)))
+    (list #x15 the-function))
+|#
+  (LLVM-DEFINE "abstraction"))
 
 (defun LET-BINDING (bound-values-procs body)
 #|
@@ -382,10 +341,13 @@
 	(funcall else bind-env)))
   (list 14)
 |#
+#|
   (let ((then-terminated (append then (JOIN_)))
 	(else-terminated (append else (JOIN_))))
     (append predicate
-	    (list #x13 then-terminated else-terminated))))
+	    (list #x13 then-terminated else-terminated)))
+|#
+  (LLVM-CALL nil nil))
 
 (defun APPLICATION (operator operands)
 #|
@@ -429,12 +391,15 @@
 		  (funcall proc bind-env)))
       last-val))
 |#
+#|
   (labels ((flatten-sub (flattened remaining) ; Workaround - we need to flatten, because we want the bytecode not to be multiple lists
 	     (if remaining
 		 (flatten-sub (append flattened (first remaining))
 			      (rest remaining))
 		 flattened)))
-    (flatten-sub '() body)))
+    (flatten-sub '() body))
+|#
+  body)
 
 (defun GOTO (offset)
   (list #x30 offset))

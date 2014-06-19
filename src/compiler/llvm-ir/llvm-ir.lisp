@@ -1,9 +1,18 @@
 (in-package :owlisp/llvm-ir)
 
-(export '(compile-defpackage
-	  compile-defun
-	  compile-call
-	  write-compilation))
+(export '(;compile-defpackage
+	  ;compile-defun
+	  ;compile-call
+	  ;write-compilation
+
+	  LLVM-INIT
+	  LLVM-SET-MODULE
+	  LLVM-CREATE-MODULE
+	  LLVM-DUMP-MODULE
+	  LLVM-CONSTANT
+	  LLVM-REFERENCE
+	  LLVM-DEFINE
+	  LLVM-CALL))
 
 
 
@@ -61,6 +70,7 @@
 (defvar *builder*)
 (defvar *module*)
 (defvar *bb-position-stack*)
+(defvar *activation-frame*)
 
 (defun init-types ()
 
@@ -117,12 +127,26 @@
   (LLVMPositionbuilderatend *builder* bb)
   *bb-position-stack*)
 
+(defun add-activation-frame ()
+  (let ((new-frame (RT-NEW-FRAME *activation-frame*)))
+    (setf *activation-frame* new-frame)
+    new-frame))
+
+(defun drop-activation-frame ()
+  (setf *activation-frame*
+	(rest *activation-frame*))
+  (first *activation-frame*))
+
+
+
 (defun LLVM-INIT (main-module-name)
   (setf *context* (LLVMGetglobalcontext))
   (setf *addressspace* 0)
   (setf *builder* (LLVMCreatebuilderincontext *context*))
   (setf *module* (LLVM-CREATE-MODULE main-module-name))
   (init-types)
+  (setf *bb-position-stack* '())
+  (setf *activation-frame* (RT-NEW-FRAME))
   (let* ((main-fn (LLVM-DEFINE "main"))
 	 (main-fn-bb0 (LLVMAppendbasicblockincontext *context* main-fn "bb0")))
     (LLVMPositionbuilderatend *builder* main-fn-bb0)
@@ -141,8 +165,8 @@
 (defun LLVM-CONSTANT (value)
   (RT-NEW-VALUE value))
 
-(defun LLVM-REFERENCE (frame frameindex varindex)
-  (RT-GET-BINDING frame frameindex varindex))
+(defun LLVM-REFERENCE (frameindex varindex)
+  (RT-GET-BINDING *activation-frame* frameindex varindex))
 
 (defun LLVM-DEFINE (fn-name)
   (let* ((fn (LLVMAddfunction *module* fn-name *fn-type*))
@@ -151,7 +175,7 @@
     fn))
 
 (defun LLVM-CALL (fn &rest args)
-  (let ((frame (RT-NEW-FRAME)))
+  (let ((frame (add-activation-frame)))
     (RT-SET-BINDINGS frame args)
     (cffi:with-foreign-object
 	(args :pointer 1)

@@ -8,3 +8,5 @@
   (cffi:define-foreign-library libowlisp-rt
     (t (:default "libowlisp-rt")))
   (cffi:use-foreign-library libowlisp-rt))
+
+(load-runtime-library)
