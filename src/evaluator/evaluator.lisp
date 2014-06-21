@@ -252,8 +252,9 @@
   (format t "ABSTRACTION ...")
   (let* ((params (lambda-parameters expr))
 	 (extended-decl-env (env.d.extend params decl-env))
+	 (defined-fn (ABSTRACTION-BEGIN))
 	 (analyzed-body (analyze-sequence (lambda-body expr) extended-decl-env)))
-    (ABSTRACTION analyzed-body)))
+    (ABSTRACTION-LEAVE (first (last analyzed-body)))))
 
 (defun analyze-let (expr decl-env)
   (format t "LET-BINDING ...")
@@ -321,6 +322,12 @@
     (list #x15 the-function))
 |#
   (LLVM-DEFINE "abstraction"))
+
+(defun ABSTRACTION-BEGIN ()
+  (LLVM-DEFINE "abstraction1"))
+
+(defun ABSTRACTION-LEAVE (return-value)
+  (LLVM-LEAVE-DEFINE return-value))
 
 (defun LET-BINDING (bound-values-procs body)
 #|

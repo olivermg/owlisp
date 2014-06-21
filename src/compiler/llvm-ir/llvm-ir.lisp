@@ -12,6 +12,7 @@
 	  LLVM-CONSTANT
 	  LLVM-REFERENCE
 	  LLVM-DEFINE
+	  LLVM-LEAVE-DEFINE
 	  LLVM-CALL))
 
 
@@ -127,6 +128,12 @@
   (LLVMPositionbuilderatend *builder* bb)
   *bb-position-stack*)
 
+(defun pop-position ()
+  (let ((left-bb (first *bb-position-stack*)))
+    (setf *bb-position-stack*
+	  (rest *bb-position-stack*))
+    left-bb))
+
 (defun add-activation-frame ()
   (let ((new-frame (RT-NEW-FRAME *activation-frame*)))
     (setf *activation-frame* new-frame)
@@ -139,7 +146,7 @@
 
 
 
-(defun LLVM-INIT (main-module-name)
+(defun LLVM-INIT (&optional (main-module-name "main"))
   (setf *context* (LLVMGetglobalcontext))
   (setf *addressspace* 0)
   (setf *builder* (LLVMCreatebuilderincontext *context*))
@@ -159,8 +166,8 @@
   (LLVMModulecreatewithnameincontext name
 				     *context*))
 
-(defun LLVM-DUMP-MODULE (module)
-  (LLVMDumpmodule module))
+(defun LLVM-DUMP-MODULE ()
+  (LLVMDumpmodule *module*))
 
 (defun LLVM-CONSTANT (value)
   (RT-NEW-VALUE value))
@@ -173,6 +180,11 @@
 	 (bb (LLVMAppendbasicblock fn "entry")))
     (push-position bb)
     fn))
+
+(defun LLVM-LEAVE-DEFINE (return-value)
+  (LLVMBuildret *builder*
+		return-value)
+  (pop-position))
 
 (defun LLVM-CALL (fn &rest args)
   (let ((frame (add-activation-frame)))
