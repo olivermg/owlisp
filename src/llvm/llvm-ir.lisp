@@ -100,9 +100,10 @@
     fn))
 
 (defun TARGET-LEAVE-DEFINE (return-value)
-  (LLVMBuildret *builder*
-		return-value)
-  (pop-position))
+  (let ((val (RT-BUILD-NEW-VALUE-INT return-value)))
+    (LLVMBuildret *builder*
+		  val)
+    (pop-position)))
 
 (defun TARGET-CALL (fn &rest args)
   (let ((frame (add-activation-frame)))

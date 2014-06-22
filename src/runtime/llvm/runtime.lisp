@@ -18,6 +18,9 @@
 (defvar *value_p*)
 (defvar *frame_t*)
 (defvar *frame_p*)
+
+(defvar *new_value_int*)
+
 (defvar *fn-type*)
 (defvar *context*)
 (defvar *addressspace*)
@@ -152,8 +155,16 @@
 			      "new_value_int"
 			      fn-type)))
     (LLVMSetLinkage fn
-		    :LLVMExternalLinkage)))
+		    :LLVMExternalLinkage)
+    (setf *new_value_int* fn)))
 
 (defun RT-BUILD-NEW-VALUE-INT (value)
-  (LLVMBuildCall *builder*
-		 ))
+  (cffi:with-foreign-object
+      (args :pointer 1)
+    (setf (cffi:mem-aref args :pointer 0)
+	  value)
+    (LLVMBuildCall *builder*
+		   *new_value_int*
+		   args
+		   1
+		   "vi")))
