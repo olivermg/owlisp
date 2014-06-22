@@ -138,7 +138,7 @@
 
 
 
-(defun RT-DECLARE-RUNTIME-FUNCTIONS ()
+(defun RT-DECLARE-RUNTIME-FUNCTIONS (module)
   (let* ((fn-type (cffi:with-foreign-object
 		      (types :pointer 1)
 		    (setf (cffi:mem-aref types :pointer 0)
@@ -147,10 +147,12 @@
 						       *addressspace*)
 				      types
 				      1
-				      0))))
-   (LLVMAddFunction *module*
-		    "new_value_int"
-		    )))
+				      0)))
+	 (fn (LLVMAddFunction module
+			      "new_value_int"
+			      fn-type)))
+    (LLVMSetLinkage fn
+		    :LLVMExternalLinkage)))
 
 (defun RT-BUILD-NEW-VALUE-INT (value)
   (LLVMBuildCall *builder*

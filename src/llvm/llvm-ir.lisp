@@ -66,8 +66,8 @@
   (setf *context* (LLVMGetglobalcontext))
   (setf *addressspace* 0)
   (setf *builder* (LLVMCreatebuilderincontext *context*))
-  (setf *module* (TARGET-CREATE-MODULE main-module-name))
   (init-types)
+  (setf *module* (TARGET-CREATE-MODULE main-module-name))
   (setf *bb-position-stack* '())
   (setf *activation-frame* (RT-NEW-FRAME))
   (let* ((main-fn (TARGET-DEFINE "main"))
@@ -79,8 +79,10 @@
   (setf *module* module))
 
 (defun TARGET-CREATE-MODULE (name)
-  (LLVMModulecreatewithnameincontext name
-				     *context*))
+  (let ((module (LLVMModulecreatewithnameincontext name
+						   *context*)))
+    (RT-DECLARE-RUNTIME-FUNCTIONS module)
+    module))
 
 (defun TARGET-DUMP-MODULE ()
   (LLVMDumpmodule *module*))
