@@ -294,7 +294,7 @@
 #|
   (list #x11 value)
 |#
-  (LLVM-CONSTANT value))
+  (TARGET-CONSTANT value))
 
 (defun REFERENCE (address)
 #|
@@ -305,7 +305,7 @@
 #|
   (list #x12 (car address) (cdr address))
 |#
-  (LLVM-REFERENCE (car address) (cdr address)))
+  (TARGET-REFERENCE (car address) (cdr address)))
 
 (defun ABSTRACTION (body)
 #|
@@ -321,13 +321,13 @@
 	    the-function)
     (list #x15 the-function))
 |#
-  (LLVM-DEFINE "abstraction"))
+  (TARGET-DEFINE "abstraction"))
 
 (defun ABSTRACTION-BEGIN ()
-  (LLVM-DEFINE "abstraction1"))
+  (TARGET-DEFINE "abstraction1"))
 
 (defun ABSTRACTION-LEAVE (return-value)
-  (LLVM-LEAVE-DEFINE return-value))
+  (TARGET-LEAVE-DEFINE return-value))
 
 (defun LET-BINDING (bound-values-procs body)
 #|
@@ -354,7 +354,7 @@
     (append predicate
 	    (list #x13 then-terminated else-terminated)))
 |#
-  (LLVM-CALL nil nil))
+  (TARGET-CALL nil nil))
 
 (defun APPLICATION (operator operands)
 #|

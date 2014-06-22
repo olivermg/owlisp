@@ -4,6 +4,8 @@
 (in-package :owlisp/llvm-ir)
 %}
 
+%feature( "export" );
+
 %{
 %}
 

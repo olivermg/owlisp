@@ -13,7 +13,7 @@
 
 (defun toplevel ()
   (let ((last-result nil))
-    (LLVM-INIT)
+    (TARGET-INIT)
     (loop
        (format t "~&owlisp> ")
        (finish-output)
@@ -38,7 +38,7 @@
 		     (funcall machine :run))
 	       (format t "RESULT: ~a~%~%" last-result)
 |#
-	       (LLVM-DUMP-MODULE)
+	       (TARGET-DUMP-MODULE)
 	       (finish-output)))))
 
     last-result))

@@ -1,6 +1,7 @@
 SWIG=swig
+SWIGFLAGS=-I/usr/include
 #SWIGFLAGS=-I/usr/local/include
-SWIGFLAGS=-I/home/oliver/opt/llvm/current/include
+#SWIGFLAGS=-I/home/oliver/opt/llvm/current/include
 
 cffi: swig.i
 	$(SWIG) $(SWIGFLAGS) -cffi swig.i

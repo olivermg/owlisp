@@ -60,7 +60,8 @@
 				 "cfg"
 				 "compiler"
 				 "interpreter"
-				 "machines"))
+				 "machines"
+				 "llvm"))
 
 		   (:module
 		    runtime
@@ -72,7 +73,8 @@
 		       (:file "runtime_api"
 			      :depends-on ("loader"))
 		       (:file "runtime"
-			      :depends-on ("runtime_api"))))))
+			      :depends-on ("runtime_api")))))
+		    :depends-on ("compiler"))
 
 		   (:module
 		    compiler
@@ -101,10 +103,6 @@
 		       (:file "llvm-ir-adapter-syntax")
 		       (:file "llvm-ir-adapter"
 			      :depends-on ("llvm-ir-adapter-syntax"))
-		       (:file "llvm-ir"
-			      :depends-on ("builtins"
-					   "cffi"
-					   "common"))
 		       (:file "builtins"
 			      :depends-on ("common"))))
 
@@ -113,7 +111,15 @@
 		      :components
 		      ((:file "instructions"))))
 		    :depends-on ("owlisp"
+				 "helper"))
+
+		   (:module
+		    llvm
+		    :components
+		    ((:file "llvm-ir"))
+		    :depends-on ("owlisp"
 				 "helper"
+				 "compiler"
 				 "runtime"))
 
 		   (:module
@@ -122,7 +128,8 @@
 		    :depends-on ("owlisp"
 				 "helper"
 				 "environment"
-				 "machines"))
+				 "machines"
+				 "llvm"))
 
 		   (:module
 		    machines
