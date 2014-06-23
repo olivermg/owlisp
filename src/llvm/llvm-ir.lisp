@@ -88,7 +88,10 @@
   (LLVMDumpmodule *module*))
 
 (defun TARGET-CONSTANT (value)
-  (RT-NEW-VALUE value))
+  (let ((llvm-value (LLVMConstint (LLVMInt32type)
+				  value
+				  0)))
+   (RT-BUILD-NEW-VALUE-INT llvm-value)))
 
 (defun TARGET-REFERENCE (frameindex varindex)
   (RT-GET-BINDING *activation-frame* frameindex varindex))
