@@ -3,9 +3,9 @@ SWIGFLAGS=-I/usr/include
 #SWIGFLAGS=-I/usr/local/include
 #SWIGFLAGS=-I/home/oliver/opt/llvm/current/include
 
-cffi: swig.i
+llvm_api.lisp: swig.i
 	$(SWIG) $(SWIGFLAGS) -cffi swig.i
 
 clean:
-	rm -vf llvmcffi.lisp
+	rm -vf llvm_api.lisp
 

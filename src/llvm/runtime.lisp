@@ -1,33 +1,6 @@
-(in-package :owlisp/runtime)
-
-(export '(RT-NEW-VALUE-INT
-	  RT-NEW-VALUE
-	  RT-FREE-VALUE
-	  RT-VALUES-EQUAL
-	  RT-DUMP-VALUE
-	  RT-NEW-FRAME
-	  RT-FREE-FRAME
-	  RT-SET-BINDING
-	  RT-GET-BINDING
-	  RT-DUMP-FRAME
-	  RT-SET-BINDINGS))
+(in-package :owlisp/llvm)
 
 
-
-(defvar *value_t*)
-(defvar *value_p*)
-(defvar *frame_t*)
-(defvar *frame_p*)
-
-(defvar *new_value_int*)
-
-(defvar *fn-type*)
-(defvar *context*)
-(defvar *addressspace*)
-(defvar *builder*)
-(defvar *module*)
-(defvar *bb-position-stack*)
-(defvar *activation-frame*)
 
 (defun init-types ()
 

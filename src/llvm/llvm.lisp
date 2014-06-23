@@ -1,11 +1,6 @@
-(in-package :owlisp/runtime)
+(in-package :owlisp/llvm)
 
-(export '(;compile-defpackage
-	  ;compile-defun
-	  ;compile-call
-	  ;write-compilation
-
-	  TARGET-INIT
+(export '(TARGET-INIT
 	  TARGET-SET-MODULE
 	  TARGET-CREATE-MODULE
 	  TARGET-DUMP-MODULE

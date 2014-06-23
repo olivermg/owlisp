@@ -5,8 +5,8 @@
 
 build/
 
-src/runtime/llvm/*.ll
-src/runtime/llvm/*.o
-src/runtime/llvm/test
-src/runtime/llvm/libowlisp-rt.so*
+src/llvm/crt/*.ll
+src/llvm/crt/*.o
+src/llvm/crt/test
+src/llvm/crt/libowlisp-rt.so*
 

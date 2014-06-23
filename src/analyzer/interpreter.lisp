@@ -1,4 +1,4 @@
-(in-package :owlisp/evaluator)
+(in-package :owlisp/analyzer)
 
 (export '(toplevel))
 

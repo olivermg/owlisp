@@ -7,6 +7,8 @@
 
 (in-package :owlisp-asd)
 
+
+
 (defsystem owlisp
     :name "owlisp"
     :version "0.0.1"
@@ -19,6 +21,7 @@
 		 :cl-ppcre)
 
     :components ((:file "packages")
+
 		 (:module
 		  src
 		  :components
@@ -43,109 +46,48 @@
 				 "helper"))
 
 		   (:module
-		    cfg
+		    analyzer
 		    :components
-		    ((:file "graph")
-		     (:file "def-use-chain")))
-
-		   (:module
-		    evaluator
-		    :components
-		    ((:file "evaluator"
-			    :depends-on ("builtins"))
-		     (:file "builtins"))
+		    ((:file "analyzer")
+		     (:file "interpreter"
+			    :depends-on ("analyzer")))
 		    :depends-on ("owlisp"
 				 "helper"
 				 "environment"
-				 "cfg"
-				 "compiler"
-				 "interpreter"
-				 "machines"
 				 "llvm"))
-
-		   (:module
-		    runtime
-		    :components
-		    ((:module
-		      llvm
-		      :components
-		      ((:file "loader")
-		       (:file "runtime_api"
-			      :depends-on ("loader"))
-		       (:file "runtime"
-			      :depends-on ("runtime_api")))))
-		    :depends-on ("compiler"))
-
-		   (:module
-		    compiler
-		    :components
-		    ((:file "compiler"
-			    :depends-on ("llvm-ir"
-					 "parrot"))
-		     (:module
-		      llvm-ir
-		      :components
-		      ((:file "globals")
-		       (:module
-			cffi
-			:components
-			((:file "loader")
-			 (:file "llvmcffi"
-				:depends-on ("loader")))
-			:depends-on ("globals"))
-		       (:file "common"
-			      :depends-on ("cffi"))
-		       (:module
-			typesystem
-			:components
-			((:file "typesystem"))
-			:depends-on ("common"))
-		       (:file "llvm-ir-adapter-syntax")
-		       (:file "llvm-ir-adapter"
-			      :depends-on ("llvm-ir-adapter-syntax"))
-		       (:file "builtins"
-			      :depends-on ("common"))))
-
-		     (:module
-		      parrot
-		      :components
-		      ((:file "instructions"))))
-		    :depends-on ("owlisp"
-				 "helper"))
 
 		   (:module
 		    llvm
 		    :components
-		    ((:file "llvm-ir"))
-		    :depends-on ("owlisp"
-				 "helper"
-				 "compiler"
-				 "runtime"))
+		    ((:file "llvm"
+			    :depends-on ("globals"
+					 "runtime"
+					 "cffi"))
+		     (:file "runtime"
+			    :depends-on ("globals"
+					 "crt"))
+		     (:file "globals")
 
-		   (:module
-		    interpreter
-		    :components ((:file "interpreter"))
-		    :depends-on ("owlisp"
-				 "helper"
-				 "environment"
-				 "machines"
-				 "llvm"))
+		     (:module
+		      crt
+		      :components
+		      ((:file "runtime_api"
+			      :depends-on ("loader"))
+		       (:file "loader")))
 
-		   (:module
-		    machines
-		    :components ((:file "machines")
-				 (:file "target-compilation"
-					:depends-on ("machines"))
-				 (:file "register"
-					:depends-on ("machines"
-						     "target-compilation"))
-				 (:file "secd"
-					:depends-on ("machines"
-						     "target-compilation")))
-		    :depends-on ("helper"
-				 "environment")))
+		     (:module
+		      cffi
+		      :components
+		      ((:file "llvm_api"
+			      :depends-on ("loader"))
+		       (:file "loader"))))
+
+		    :depends-on ("owlisp"
+				 "helper")))
 
 		  :depends-on ("packages"))))
+
+
 
 (defsystem owlisp-tests
   :name "owlisp-tests"
@@ -157,6 +99,7 @@
   :depends-on (:owlisp
 	       :fiveam)
   :components ((:file "packages.test")
+
 	       (:module
 		tests
 		:components
