@@ -71,14 +71,18 @@
 		     (:module
 		      crt
 		      :components
-		      ((:file "runtime_api"
+		      ((:file "runtime_api_high"
+			      :depends-on ("runtime_api_low"))
+		       (:file "runtime_api_low"
 			      :depends-on ("loader"))
 		       (:file "loader")))
 
 		     (:module
 		      cffi
 		      :components
-		      ((:file "llvm_api"
+		      ((:file "llvm_api_high"
+			      :depends-on ("llvm_api_low"))
+		       (:file "llvm_api_low"
 			      :depends-on ("loader"))
 		       (:file "loader"))))
 

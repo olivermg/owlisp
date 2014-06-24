@@ -1,4 +1,4 @@
-%module runtime_api
+%module runtime_api_low
 
 %insert(lisphead) %{
 (in-package :owlisp/llvm)
