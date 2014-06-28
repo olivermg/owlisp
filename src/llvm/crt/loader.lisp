@@ -7,5 +7,6 @@
     (t (:default "libowlisp-rt")))
   (cffi:use-foreign-library libruntime))
 
-(load-runtime-library)
+;(load-runtime-library)
+
 

@@ -64,7 +64,7 @@
   (init-types)
   (setf *module* (TARGET-CREATE-MODULE main-module-name))
   (setf *bb-position-stack* '())
-  (setf *activation-frame* (RT-NEW-FRAME))
+  ;(setf *activation-frame* (RT-NEW-FRAME))
   (let* ((main-fn (TARGET-DEFINE "main"))
 	 (main-fn-bb0 (LLVMAppendbasicblockincontext *context* main-fn "bb0")))
     (LLVMPositionbuilderatend *builder* main-fn-bb0)

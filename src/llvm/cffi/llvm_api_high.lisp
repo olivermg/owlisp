@@ -8,12 +8,36 @@
       (:value value)
       (t (error "unknown action ~a" action)))))
 
+(defun llvm-structtype (name llvm-types)
+  (let* ((new-struct (LLVMStructcreatenamed *context* name))
+	 (new-struct-ptr (LLVMPointertype new-struct *addressspace*))
+	 (element-types-count (length llvm-types)))
+    (cffi:with-foreign-object
+	(element-types :pointer element-types-count)
+      (loop
+	 for lt in llvm-types
+	 for idx from 0 to (- element-types-count 1)
+	 do (setf (cffi:mem-aref element-types :pointer idx)
+		  (case (type-of lt)
+		    (sb-sys:system-area-pointer lt) ; TODO: make this portable
+		    (keyword (case lt
+			       (:self new-struct-ptr)
+			       (t (error "unknown type specifier keyword ~a" lt))))
+		    (t (error "unknown type specifier ~a" lt) ))))
+      (LLVMStructsetbody new-struct
+			 element-types
+			 element-types-count
+			 0)
+      (values new-struct
+	      new-struct-ptr))))
+
 (defun llvm-inttype8 ()
   (LLVMInt8type))
 
 (defun llvm-inttype32 ()
   (LLVMInt32type))
 
+#|
 (defun llvm-structtype (name)
   (LLVMStructcreatenamed *context*
 			 name))
@@ -30,8 +54,9 @@
       (LLVMStructsetbody llvm-struct
 			 llvm-element-types-obj
 			 types-count
-			 *addressspace*)
+			 0)
       llvm-struct)))
+|#
 
 (defun llvm-pointertype (llvm-type)
   (LLVMPointertype llvm-type
