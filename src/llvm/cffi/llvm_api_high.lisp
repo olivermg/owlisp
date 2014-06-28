@@ -31,32 +31,15 @@
       (values new-struct
 	      new-struct-ptr))))
 
+(defun llvm-arraytype (llvm-type count)
+  (LLVMArraytype llvm-type
+		 count))
+
 (defun llvm-inttype8 ()
   (LLVMInt8type))
 
 (defun llvm-inttype32 ()
   (LLVMInt32type))
-
-#|
-(defun llvm-structtype (name)
-  (LLVMStructcreatenamed *context*
-			 name))
-
-(defun llvm-structtype-setbody (llvm-struct llvm-element-types)
-  (let ((types-count (length llvm-element-types)))
-    (cffi:with-foreign-object
-	(llvm-element-types-obj :pointer types-count)
-      (loop
-	 for llvm-element-type in llvm-element-types
-	 for idx from 0 to (- types-count 1)
-	 do (setf (cffi:mem-aref llvm-element-types-obj :pointer idx)
-		  llvm-element-type))
-      (LLVMStructsetbody llvm-struct
-			 llvm-element-types-obj
-			 types-count
-			 0)
-      llvm-struct)))
-|#
 
 (defun llvm-pointertype (llvm-type)
   (LLVMPointertype llvm-type

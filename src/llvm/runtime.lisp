@@ -5,51 +5,25 @@
 (defun init-types ()
 
   (setf *value_t*
-	(cffi:with-foreign-object
-	    (types :pointer 2)
-	  (setf (cffi:mem-aref types :pointer 0)
-		(LLVMInt8type))
-	  (setf (cffi:mem-aref types :pointer 1)
-		(LLVMInt32type))
-	  (LLVMStructtypeincontext *context*
-				   types
-				   2
-				   0)))
+	(llvm-structtype "struct._value_t"
+			 (list (llvm-inttype8)
+			       (llvm-inttype32))))
 
   (setf *value_p*
-	(LLVMPointertype *value_t*
-			 *addressspace*))
+	(llvm-pointertype *value_t*))
 
   (setf *frame_t*
-	(let* ((frame_t (LLVMStructcreatenamed *context*
-					       "struct._frame_t"))
-	       (frame_p (LLVMPointertype frame_t
-					 *addressspace*)))
-	  (cffi:with-foreign-object
-	      (types :pointer 2)
-	    (setf (cffi:mem-aref types :pointer 0)
-		  frame_p)
-	    (setf (cffi:mem-aref types :pointer 1)
-		  (LLVMArraytype *value_p* 16))
-	    (LLVMStructsetbody frame_t
-			       types
-			       2
-			       0)
-	    frame_t)))
+	(llvm-structtype "struct._frame_t"
+			 (list :self
+			       (llvm-arraytype *value_p*
+					       16))))
 
   (setf *frame_p*
-	(LLVMPointertype *frame_t*
-			 *addressspace*))
+	(llvm-pointertype *frame_t*))
 
   (setf *fn-type*
-	(cffi:with-foreign-object
-	    (types :pointer 1)
-	  (setf (cffi:mem-aref types :pointer 0)
-		*frame_t*)
-	  (LLVMFunctiontype *value_t*
-			    types
-			    1
-			    0))))
+	(llvm-functiontype (list *frame_p*)
+			   *value_p*)))
 
 (defun push-position (bb)
   (setf *bb-position-stack*
