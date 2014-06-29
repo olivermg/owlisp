@@ -5,38 +5,30 @@
 (defun init-types ()
 
   (setf *value_t*
-	(llvm-structtype "struct._value_t"
-			 (list (llvm-inttype8)
-			       (llvm-inttype32))))
+	(llvm-declare-structtype "struct._value_t"
+				 (list (llvm-inttype8)
+				       (llvm-inttype32))))
 
   (setf *value_p*
-	(llvm-pointertype *value_t*))
+	(llvm-declare-pointertype *value_t*))
 
   (setf *frame_t*
-	(llvm-structtype "struct._frame_t"
-			 (list :self
-			       (llvm-arraytype *value_p*
-					       16))))
+	(llvm-declare-structtype "struct._frame_t"
+				 (list :self
+				       (llvm-arraytype *value_p*
+						       16))))
 
   (setf *frame_p*
-	(llvm-pointertype *frame_t*))
+	(llvm-declare-pointertype *frame_t*))
 
   (setf *fn-type*
-	(llvm-functiontype (list *frame_p*)
-			   *value_p*)))
+	(llvm-declare-functiontype (list *frame_p*)
+				   *value_p*)))
 
-(defun push-position (bb)
-  (setf *bb-position-stack*
-	(cons bb *bb-position-stack*))
-  (LLVMPositionbuilderatend *builder* bb)
-  *bb-position-stack*)
+(defun runtime-init ()
+  (init-types))
 
-(defun pop-position ()
-  (let ((left-bb (first *bb-position-stack*)))
-    (setf *bb-position-stack*
-	  (rest *bb-position-stack*))
-    left-bb))
-
+#|
 (defun add-activation-frame ()
   (let ((new-frame (RT-NEW-FRAME *activation-frame*)))
     (setf *activation-frame* new-frame)
@@ -46,6 +38,7 @@
   (setf *activation-frame*
 	(rest *activation-frame*))
   (first *activation-frame*))
+|#
 
 
 
@@ -89,21 +82,11 @@
 
 
 (defun RT-DECLARE-RUNTIME-FUNCTIONS (module)
-  (let* ((fn-type (cffi:with-foreign-object
-		      (types :pointer 1)
-		    (setf (cffi:mem-aref types :pointer 0)
-			  (LLVMInt32type))
-		    (LLVMFunctiontype (LLVMPointertype *value_t*
-						       *addressspace*)
-				      types
-				      1
-				      0)))
-	 (fn (LLVMAddFunction module
-			      "new_value_int"
-			      fn-type)))
-    (LLVMSetLinkage fn
-		    :LLVMExternalLinkage)
-    (setf *new_value_int* fn)))
+  (let ((fn-type (llvm-declare-functiontype (list *frame_p*)
+					    *value_p*)))
+    (setf *new_value_int*
+	  (llvm-declare-function "new_value_int"
+				 fn-type))))
 
 (defun RT-BUILD-NEW-VALUE-INT (value)
   (cffi:with-foreign-object
@@ -115,3 +98,6 @@
 		   args
 		   1
 		   "vi")))
+
+(defun RT-BUILD-GET-BINDING ()
+  )

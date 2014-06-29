@@ -57,14 +57,10 @@
 
 
 
-(defun TARGET-INIT (&optional (main-module-name "main"))
-  (setf *context* (LLVMGetglobalcontext))
-  (setf *addressspace* 0)
-  (setf *builder* (LLVMCreatebuilderincontext *context*))
-  (init-types)
-  (setf *module* (TARGET-CREATE-MODULE main-module-name))
-  (setf *bb-position-stack* '())
-  ;(setf *activation-frame* (RT-NEW-FRAME))
+(defun TARGET-INIT ()
+  (llvm-init)
+  (runtime-init)
+  (RT-DECLARE-RUNTIME-FUNCTIONS *module*)
   (let* ((main-fn (TARGET-DEFINE "main"))
 	 (main-fn-bb0 (LLVMAppendbasicblockincontext *context* main-fn "bb0")))
     (LLVMPositionbuilderatend *builder* main-fn-bb0)
@@ -72,12 +68,6 @@
 
 (defun TARGET-SET-MODULE (module)
   (setf *module* module))
-
-(defun TARGET-CREATE-MODULE (name)
-  (let ((module (LLVMModulecreatewithnameincontext name
-						   *context*)))
-    (RT-DECLARE-RUNTIME-FUNCTIONS module)
-    module))
 
 (defun TARGET-DUMP-MODULE ()
   (LLVMDumpmodule *module*))
@@ -92,16 +82,11 @@
   (RT-GET-BINDING *activation-frame* frameindex varindex))
 
 (defun TARGET-DEFINE (fn-name)
-  (let* ((fn (LLVMAddfunction *module* fn-name *fn-type*))
-	 (bb (LLVMAppendbasicblock fn "entry")))
-    (push-position bb)
-    fn))
+  (llvm-define-function fn-name *fn-type*))
 
 (defun TARGET-LEAVE-DEFINE (return-value)
-  (let ((val (RT-BUILD-NEW-VALUE-INT return-value)))
-    (LLVMBuildret *builder*
-		  val)
-    (pop-position)))
+  (let ((llvm-return-value (RT-BUILD-NEW-VALUE-INT return-value)))
+    (llvm-build-return llvm-return-value)))
 
 (defun TARGET-CALL (fn &rest args)
   (let ((frame (add-activation-frame)))

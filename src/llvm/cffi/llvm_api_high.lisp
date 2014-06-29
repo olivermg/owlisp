@@ -2,13 +2,50 @@
 
 
 
+(defvar *context*)
+(defvar *addressspace*)
+(defvar *builder*)
+(defvar *module*)
+(defvar *bb-position-stack*)
+;(defvar *activation-frame*)
+
+
+
+(defun push-position (bb)
+  (setf *bb-position-stack*
+	(cons bb *bb-position-stack*))
+  (LLVMPositionbuilderatend *builder* bb)
+  *bb-position-stack*)
+
+(defun pop-position ()
+  (let ((left-bb (first *bb-position-stack*)))
+    (setf *bb-position-stack*
+	  (rest *bb-position-stack*))
+    left-bb))
+
+#|
 (defun make-llvm-object (value)
   (lambda (action)
     (case action
       (:value value)
       (t (error "unknown action ~a" action)))))
+|#
 
-(defun llvm-structtype (name llvm-types)
+(defun llvm-init (&optional (main-module-name "main"))
+  (setf *context* (LLVMGetglobalcontext))
+  (setf *addressspace* 0)
+  (setf *builder* (LLVMCreatebuilderincontext *context*))
+  (setf *module* (llvm-create-module main-module-name))
+  (setf *bb-position-stack* '())
+  ;(setf *activation-frame* (RT-NEW-FRAME))
+)
+
+(defun llvm-create-module (name)
+  (let ((module (LLVMModulecreatewithnameincontext name
+						   *context*)))
+    module))
+
+(defun llvm-declare-structtype (name llvm-types)
   (let* ((new-struct (LLVMStructcreatenamed *context* name))
 	 (new-struct-ptr (LLVMPointertype new-struct *addressspace*))
 	 (element-types-count (length llvm-types)))
@@ -41,11 +78,11 @@
 (defun llvm-inttype32 ()
   (LLVMInt32type))
 
-(defun llvm-pointertype (llvm-type)
+(defun llvm-declare-pointertype (llvm-type)
   (LLVMPointertype llvm-type
 		   *addressspace*))
 
-(defun llvm-functiontype (llvm-param-types llvm-return-type)
+(defun llvm-declare-functiontype (llvm-param-types llvm-return-type)
   (let ((param-count (length llvm-param-types)))
     (cffi:with-foreign-object
 	(llvm-param-types-obj :pointer param-count)
@@ -59,8 +96,31 @@
 			param-count
 			0))))
 
+(defun llvm-declare-function (fn-name llvm-fn-type)
+  (let* ((fn (LLVMAddFunction *module*
+			      fn-name
+			      llvm-fn-type)))
+    (LLVMSetLinkage fn
+		    :LLVMExternalLinkage)
+    fn))
+
+(defun llvm-define-function (fn-name llvm-fn-type)
+  (let* ((fn (LLVMAddfunction *module* fn-name llvm-fn-type))
+	 (bb (LLVMAppendbasicblock fn "entry")))
+    (push-position bb)
+    fn))
+
+(defun llvm-build-return (llvm-return-value)
+  (LLVMBuildret *builder*
+		llvm-return-value)
+  (pop-position))
+
+(defun llvm-build-call (llvm-fn llvm-args)
+  )
 
 
+
+#|
 (defun translate-to-llvm-struct-type (element-types)
   (declare (type sequence element-types))
   (let ((types-count (length element-types)))
@@ -97,3 +157,4 @@
 
 (defun make-type (type)
   (make-llvm-object (translate-to-llvm-type type)))
+|#
