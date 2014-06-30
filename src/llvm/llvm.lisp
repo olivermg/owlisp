@@ -79,7 +79,7 @@
    (RT-BUILD-NEW-VALUE-INT llvm-value)))
 
 (defun TARGET-REFERENCE (frameindex varindex)
-  (RT-GET-BINDING *activation-frame* frameindex varindex))
+  (RT-BUILD-GET-BINDING *activation-frame* frameindex varindex))
 
 (defun TARGET-DEFINE (fn-name)
   (llvm-define-function fn-name *fn-type*))

@@ -28,6 +28,18 @@
 (defun runtime-init ()
   (init-types))
 
+(defun rt-value_t-type ()
+  *value_t*)
+
+(defun rt-value_p-type ()
+  *value_p*)
+
+(defun rt-frame_t-type ()
+  *frame_t*)
+
+(defun rt-frame_p-type ()
+  *frame_p*)
+
 #|
 (defun add-activation-frame ()
   (let ((new-frame (RT-NEW-FRAME *activation-frame*)))
@@ -82,22 +94,54 @@
 
 
 (defun RT-DECLARE-RUNTIME-FUNCTIONS (module)
-  (let ((fn-type (llvm-declare-functiontype (list *frame_p*)
+  (let ((fn-type (llvm-declare-functiontype (list (llvm-inttype32))
 					    *value_p*)))
     (setf *new_value_int*
 	  (llvm-declare-function "new_value_int"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype (list *frame_p*
+						  (llvm-inttype32)
+						  (llvm-inttype32))
+					    *value_p*)))
+    (setf *get_binding*
+	  (llvm-declare-function "get_binding"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype (list *frame_p*)
+					    *frame_p*)))
+    (setf *new_frame*
+	  (llvm-declare-function "new_frame"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype (list *frame_p*
+						  (llvm-inttype32)
+						  (llvm-inttype32)
+						  *value_p*)
+					    (llvm-voidtype))))
+    (setf *set_binding*
+	  (llvm-declare-function "set_binding"
 				 fn-type))))
 
 (defun RT-BUILD-NEW-VALUE-INT (value)
-  (cffi:with-foreign-object
-      (args :pointer 1)
-    (setf (cffi:mem-aref args :pointer 0)
-	  value)
-    (LLVMBuildCall *builder*
-		   *new_value_int*
-		   args
-		   1
-		   "vi")))
+  (llvm-build-call *new_value_int*
+		   (list value)))
 
-(defun RT-BUILD-GET-BINDING ()
-  )
+(defun RT-BUILD-GET-BINDING (frame frameindex varindex)
+  (llvm-build-call *get_binding*
+		   (list frame frameindex varindex)))
+
+(defun rt-build-call (fn &rest args)
+  (let ((activation-frame (llvm-get-param (llvm-get-current-function) 0))
+	(args-count (length args)))
+    (loop
+       for arg in args
+       for idx from 0 to (- args-count 1)
+       do (llvm-build-call *set_binding*
+			   (list activation-frame
+				 0
+				 idx
+				 arg)))
+    (llvm-build-call fn
+		     (cons activation-frame
+			   args))))

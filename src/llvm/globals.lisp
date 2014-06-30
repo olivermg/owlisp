@@ -9,3 +9,6 @@
 (defvar *fn-type*)
 
 (defvar *new_value_int*)
+(defvar *get_binding*)
+(defvar *new_frame*)
+(defvar *set_binding*)

@@ -78,6 +78,9 @@
 (defun llvm-inttype32 ()
   (LLVMInt32type))
 
+(defun llvm-voidtype ()
+  (LLVMVoidtype))
+
 (defun llvm-declare-pointertype (llvm-type)
   (LLVMPointertype llvm-type
 		   *addressspace*))
@@ -116,7 +119,26 @@
   (pop-position))
 
 (defun llvm-build-call (llvm-fn llvm-args)
-  )
+  (let ((llvm-args-count (length llvm-args)))
+    (cffi:with-foreign-object
+	(llvm-args-foreign :pointer llvm-args-count)
+      (loop
+	 for arg in llvm-args
+	 for idx from 0 to (- llvm-args-count 1)
+	 do (setf (cffi:mem-aref llvm-args-foreign :pointer idx)
+		  arg))
+      (LLVMBuildcall *builder*
+		     llvm-fn
+		     llvm-args-foreign
+		     llvm-args-count
+		     ""))))
+
+(defun llvm-get-param (llvm-fn &optional (param-index 0))
+  (LLVMGetparam llvm-fn
+		param-index))
+
+(defun llvm-get-current-function ()
+  (LLVMGetbasicblockparent (first *bb-position-stack*)))
 
 
 
