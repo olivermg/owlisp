@@ -10,6 +10,7 @@ target triple = "x86_64-unknown-linux-gnu"
 @.str = private unnamed_addr constant [27 x i8] c"binding not found in frame\00", align 1
 @stderr = external global %struct._IO_FILE*
 @.str1 = private unnamed_addr constant [11 x i8] c"FRAME: %p\0A\00", align 1
+@global_frame = internal global %struct._frame_t* null, align 8
 @.str2 = private unnamed_addr constant [16 x i8] c"frame not found\00", align 1
 
 ; Function Attrs: nounwind uwtable
@@ -235,6 +236,43 @@ define void @dump_frame(%struct._frame_t* %f) #0 {
 declare i32 @fprintf(%struct._IO_FILE*, i8*, ...) #2
 
 declare void @dump_value(%struct._value_t*) #2
+
+; Function Attrs: nounwind uwtable
+define void @init_global_frame() #0 {
+  %1 = call %struct._frame_t* @new_frame(%struct._frame_t* null)
+  store %struct._frame_t* %1, %struct._frame_t** @global_frame, align 8
+  ret void
+}
+
+; Function Attrs: nounwind uwtable
+define %struct._frame_t* @get_global_frame() #0 {
+  %1 = load %struct._frame_t** @global_frame, align 8
+  ret %struct._frame_t* %1
+}
+
+; Function Attrs: nounwind uwtable
+define %struct._frame_t* @extend_global_frame() #0 {
+  %1 = load %struct._frame_t** @global_frame, align 8
+  %2 = call %struct._frame_t* @new_frame(%struct._frame_t* %1)
+  store %struct._frame_t* %2, %struct._frame_t** @global_frame, align 8
+  %3 = load %struct._frame_t** @global_frame, align 8
+  ret %struct._frame_t* %3
+}
+
+; Function Attrs: nounwind uwtable
+define %struct._frame_t* @shrink_global_frame() #0 {
+  %old_frame = alloca %struct._frame_t*, align 8
+  %1 = load %struct._frame_t** @global_frame, align 8
+  store %struct._frame_t* %1, %struct._frame_t** %old_frame, align 8
+  %2 = load %struct._frame_t** @global_frame, align 8
+  %3 = getelementptr inbounds %struct._frame_t* %2, i32 0, i32 0
+  %4 = load %struct._frame_t** %3, align 8
+  store %struct._frame_t* %4, %struct._frame_t** @global_frame, align 8
+  %5 = load %struct._frame_t** %old_frame, align 8
+  %6 = call %struct._frame_t* @free_frame(%struct._frame_t* %5)
+  %7 = load %struct._frame_t** @global_frame, align 8
+  ret %struct._frame_t* %7
+}
 
 attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }

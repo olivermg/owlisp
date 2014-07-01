@@ -15,5 +15,9 @@ frame_t* free_frame( frame_t* f );
 void set_binding( frame_t* f, const int frameindex, const int varindex, value_t* value );
 value_t* get_binding( const frame_t* f, const int frameindex, const int varindex );
 void dump_frame( const frame_t* f );
+void init_global_frame();
+frame_t* get_global_frame();
+frame_t* extend_global_frame();
+frame_t* shrink_global_frame();
 
 #endif

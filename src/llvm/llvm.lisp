@@ -64,6 +64,7 @@
   (let* ((main-fn (TARGET-DEFINE "main"))
 	 (main-fn-bb0 (LLVMAppendbasicblockincontext *context* main-fn "bb0")))
     (LLVMPositionbuilderatend *builder* main-fn-bb0)
+    (rt-create-activation-frame)
     (push-position main-fn-bb0)))
 
 (defun TARGET-SET-MODULE (module)

@@ -125,4 +125,12 @@
 (cffi:defcfun ("dump_frame" dump_frame) :void
   (f :pointer))
 
+(cffi:defcfun ("init_global_frame" init_global_frame) :void)
+
+(cffi:defcfun ("get_global_frame" get_global_frame) :pointer)
+
+(cffi:defcfun ("extend_global_frame" extend_global_frame) :pointer)
+
+(cffi:defcfun ("shrink_global_frame" shrink_global_frame) :pointer)
+
 

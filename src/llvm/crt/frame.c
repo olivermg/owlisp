@@ -5,6 +5,8 @@
 #include "types.h"
 #include "error.h"
 
+static frame_t* global_frame;
+
 frame_t* new_frame( frame_t* parent )
 {
   frame_t* newframe = calloc( 1, sizeof( frame_t ) );
@@ -71,4 +73,30 @@ void dump_frame( const frame_t* f )
     }
     dump_frame( f->parent );
   }
+}
+
+void init_global_frame()
+{
+  global_frame = new_frame( NULL );
+}
+
+frame_t* get_global_frame()
+{
+  return global_frame;
+}
+
+frame_t* extend_global_frame()
+{
+  global_frame = new_frame( global_frame );
+
+  return global_frame;
+}
+
+frame_t* shrink_global_frame()
+{
+  frame_t* old_frame = global_frame;
+  global_frame = global_frame->parent;
+  free_frame( old_frame );
+
+  return global_frame;
 }

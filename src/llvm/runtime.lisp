@@ -131,6 +131,10 @@
   (llvm-build-call *get_binding*
 		   (list frame frameindex varindex)))
 
+(defun rt-create-activation-frame ()
+  (llvm-build-call *new_frame*
+		   (list (cffi:null-pointer))))
+
 (defun rt-build-call (fn &rest args)
   (let ((activation-frame (llvm-get-param (llvm-get-current-function) 0))
 	(args-count (length args)))
