@@ -12,3 +12,7 @@
 (defvar *get_binding*)
 (defvar *new_frame*)
 (defvar *set_binding*)
+(defvar *init_global_frame*)
+(defvar *get_global_frame*)
+(defvar *extend_global_frame*)
+(defvar *shrink_global_frame*)

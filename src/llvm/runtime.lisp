@@ -121,6 +121,30 @@
 					    (llvm-voidtype))))
     (setf *set_binding*
 	  (llvm-declare-function "set_binding"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype '()
+					    (llvm-voidtype))))
+    (setf *init_global_frame*
+	  (llvm-declare-function "init_global_frame"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype '()
+					    *frame_p*)))
+    (setf *get_global_frame*
+	  (llvm-declare-function "get_global_frame"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype '()
+					    *frame_p*)))
+    (setf *extend_global_frame*
+	  (llvm-declare-function "extend_global_frame"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype '()
+					    *frame_p*)))
+    (setf *shrink_global_frame*
+	  (llvm-declare-function "shrink_global_frame"
 				 fn-type))))
 
 (defun RT-BUILD-NEW-VALUE-INT (value)
@@ -132,8 +156,8 @@
 		   (list frame frameindex varindex)))
 
 (defun rt-create-activation-frame ()
-  (llvm-build-call *new_frame*
-		   (list (cffi:null-pointer))))
+  (llvm-build-call *init_global_frame*
+		   '()))
 
 (defun rt-build-call (fn &rest args)
   (let ((activation-frame (llvm-get-param (llvm-get-current-function) 0))
