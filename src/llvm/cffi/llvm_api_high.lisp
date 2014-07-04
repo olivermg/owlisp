@@ -45,8 +45,9 @@
 						   *context*)))
     module))
 
-(defun llvm-declare-structtype (name llvm-types)
-  (let* ((new-struct (LLVMStructcreatenamed *context* name))
+(defun llvm-declare-structtype (name types)
+  (let* ((llvm-types (ensure-llvm-representation types))
+	 (new-struct (LLVMStructcreatenamed *context* name))
 	 (new-struct-ptr (LLVMPointertype new-struct *addressspace*))
 	 (element-types-count (length llvm-types)))
     (cffi:with-foreign-object
@@ -68,9 +69,10 @@
       (values new-struct
 	      new-struct-ptr))))
 
-(defun llvm-arraytype (llvm-type count)
-  (LLVMArraytype llvm-type
-		 count))
+(defun llvm-arraytype (type count)
+  (let ((llvm-type (ensure-llvm-representation type)))
+    (LLVMArraytype llvm-type
+		   count)))
 
 (defun llvm-inttype8 ()
   (LLVMInt8type))
@@ -81,12 +83,15 @@
 (defun llvm-voidtype ()
   (LLVMVoidtype))
 
-(defun llvm-declare-pointertype (llvm-type)
-  (LLVMPointertype llvm-type
-		   *addressspace*))
+(defun llvm-declare-pointertype (type)
+  (let ((llvm-type (ensure-llvm-representation type)))
+    (LLVMPointertype llvm-type
+		     *addressspace*)))
 
-(defun llvm-declare-functiontype (llvm-param-types llvm-return-type)
-  (let ((param-count (length llvm-param-types)))
+(defun llvm-declare-functiontype (param-types return-type)
+  (let* ((llvm-param-types (ensure-llvm-representation param-types))
+	 (llvm-return-type (ensure-llvm-representation return-type))
+	 (param-count (length llvm-param-types)))
     (cffi:with-foreign-object
 	(llvm-param-types-obj :pointer param-count)
       (loop
@@ -99,27 +104,32 @@
 			param-count
 			0))))
 
-(defun llvm-declare-function (fn-name llvm-fn-type)
-  (let* ((fn (LLVMAddFunction *module*
+(defun llvm-declare-function (fn-name fn-type)
+  (let* ((llvm-fn-type (ensure-llvm-representation fn-type))
+	 (fn (LLVMAddFunction *module*
 			      fn-name
 			      llvm-fn-type)))
     (LLVMSetLinkage fn
 		    :LLVMExternalLinkage)
     fn))
 
-(defun llvm-define-function (fn-name llvm-fn-type)
-  (let* ((fn (LLVMAddfunction *module* fn-name llvm-fn-type))
+(defun llvm-define-function (fn-name fn-type)
+  (let* ((llvm-fn-type (ensure-llvm-representation fn-type))
+	 (fn (LLVMAddfunction *module* fn-name llvm-fn-type))
 	 (bb (LLVMAppendbasicblock fn "entry")))
     (push-position bb)
     fn))
 
-(defun llvm-build-return (llvm-return-value)
-  (LLVMBuildret *builder*
-		llvm-return-value)
-  (pop-position))
+(defun llvm-build-return (return-value)
+  (let ((llvm-return-value (ensure-llvm-representation return-value)))
+    (LLVMBuildret *builder*
+		  llvm-return-value)
+    (pop-position)))
 
-(defun llvm-build-call (llvm-fn llvm-args)
-  (let ((llvm-args-count (length llvm-args)))
+(defun llvm-build-call (fn args)
+  (let* ((llvm-fn (ensure-llvm-representation fn))
+	 (llvm-args (ensure-llvm-representation args))
+	 (llvm-args-count (length llvm-args)))
     (cffi:with-foreign-object
 	(llvm-args-foreign :pointer llvm-args-count)
       (loop
@@ -133,12 +143,43 @@
 		     llvm-args-count
 		     ""))))
 
-(defun llvm-get-param (llvm-fn &optional (param-index 0))
-  (LLVMGetparam llvm-fn
-		param-index))
+(defun llvm-get-param (fn &optional (param-index 0))
+  (let ((llvm-fn (ensure-llvm-representation fn)))
+    (LLVMGetparam llvm-fn
+		  param-index)))
 
 (defun llvm-get-current-function ()
   (LLVMGetbasicblockparent (first *bb-position-stack*)))
+
+(defun llvm-const-int32 (value)
+  (LLVMConstint (llvm-inttype32)
+		value
+		0))
+
+(defun llvm-debug-type (type)
+  (LLVMDumptype type))
+
+(defun llvm-debug-value (value)
+  (LLVMDumptype (LLVMTypeof value))
+  (LLVMDumpvalue value))
+
+
+
+(defun is-in-llvm-representation (value)
+  (sb-sys:system-area-pointer-p value)) ; TODO: make this portable
+
+(defun ensure-llvm-representation (value-or-valuesequence)
+  (labels ((convert-fn (value)
+	     (if (not (is-in-llvm-representation value))
+		 (cond
+		   ((typep value 'integer) (llvm-const-int32 value))
+		   (t (error "don't know how to convert value of type ~a to llvm representation"
+			     (type-of value))))
+		 value)))
+    (if (consp value-or-valuesequence)
+	(mapcar #'ensure-llvm-representation
+		value-or-valuesequence)
+	(convert-fn value-or-valuesequence))))
 
 
 

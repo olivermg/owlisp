@@ -148,12 +148,29 @@
 				 fn-type))))
 
 (defun RT-BUILD-NEW-VALUE-INT (value)
-  (llvm-build-call *new_value_int*
-		   (list value)))
+  (let ((llvm-value (llvm-const-int32 value)))
+    (llvm-build-call *new_value_int*
+		     (list llvm-value))))
 
-(defun RT-BUILD-GET-BINDING (frame frameindex varindex)
-  (llvm-build-call *get_binding*
-		   (list frame frameindex varindex)))
+(defun RT-BUILD-GET-BINDING (frameindex varindex)
+  (let ((frame (rt-get-global-activation-frame))
+	(llvm-frameindex (llvm-const-int32 frameindex))
+	(llvm-varindex (llvm-const-int32 varindex)))
+    #|
+    (llvm-debug-value *get_binding*)
+    (llvm-debug-value frame)
+    (llvm-debug-value llvm-frameindex)
+    (llvm-debug-value llvm-varindex)
+    (break)
+    |#
+    (llvm-build-call *get_binding*
+		     (list frame
+			   llvm-frameindex
+			   llvm-varindex))))
+
+(defun rt-get-global-activation-frame ()
+  (llvm-build-call *get_global_frame*
+		   '()))
 
 (defun rt-create-activation-frame ()
   (llvm-build-call *init_global_frame*

@@ -80,14 +80,13 @@
    (RT-BUILD-NEW-VALUE-INT llvm-value)))
 
 (defun TARGET-REFERENCE (frameindex varindex)
-  (RT-BUILD-GET-BINDING *activation-frame* frameindex varindex))
+  (RT-BUILD-GET-BINDING frameindex varindex))
 
 (defun TARGET-DEFINE (fn-name)
   (llvm-define-function fn-name *fn-type*))
 
-(defun TARGET-LEAVE-DEFINE (return-value)
-  (let ((llvm-return-value (RT-BUILD-NEW-VALUE-INT return-value)))
-    (llvm-build-return llvm-return-value)))
+(defun TARGET-LEAVE-DEFINE (llvm-return-value)
+  (llvm-build-return llvm-return-value))
 
 (defun TARGET-CALL (fn &rest args)
   (let ((frame (add-activation-frame)))
