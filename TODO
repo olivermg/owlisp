@@ -1,11 +1,19 @@
 TODO notepad
 ============
-- fix constants
+- define special prototype for main function
+- use "&rest args" instead of "args" in several places
+- implement return value for main function
+- implement auto-names for anonymous functions
+- reset state (declarations & definitions) for subsequent invocations of toplevel
 - remove layer of TARGET-... functions in llvm.lisp? should be the same as functions in runtime.lisp?
-- implement llvm value/type container that can handle both lisp & llvm values and treat corresponding values transparently as equal
 - implement debugging functionality for llvm abstraction layer (dump values & types etc.)
 
 
+
+OLD (2014-07-05)
+================
+- fix constants
+- implement llvm value/type container that can handle both lisp & llvm values and treat corresponding values transparently as equal
 
 OLD (2014-07-04)
 ================

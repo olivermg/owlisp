@@ -93,7 +93,9 @@
 
 
 
-(defun RT-DECLARE-RUNTIME-FUNCTIONS (module)
+(defun rt-declare-runtime-functions (module)
+  (declare (ignore module))
+
   (let ((fn-type (llvm-declare-functiontype (list (llvm-inttype32))
 					    *value_p*)))
     (setf *new_value_int*
@@ -147,13 +149,17 @@
 	  (llvm-declare-function "shrink_global_frame"
 				 fn-type))))
 
-(defun RT-BUILD-NEW-VALUE-INT (value)
+(defun rt-build-new-value-int (value)
   (let ((llvm-value (llvm-const-int32 value)))
     (llvm-build-call *new_value_int*
 		     (list llvm-value))))
 
-(defun RT-BUILD-GET-BINDING (frameindex varindex)
-  (let ((frame (rt-get-global-activation-frame))
+(defun rt-build-new-frame (&optional (parent-frame nil))
+  (llvm-build-call *new_frame*
+		   (list parent-frame)))
+
+(defun rt-build-get-binding (frameindex varindex)
+  (let ((frame (rt-get-local-activation-frame))
 	(llvm-frameindex (llvm-const-int32 frameindex))
 	(llvm-varindex (llvm-const-int32 varindex)))
     #|
@@ -168,6 +174,10 @@
 			   llvm-frameindex
 			   llvm-varindex))))
 
+(defun rt-get-local-activation-frame ()
+  (let ((current-fn (llvm-get-current-function)))
+    (llvm-get-param current-fn 0)))
+
 (defun rt-get-global-activation-frame ()
   (llvm-build-call *get_global_frame*
 		   '()))
@@ -177,16 +187,16 @@
 		   '()))
 
 (defun rt-build-call (fn &rest args)
-  (let ((activation-frame (llvm-get-param (llvm-get-current-function) 0))
-	(args-count (length args)))
+  (let* ((activation-frame (rt-get-local-activation-frame))
+	 (extended-activation-frame (rt-build-new-frame activation-frame))
+	 (args-count (length args)))
     (loop
        for arg in args
        for idx from 0 to (- args-count 1)
        do (llvm-build-call *set_binding*
-			   (list activation-frame
+			   (list extended-activation-frame
 				 0
 				 idx
 				 arg)))
     (llvm-build-call fn
-		     (cons activation-frame
-			   args))))
+		     (list activation-frame))))

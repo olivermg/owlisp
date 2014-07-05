@@ -307,7 +307,9 @@
 |#
   (TARGET-REFERENCE (car address) (cdr address)))
 
+#|
 (defun ABSTRACTION (body)
+|#
 #|
   (lambda (bind-env)
     (lambda (evaluated-args)
@@ -321,7 +323,9 @@
 	    the-function)
     (list #x15 the-function))
 |#
+#|
   (TARGET-DEFINE "abstraction"))
+|#
 
 (defun ABSTRACTION-BEGIN ()
   (TARGET-DEFINE "abstraction1"))
@@ -354,7 +358,7 @@
     (append predicate
 	    (list #x13 then-terminated else-terminated)))
 |#
-  (TARGET-CALL nil nil))
+  nil)
 
 (defun APPLICATION (operator operands)
 #|
@@ -379,6 +383,7 @@
 	  (the-goto (list #x41)))
       (append the-pushes operator-push the-goto)))
 |#
+#|
   (append
    (list #x11
 	 (reduce #'(lambda (r e)
@@ -386,7 +391,9 @@
 		 operands
 		 :initial-value nil))
    operator
-   (list #x16)))
+   (list #x16))
+|#
+  (cl:apply #'TARGET-CALL operator operands))
 
 (defun SEQUENCE_ (body)
 #|

@@ -74,10 +74,7 @@
   (LLVMDumpmodule *module*))
 
 (defun TARGET-CONSTANT (value)
-  (let ((llvm-value (LLVMConstint (LLVMInt32type)
-				  value
-				  0)))
-   (RT-BUILD-NEW-VALUE-INT llvm-value)))
+  (RT-BUILD-NEW-VALUE-INT value))
 
 (defun TARGET-REFERENCE (frameindex varindex)
   (RT-BUILD-GET-BINDING frameindex varindex))
@@ -89,14 +86,4 @@
   (llvm-build-return llvm-return-value))
 
 (defun TARGET-CALL (fn &rest args)
-  (let ((frame (add-activation-frame)))
-    (RT-SET-BINDINGS frame args)
-    (cffi:with-foreign-object
-	(args :pointer 1)
-      (setf (cffi:mem-aref args :pointer 0)
-	    frame)
-      (LLVMBuildCall *builder*
-		     fn
-		     args
-		     1
-		     (cffi:null-pointer)))))
+  (apply #'rt-build-call fn args))

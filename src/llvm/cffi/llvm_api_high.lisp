@@ -15,13 +15,14 @@
   (setf *bb-position-stack*
 	(cons bb *bb-position-stack*))
   (LLVMPositionbuilderatend *builder* bb)
-  *bb-position-stack*)
+  bb)
 
 (defun pop-position ()
-  (let ((left-bb (first *bb-position-stack*)))
-    (setf *bb-position-stack*
-	  (rest *bb-position-stack*))
-    left-bb))
+  (setf *bb-position-stack*
+	(rest *bb-position-stack*))
+  (let ((new-bb (first *bb-position-stack*)))
+    (LLVMPositionbuilderatend *builder* new-bb)
+    new-bb))
 
 #|
 (defun make-llvm-object (value)
@@ -121,10 +122,12 @@
     fn))
 
 (defun llvm-build-return (return-value)
-  (let ((llvm-return-value (ensure-llvm-representation return-value)))
+  (let ((current-fn (llvm-get-current-function))
+	(llvm-return-value (ensure-llvm-representation return-value)))
     (LLVMBuildret *builder*
 		  llvm-return-value)
-    (pop-position)))
+    (pop-position)
+    current-fn))
 
 (defun llvm-build-call (fn args)
   (let* ((llvm-fn (ensure-llvm-representation fn))
@@ -170,7 +173,9 @@
 
 (defun ensure-llvm-representation (value-or-valuesequence)
   (labels ((convert-fn (value)
-	     (if (not (is-in-llvm-representation value))
+	     (if (and (not (is-in-llvm-representation value))
+		      (not (typep value 'keyword))
+		      (not (null value)))
 		 (cond
 		   ((typep value 'integer) (llvm-const-int32 value))
 		   (t (error "don't know how to convert value of type ~a to llvm representation"
