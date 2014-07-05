@@ -7,6 +7,7 @@
 (defvar *frame_t*)
 (defvar *frame_p*)
 (defvar *fn-type*)
+(defvar *main-fn-type*)
 
 (defvar *new_value_int*)
 (defvar *get_binding*)

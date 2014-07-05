@@ -41,6 +41,9 @@
   ;(setf *activation-frame* (RT-NEW-FRAME))
 )
 
+(defun llvm-shutdown ()
+  (LLVMShutdown))
+
 (defun llvm-create-module (name)
   (let ((module (LLVMModulecreatewithnameincontext name
 						   *context*)))
@@ -153,6 +156,10 @@
 
 (defun llvm-get-current-function ()
   (LLVMGetbasicblockparent (first *bb-position-stack*)))
+
+(defun llvm-in-main-function ()
+  (= 1
+     (length *bb-position-stack*)))
 
 (defun llvm-const-int32 (value)
   (LLVMConstint (llvm-inttype32)

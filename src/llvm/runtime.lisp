@@ -23,7 +23,11 @@
 
   (setf *fn-type*
 	(llvm-declare-functiontype (list *frame_p*)
-				   *value_p*)))
+				   *value_p*))
+
+  (setf *main-fn-type*
+	(llvm-declare-functiontype (list (llvm-voidtype))
+				   (llvm-inttype32))))
 
 (defun runtime-init ()
   (init-types))
@@ -54,6 +58,7 @@
 
 
 
+#|
 (defun RT-NEW-VALUE-INT (value)
   (new_value_int value))
 
@@ -90,6 +95,7 @@
      for v in values
      for i from 0 to (- (length values) 1)
      do (RT-SET-BINDING frame 0 i v)))
+|#
 
 
 
@@ -159,7 +165,7 @@
 		   (list parent-frame)))
 
 (defun rt-build-get-binding (frameindex varindex)
-  (let ((frame (rt-get-local-activation-frame))
+  (let ((frame (rt-get-activation-frame))
 	(llvm-frameindex (llvm-const-int32 frameindex))
 	(llvm-varindex (llvm-const-int32 varindex)))
     #|
@@ -182,12 +188,17 @@
   (llvm-build-call *get_global_frame*
 		   '()))
 
-(defun rt-create-activation-frame ()
+(defun rt-get-activation-frame ()
+  (if (llvm-in-main-function)
+      (rt-get-global-activation-frame)
+      (rt-get-local-activation-frame)))
+
+(defun rt-create-init-activation-frame ()
   (llvm-build-call *init_global_frame*
 		   '()))
 
 (defun rt-build-call (fn &rest args)
-  (let* ((activation-frame (rt-get-local-activation-frame))
+  (let* ((activation-frame (rt-get-activation-frame))
 	 (extended-activation-frame (rt-build-new-frame activation-frame))
 	 (args-count (length args)))
     (loop

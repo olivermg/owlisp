@@ -20,7 +20,8 @@
        (let ((expr (read)))
 	 (if (is-exit-command expr)
 
-	     (return)
+	     (progn (TARGET-SHUTDOWN)
+		    (return))
 
 	     (let* ((code (evaluate-form
 			   expr

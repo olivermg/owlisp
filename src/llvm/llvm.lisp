@@ -1,6 +1,7 @@
 (in-package :owlisp/llvm)
 
 (export '(TARGET-INIT
+	  TARGET-SHUTDOWN
 	  TARGET-SET-MODULE
 	  TARGET-CREATE-MODULE
 	  TARGET-DUMP-MODULE
@@ -61,11 +62,11 @@
   (llvm-init)
   (runtime-init)
   (RT-DECLARE-RUNTIME-FUNCTIONS *module*)
-  (let* ((main-fn (TARGET-DEFINE "main"))
-	 (main-fn-bb0 (LLVMAppendbasicblockincontext *context* main-fn "bb0")))
-    (LLVMPositionbuilderatend *builder* main-fn-bb0)
-    (rt-create-activation-frame)
-    (push-position main-fn-bb0)))
+  (TARGET-DEFINE-MAIN)
+  (rt-create-init-activation-frame))
+
+(defun TARGET-SHUTDOWN ()
+  (llvm-shutdown))
 
 (defun TARGET-SET-MODULE (module)
   (setf *module* module))
@@ -84,6 +85,9 @@
 
 (defun TARGET-LEAVE-DEFINE (llvm-return-value)
   (llvm-build-return llvm-return-value))
+
+(defun TARGET-DEFINE-MAIN ()
+  (llvm-define-function "main" *main-fn-type*))
 
 (defun TARGET-CALL (fn &rest args)
   (apply #'rt-build-call fn args))

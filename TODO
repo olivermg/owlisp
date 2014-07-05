@@ -4,9 +4,9 @@ TODO notepad
 - use "&rest args" instead of "args" in several places
 - implement return value for main function
 - implement auto-names for anonymous functions
-- reset state (declarations & definitions) for subsequent invocations of toplevel
 - remove layer of TARGET-... functions in llvm.lisp? should be the same as functions in runtime.lisp?
 - implement debugging functionality for llvm abstraction layer (dump values & types etc.)
+- get rid of global_frame functions
 
 
 
@@ -14,6 +14,7 @@ OLD (2014-07-05)
 ================
 - fix constants
 - implement llvm value/type container that can handle both lisp & llvm values and treat corresponding values transparently as equal
+- reset state (declarations & definitions) for subsequent invocations of toplevel
 
 OLD (2014-07-04)
 ================
