@@ -39,6 +39,7 @@
 		     (funcall machine :run))
 	       (format t "RESULT: ~a~%~%" last-result)
 |#
+	       (TARGET-LEAVE-DEFINE 0)
 	       (TARGET-DUMP-MODULE)
 	       (finish-output)))))
 

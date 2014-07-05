@@ -62,8 +62,9 @@
   (llvm-init)
   (runtime-init)
   (RT-DECLARE-RUNTIME-FUNCTIONS *module*)
-  (TARGET-DEFINE-MAIN)
-  (rt-create-init-activation-frame))
+  (let ((main-fn (TARGET-DEFINE-MAIN)))
+    (rt-create-init-activation-frame)
+    main-fn))
 
 (defun TARGET-SHUTDOWN ()
   (llvm-shutdown))

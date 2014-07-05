@@ -21,7 +21,8 @@
   (setf *bb-position-stack*
 	(rest *bb-position-stack*))
   (let ((new-bb (first *bb-position-stack*)))
-    (LLVMPositionbuilderatend *builder* new-bb)
+    (if new-bb
+	(LLVMPositionbuilderatend *builder* new-bb))
     new-bb))
 
 #|

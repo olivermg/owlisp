@@ -26,7 +26,7 @@
 				   *value_p*))
 
   (setf *main-fn-type*
-	(llvm-declare-functiontype (list (llvm-voidtype))
+	(llvm-declare-functiontype '()
 				   (llvm-inttype32))))
 
 (defun runtime-init ()
