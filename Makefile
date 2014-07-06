@@ -20,6 +20,7 @@ install: build/owlisp-frontend
 	mkdir -p $(PREFIX)/runtime
 	install build/owlisp-frontend $(PREFIX)
 	install src/llvm/crt/*.ll $(PREFIX)/runtime
+	install toolchain/* $(PREFIX)
 
 uninstall:
 	rm -rvf $(PREFIX)
