@@ -5,6 +5,8 @@
 
 build/
 
+src/llvm/cffi/llvm_api_low.lisp
+
 src/llvm/crt/*.ll
 src/llvm/crt/*.o
 src/llvm/crt/test
