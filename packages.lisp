@@ -9,4 +9,4 @@
 
 (defpackage #:owlisp/analyzer
   (:use cl owlisp owlisp/environment owlisp/llvm)
-  (:shadow apply))
+  (:shadow apply compile))

@@ -1,6 +1,8 @@
 (in-package :owlisp/analyzer)
 
-(export '(toplevel))
+(export '(main
+	  compile
+	  toplevel))
 
 
 
@@ -10,6 +12,25 @@
 	    (symbolp (car expr)))
        (string-equal "EXIT"
 		     (symbol-name (car expr)))))
+
+(defun main ()
+  (let ((cmd-args (apply-argv:parse-argv (apply-argv:get-argv))))
+    (cond
+
+      ((and (getf cmd-args :i)
+	    (getf cmd-args :o))
+       (compile (getf cmd-args :i)
+		(getf cmd-args :o)))
+
+      (t (toplevel)))))
+
+(defun compile (sourcepath destpath)
+  (TARGET-INIT)
+  (evaluate-file sourcepath
+		 (make-initialized-declaration-environment))
+  (TARGET-LEAVE-DEFINE 0)
+  (TARGET-DUMP-MODULE destpath)
+  (TARGET-SHUTDOWN))
 
 (defun toplevel ()
   (let ((last-result nil))

@@ -72,8 +72,11 @@
 (defun TARGET-SET-MODULE (module)
   (setf *module* module))
 
-(defun TARGET-DUMP-MODULE ()
-  (LLVMDumpmodule *module*))
+(defun TARGET-DUMP-MODULE (&optional filepath)
+  (if filepath
+      (llvm-write-bitcode *module*
+			  filepath)
+      (llvm-dump-module *module*)))
 
 (defun TARGET-CONSTANT (value)
   (RT-BUILD-NEW-VALUE-INT value))

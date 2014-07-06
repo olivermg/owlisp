@@ -5,16 +5,23 @@ LDFLAGS = -Wall -g
 LIBS = -lpthread -lm -lrt -lcheck
 SWIG = swig
 SWIGFLAGS = -includeall
+LLVM_AS = llvm-as
+LLVM_LINK = llvm-link
 
-.PHONY: all ll-files clean test-run
-
-
-
-all: ll-files
+.PHONY: all clean test-run
 
 
 
-ll-files: error.ll types.ll frame.ll
+all: runtime.bc
+
+
+
+runtime.bc: error.bc types.bc frame.bc
+	$(LLVM_LINK) -o $@ $^
+
+%.bc: %.ll
+	$(LLVM_AS) $<
+
 %.ll: %.c
 	$(CC) $(CLLFLAGS) -o $@ $<
 

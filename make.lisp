@@ -1,5 +1,5 @@
 (asdf:load-system :owlisp)
 
 (sb-ext:save-lisp-and-die "build/owlisp-frontend"
-			  :toplevel #'owlisp/analyzer:toplevel
+			  :toplevel #'owlisp/analyzer:main
 			  :executable t)

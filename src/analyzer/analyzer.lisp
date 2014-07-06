@@ -13,16 +13,16 @@
 
 
 
+(defun evaluate-file (path decl-env)
+  (with-open-file (stream path)
+    (evaluate-stream stream
+		     decl-env)))
+
 (defun evaluate-stdin (decl-env)
   (evaluate-stream *standard-input* decl-env))
 
 (defun evaluate-stream (stream decl-env)
-  (load-libraries)
-  (initialize)
-  (append
-   (define-builtins)
-   (list (evaluate-forms (read-stream stream) decl-env))
-   (write-compilation)))
+  (evaluate-forms (read-stream stream) decl-env))
 
 (defun evaluate-forms-to-last (forms decl-env)
   (let ((last-val nil))

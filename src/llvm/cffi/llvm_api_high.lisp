@@ -167,6 +167,13 @@
 		value
 		0))
 
+(defun llvm-write-bitcode (module destfilepath)
+  (LLVMWritebitcodetofile module
+			  destfilepath))
+
+(defun llvm-dump-module (module)
+  (LLVMDumpmodule module))
+
 (defun llvm-debug-type (type)
   (LLVMDumptype type))
 

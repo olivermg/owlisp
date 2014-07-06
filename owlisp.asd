@@ -18,7 +18,7 @@
     :description "owlisp"
 
     :depends-on (:cffi
-		 :cl-ppcre)
+		 :apply-argv)
 
     :components ((:file "packages")
 
