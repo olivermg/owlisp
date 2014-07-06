@@ -29,5 +29,6 @@ clean:
 	for D in $(DIRS); do \
 		make -C $$D clean ; \
 	done
+	make -C tests clean
 	rm -rvf build
 

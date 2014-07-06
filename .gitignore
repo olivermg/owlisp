@@ -15,4 +15,6 @@ src/llvm/crt/test
 src/llvm/crt/libowlisp-rt.so*
 
 tests/*.bc
+tests/*.s
+tests/compileme
 
