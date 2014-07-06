@@ -62,17 +62,15 @@ For using owlisp (at least in this stage of development) you need:
 
 2. cd into the root directory of owlisp.
 
-3. ```make```
-   This will do several things:
+3. Do a ```make```. This will do several things:
    * generate LLVM CFFI bindings via SWIG
    * generate owlisp runtime llvm bytecode
    * compile the owlisp compiler frontend
    After successful completion, you will find the compiler frontend
    (owlisp-frontend) as well as a compilation logfile under ./build/
 
-4. ```make install```
-   This will copy the compiler frontend, the owlisp runtime & a script
-   (owlisp) into the directory ./installed.
+4. Do a ```make install```. This will copy the compiler frontend, the
+   owlisp runtime & a script (owlisp) into the directory ./installed.
 
 5. Try it out, e.g. compile the included test file './tests/compileme.lisp':
    ```$ ./installed/owlisp tests/compileme.lisp```
