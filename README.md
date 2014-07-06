@@ -1,23 +1,7 @@
 ## Introduction
 
-owlisp is a compiler frontend to LLVM that compiles Common Lisp to LLVM-IR code,
-which then in turn can be processed further by LLVM Tools to translate it to any
-target that LLVM offers.
-
-### Technical background, briefly
-
-To translate from lisp code to LLVM-IR code, owlisp currently (this may be subject
-to changes) takes an intermediate step to abstract away some otherwise complex
-transformations.
-
-The intermediate step consists of translating the original code into an internal
-byte-code representation. This byte-code is then being interpreted by an internal
-SECD virtual machine (see http://en.wikipedia.org/wiki/SECD_machine ) and this
-finally is supposed to result in the final LLVM-IR code that can be processed
-with external programs of the LLVM distribution.
-
-(**NOTE**: The last step of transforming to LLVM-IR code is not yet implemented yet,
-see below)
+owlisp is a compiler that compiles Common Lisp to native binaries. To do that, it
+makes use of the LLVM compiler platform.
 
 ## Blog
 
@@ -35,10 +19,10 @@ owlisp is not even alpha yet ;) :
     * lambda, e.g. ```(lambda () 1)```
     * variable declarations & references (only lexically scoped), e.g. ```(lambda (a) a)```
     * function application, e.g. ```((lambda (a) a) 42)```
-    * if-statement, e.g. ```(if 1 2 3)```
-* it does not yet compile to LLVM-IR code
 * it is still a lisp-1 (meaning, that it does not use separate namespaces
   for variable vs. function bindings
+
+## Motivation
 
 I created this project for my own mere fun and because I was searching for
 something that could translate Common Lisp to JavaScript. This would allow
@@ -53,97 +37,106 @@ Feedback is always welcome!
 
 For using owlisp (at least in this stage of development) you need:
 
-* A working common lisp with at least **ASDF** & **CFFI**.
+* SWIG (Version >= 3.0 should work)
 
-  If you want to use the Makefile in the root directory of this project
-  to create a compiler binary, you need SBCL specifically (or adjust
-  **make.lisp**).
+* A working common lisp (currently, only SBCL will work) with the packages
+  **ASDF**, **CFFI** & **APPLY-ARGV** available.
 
 * LLVM dynamic library in your library search path.
-  Currently, owlisp tries to load **libLLVM-3.2.so**; if you want to use a
+  Currently, owlisp tries to load **libLLVM-3.4.so**; if you want to use a
   different version of LLVM, you will at least have to adjust that in
-  **src/compiler/llvm-ir/cffi/loader.lisp** . Maybe you will also have to
-  generate a new **src/compiler/llvm-ir/cffi/llvmcffi.lisp** by running `make`
-  in that very directory (You will maybe have to adjust the Makefile to
-  reflect the paths on your system).
+  **src/compiler/llvm-ir/cffi/loader.lisp** .
+
+* LLVM toolchain in your path (llc, llvm-link, llvm-as)
+
+* LLVM C-API header files (Core.h, BitWriter.h) in system include path or
+  /usr/include or /usr/local/include
+
+* CLANG C compiler in your path (clang)
 
 ## Usage
 
-### Via REPL
+### Building owlisp compiler
 
 1. Link the file **owlisp.asd** to wherever your asdf search path is.
 
-2. Start up your Common Lisp (I have only tested SBCL yet) and load owlisp by
+2. cd into the root directory of owlisp.
 
+3. ```make```
+   This will do several things:
+   * generate LLVM CFFI bindings via SWIG
+   * generate owlisp runtime llvm bytecode
+   * compile the owlisp compiler frontend
+   After successful completion, you will find the compiler frontend
+   (owlisp-frontend) as well as a compilation logfile under ./build/
+
+4. ```make install```
+   This will copy the compiler frontend, the owlisp runtime & a script
+   (owlisp) into the directory ./installed.
+
+5. Try it out, e.g. compile the included test file './tests/compileme.lisp':
+   ```$ ./installed/owlisp tests/compileme.lisp```
+   After completion, you should find several generated files in the ./tests
+   folder, among them a native executable file './tests/compileme'.
+
+### Via REPL
+
+You can also use owlisp as a REPL. Proceed like above until step 4, and then
+
+5. ./installed/owlisp-frontend
+
+6. You can now start a toplevel and evaluate & run lisp expressions, e.g.
    ```lisp
-     CL-USER> (asdf:load-system :owlisp)
+    owlisp> ((lambda (a b) b) 11 22)
+
+	(APPLICATION ...
+		(ABSTRACTION ...
+			(REFERENCE (0 . 1)))
+				(CONSTANT 11)
+    ; ModuleID = 'main'
+
+	%struct._value_t = type { i8, i32 }
+	%struct._frame_t = type { %struct._frame_t*, [16 x %struct._value_t*] }
+
+	declare %struct._value_t* @new_value_int(i32)
+
+	declare %struct._value_t* @get_binding(%struct._frame_t*, i32, i32)
+
+	declare %struct._frame_t* @new_frame(%struct._frame_t*)
+
+	declare void @set_binding(%struct._frame_t*, i32, i32, %struct._value_t*)
+
+	declare void @init_global_frame()
+
+	declare %struct._frame_t* @get_global_frame()
+
+	declare %struct._frame_t* @extend_global_frame()
+
+	declare %struct._frame_t* @shrink_global_frame()
+
+	define i32 @main() {
+		entry:
+			call void @init_global_frame()
+			%0 = call %struct._value_t* @new_value_int(i32 11)
+			%1 = call %struct._value_t* @new_value_int(i32 22)
+			%2 = call %struct._frame_t* @get_global_frame()
+			%3 = call %struct._frame_t* @new_frame(%struct._frame_t* %2)
+			call void @set_binding(%struct._frame_t* %3, i32 0, i32 0, %struct._value_t* %0)
+			call void @set_binding(%struct._frame_t* %3, i32 0, i32 1, %struct._value_t* %1)
+			%4 = call %struct._value_t* @abstraction1(%struct._frame_t* %2)
+			ret i32 0
+    }
+
+	define %struct._value_t* @abstraction1(%struct._frame_t*) {
+		entry:
+			%1 = call %struct._value_t* @get_binding(%struct._frame_t* %0, i32 0, i32 1)
+			ret %struct._value_t* %1
+    }
+
+    (CONSTANT 22))
+
+	owlisp>
    ```
-
-3. You can now start a toplevel and evaluate & run lisp expressions, e.g.
-
-   ```lisp
-     CL-USER> (owlisp/evaluator:toplevel)
-     owlisp> ((lambda (a b) (if a a b)) nil 22)
-
-          (APPLICATION ...
-            (ABSTRACTION ...
-              (ALTERNATIVE ...
-                (REFERENCE (0 . 0))
-                (REFERENCE (0 . 0))
-                (REFERENCE (0 . 1))))
-            (CONSTANT NIL)
-            (CONSTANT 22))
-        COMPILED CODE: (17 (NIL 22) 21 (18 0 0 19 (18 0 0) (18 0 1) 23) 22)
-
-        STACK: NIL
-        ENV: #<CLOSURE (LAMBDA (OWLISP/ENVIRONMENT::MSG)
-                         :IN
-                         OWLISP/ENVIRONMENT:ENV.B.EXTEND) {100454A03B}>
-        CODE: (17 (NIL 22) 21 (18 0 0 19 (18 0 0) (18 0 1) 23) 22)
-        DUMP: NIL
-        DISASSEMBLED CODE: NIL (LDC (NIL 22)) (LDF (18 0 0 19 (18 0 0) (18 0 1) 23)) (AP)
-
-     RESULT: 22
-
-     owlisp> (exit)
-
-     22
-     CL-USER>
-   ```
-
-   What happens behind the scenes during evaluation of the expression here is:
-   - analysis of the expression that has been entered
-   - compilation of the expression to byte-code for an owlisp-internal SECD-VM
-   - running the byte-code in the internal SECD-VM
-   - printing the result
-   - when exiting the toplevel via "(exit)", the result of the last evaluation
-     is being returned
-
-   As you can see, there is a lot of debug information that includes the status during
-   analysis of the expressions as well as the byte-code and virtual machine status.
-   Note, that the result of the evaluation is being printed in the line reading
-   **RESULT: 22**.
-
-### Compiler Binary
-
-If you desire, you can also create a binary by running `make` in the root
-directory of the project (NOTE: currently this assumes that you are using
-SBCL). This will create a binary **build/owlispc**
-that, when run, will read lisp code from stdin and after entering **(exit)**
-will output the resulting LLVM-IR code to stdout.
-
-#### Example
-
-```
-$ ./build/owlispc
-owlisp> ((lambda (a b) (if a a b)) 11 22)
-
-...<some debug output>...
-
-RESULT: 11
-
-owlisp> (exit)
-$
-```
+   You can exit from the REPL by entering ```(exit)```.
 
 Yay! :)
