@@ -7,5 +7,7 @@
 %{
 %}
 
-%include "runtime.h";
+%include "error.h";
+%include "types.h";
+%include "frame.h";
 

@@ -6,19 +6,21 @@ LIBS = -lpthread -lm -lrt -lcheck
 SWIG = swig
 SWIGFLAGS = -includeall
 
-
-
-all: runtime.ll runtime_api_low.lisp libowlisp-rt.so
+.PHONY: all ll-files clean test-run
 
 
 
-runtime.ll: error.ll types.ll frame.ll
+all: ll-files
+
+
+
+ll-files: error.ll types.ll frame.ll
 %.ll: %.c
 	$(CC) $(CLLFLAGS) -o $@ $<
 
 
 
-runtime_api_low.lisp: swig.i runtime.h frame.h types.h error.h
+runtime_api_low.lisp: swig.i frame.h types.h error.h
 	$(SWIG) $(SWIGFLAGS) -cffi swig.i
 
 
@@ -44,3 +46,4 @@ test: error.o types.o frame.o test.o
 
 clean:
 	rm -vf *.ll *.o *.bc *.s runtime runtime_api_low.lisp libowlisp-rt.so* test
+

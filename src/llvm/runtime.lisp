@@ -32,6 +32,7 @@
 (defun runtime-init ()
   (init-types))
 
+#|
 (defun rt-value_t-type ()
   *value_t*)
 
@@ -43,6 +44,7 @@
 
 (defun rt-frame_p-type ()
   *frame_p*)
+|#
 
 #|
 (defun add-activation-frame ()

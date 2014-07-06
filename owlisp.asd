@@ -64,18 +64,8 @@
 					 "runtime"
 					 "cffi"))
 		     (:file "runtime"
-			    :depends-on ("globals"
-					 "crt"))
+			    :depends-on ("globals"))
 		     (:file "globals")
-
-		     (:module
-		      crt
-		      :components
-		      ((:file "runtime_api_high"
-			      :depends-on ("runtime_api_low"))
-		       (:file "runtime_api_low"
-			      :depends-on ("loader"))
-		       (:file "loader")))
 
 		     (:module
 		      cffi
