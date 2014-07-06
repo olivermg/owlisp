@@ -5,20 +5,29 @@ LDFLAGS = -Wall -g
 LIBS = -lpthread -lm -lrt -lcheck
 SWIG = swig
 SWIGFLAGS = -includeall
+LLVM_AS = llvm-as
+LLVM_LINK = llvm-link
+
+.PHONY: all clean test-run
 
 
 
-all: runtime.ll runtime_api.lisp libowlisp-rt.so
+all: runtime.bc
 
 
 
-runtime.ll: error.ll types.ll frame.ll
+runtime.bc: error.bc types.bc frame.bc
+	$(LLVM_LINK) -o $@ $^
+
+%.bc: %.ll
+	$(LLVM_AS) $<
+
 %.ll: %.c
 	$(CC) $(CLLFLAGS) -o $@ $<
 
 
 
-runtime_api.lisp: swig.i runtime.h frame.h types.h error.h
+runtime_api_low.lisp: swig.i frame.h types.h error.h
 	$(SWIG) $(SWIGFLAGS) -cffi swig.i
 
 
@@ -43,4 +52,5 @@ test: error.o types.o frame.o test.o
 
 
 clean:
-	rm -vf *.ll *.o *.bc *.s runtime runtime_api.lisp libowlisp-rt.so* test
+	rm -vf *.ll *.o *.bc *.s runtime runtime_api_low.lisp libowlisp-rt.so* test
+

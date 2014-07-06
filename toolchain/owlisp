@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+OWLISP_DIR=$(dirname $0)
+RUNTIME_DIR=$OWLISP_DIR/runtime
+
+OWLISP=$OWLISP_DIR/owlisp-frontend
+LLVM_LINK=$(which llvm-link)
+LLC=$(which llc)
+CLANG=$(which clang)
+
+SOURCEFILE=$1
+BINFILE=${SOURCEFILE%.*}
+OBJFILE=${BINFILE}.bc
+LINKFILE=${BINFILE}.linked.bc
+ASMFILE=${BINFILE}.s
+RUNTIME=$RUNTIME_DIR/runtime.bc
+
+if [ ! -f $SOURCEFILE ]; then
+	echo "$SOURCEFILE not found!" >/dev/stderr
+	exit 1
+fi
+if [ ! -x $OWLISP ]; then
+	echo "owlisp-frontend not found or not executable!" >/dev/stderr
+	exit 1
+fi
+if [ ! -x $LLVM_LINK ]; then
+	echo "llvm-link not found or not executable!" >/dev/stderr
+	exit 1
+fi
+if [ ! -x $LLC ]; then
+	echo "llc not found or not executable!" >/dev/stderr
+	exit 1
+fi
+if [ ! -x $CLANG ]; then
+	echo "clang not found or not executable!" >/dev/stderr
+	exit 1
+fi
+if [ ! -f $RUNTIME ]; then
+	echo "runtime.bc not found!" >/dev/stderr
+	exit 1
+fi
+
+$OWLISP -i $SOURCEFILE -o $OBJFILE
+$LLVM_LINK -o $LINKFILE $RUNTIME $OBJFILE
+$LLC -o $ASMFILE $LINKFILE
+$CLANG -Wall -o $BINFILE $ASMFILE
+

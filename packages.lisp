@@ -4,21 +4,9 @@
 (defpackage #:owlisp/environment
   (:use cl owlisp))
 
-(defpackage #:owlisp/cfg
+(defpackage #:owlisp/llvm
   (:use cl))
 
-(defpackage #:owlisp/runtime
-  (:use cl))
-
-(defpackage #:owlisp/machines
-  (:use cl owlisp owlisp/environment))
-
-(defpackage #:owlisp/evaluator
-  (:use cl owlisp owlisp/environment owlisp/cfg owlisp/machines)
-  (:shadow apply))
-
-(defpackage #:owlisp/llvm-ir
-  (:use cl owlisp/runtime))
-
-(defpackage #:owlisp/parrot
-  (:use cl))
+(defpackage #:owlisp/analyzer
+  (:use cl owlisp owlisp/environment owlisp/llvm)
+  (:shadow apply compile))

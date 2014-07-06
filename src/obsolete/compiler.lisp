@@ -1,11 +1,12 @@
 (in-package :owlisp)
 
-(export '(load-libraries
-	  initialize
-	  evaluate-defpackage
-	  evaluate-defun
-	  evaluate-call
-	  write-compilation))
+(export '(;load-libraries
+	  ;initialize
+	  ;evaluate-defpackage
+	  ;evaluate-defun
+	  ;evaluate-call
+	  ;write-compilation
+	  ))
 
 
 #|

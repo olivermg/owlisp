@@ -1,6 +1,8 @@
-(in-package :owlisp/evaluator)
+(in-package :owlisp/analyzer)
 
-(export '(toplevel))
+(export '(main
+	  compile
+	  toplevel))
 
 
 
@@ -11,32 +13,55 @@
        (string-equal "EXIT"
 		     (symbol-name (car expr)))))
 
+(defun main ()
+  (let ((cmd-args (apply-argv:parse-argv (apply-argv:get-argv))))
+    (cond
+
+      ((and (getf cmd-args :i)
+	    (getf cmd-args :o))
+       (compile (getf cmd-args :i)
+		(getf cmd-args :o)))
+
+      (t (toplevel)))))
+
+(defun compile (sourcepath destpath)
+  (TARGET-INIT)
+  (evaluate-file sourcepath
+		 (make-initialized-declaration-environment))
+  (TARGET-LEAVE-DEFINE 0)
+  (TARGET-DUMP-MODULE destpath)
+  (TARGET-SHUTDOWN))
+
 (defun toplevel ()
   (let ((last-result nil))
+    (TARGET-INIT)
     (loop
        (format t "~&owlisp> ")
        (finish-output)
        (let ((expr (read)))
 	 (if (is-exit-command expr)
 
-	     (return)
+	     (progn (TARGET-SHUTDOWN)
+		    (return))
 
-	     (let* ((cfgraph (make-graph))
-		    (code (evaluate-form
+	     (let* ((code (evaluate-form
 			   expr
 			   (make-initialized-declaration-environment)
 			   ;(make-initialized-binding-environment)
-			   (funcall cfgraph :root-node)))
-		    (machine (make-default-machine code)))
+			   ))
+		    ;(machine (make-default-machine code))
+		    )
+#|
 	       (format t "~%COMPILED CODE: ~a~%~%" code)
 	       (format t "~a~%"
 		       (funcall machine :print))
-	       (format t "GRAPH:~%")
-	       (funcall cfgraph :print)
 	       (format t "~%")
 	       (setf last-result
 		     (funcall machine :run))
 	       (format t "RESULT: ~a~%~%" last-result)
+|#
+	       (TARGET-LEAVE-DEFINE 0)
+	       (TARGET-DUMP-MODULE)
 	       (finish-output)))))
 
     last-result))

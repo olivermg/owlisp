@@ -1,9 +1,34 @@
+DIRS = src/llvm/cffi src/llvm/crt
 CL = sbcl
+COMPILE_LOG = build/lisp-compile.log
+PREFIX = installed
 
-owlispc:
+.PHONY: clean install uninstall
+
+
+
+build/owlisp-frontend:
 	mkdir -p build
-	$(CL) --load "make.lisp"
+	for D in $(DIRS); do \
+		make -C $$D ; \
+	done
+	@echo "COMPILATION LOG IN $(COMPILE_LOG)"
+	$(CL) --load "make.lisp" >$(COMPILE_LOG) 2>&1
+
+install: build/owlisp-frontend
+	mkdir -p $(PREFIX)
+	mkdir -p $(PREFIX)/runtime
+	install build/owlisp-frontend $(PREFIX)
+	install src/llvm/crt/runtime.bc $(PREFIX)/runtime
+	install toolchain/* $(PREFIX)
+
+uninstall:
+	rm -rvf $(PREFIX)
 
 clean:
+	for D in $(DIRS); do \
+		make -C $$D clean ; \
+	done
+	make -C tests clean
 	rm -rvf build
 

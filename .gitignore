@@ -4,9 +4,17 @@
 *.fasl
 
 build/
+installed/
 
-src/runtime/llvm/*.ll
-src/runtime/llvm/*.o
-src/runtime/llvm/test
-src/runtime/llvm/libowlisp-rt.so*
+src/llvm/cffi/llvm_api_low.lisp
+
+src/llvm/crt/*.ll
+src/llvm/crt/*.bc
+src/llvm/crt/*.o
+src/llvm/crt/test
+src/llvm/crt/libowlisp-rt.so*
+
+tests/*.bc
+tests/*.s
+tests/compileme
 
