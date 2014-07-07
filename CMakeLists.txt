@@ -66,6 +66,7 @@ add_subdirectory(src/llvm/crt)		# defines target 'runtime_generation'
 
 
 set(OWLISPFRONTEND ${CMAKE_CURRENT_SOURCE_DIR}/owlisp-frontend)
+set(COMPILELOG compile.log)
 
 set(MAKELISPIN ${CMAKE_CURRENT_SOURCE_DIR}/make.lisp.in)
 set(MAKELISP ${CMAKE_CURRENT_SOURCE_DIR}/make.lisp)
@@ -77,7 +78,7 @@ configure_file(
 
 add_custom_command(
 	OUTPUT ${OWLISPFRONTEND}
-	COMMAND ${SBCL} --load "${MAKELISP}"
+	COMMAND ${SBCL} --load "${MAKELISP}" >${COMPILELOG} 2>&1
 	DEPENDS swig_generation runtime_generation
 )
 
