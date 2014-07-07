@@ -87,3 +87,15 @@ add_custom_target(
 	DEPENDS ${OWLISPFRONTEND}
 )
 
+
+# installation instructions:
+set(OWLISP ${CMAKE_CURRENT_SOURCE_DIR}/toolchain/owlisp)
+install(
+	PROGRAMS ${OWLISPFRONTEND} ${OWLISP}
+	DESTINATION bin
+)
+install(
+	FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/llvm/crt/runtime.bc
+	DESTINATION lib
+)
+
