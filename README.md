@@ -3,12 +3,16 @@
 owlisp is a compiler that compiles Common Lisp to native binaries. To do that, it
 makes use of the LLVM compiler platform.
 
-## Blog
+## News
 
 For the current status of this project as well as ideas and thoughts that I
 have about it, please take a look at my blog:
 
 http://blog.lambda-startup.com
+
+and follow the #owlisp twitter account:
+
+http://twitter.com/owlisp
 
 ## Status
 
