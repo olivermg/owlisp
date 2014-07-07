@@ -1,6 +1,12 @@
 SWIG=swig
-SWIGFLAGS=-I/usr/local/include -I/usr/include
-#SWIGFLAGS=-I/home/oliver/opt/llvm/current/include
+
+SWIGFLAGS=
+ifdef LLVM_INCLUDE_PATH
+	SWIGFLAGS+=-I$(LLVM_INCLUDE_PATH)
+endif
+SWIGFLAGS+=-I/usr/local/include -I/usr/include
+
+
 
 .PHONY: clean
 
