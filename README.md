@@ -56,7 +56,7 @@ For building owlisp, you need:
 
 6. LLVM dynamic library (e.g. libLLVM-3.4.so)
 
-7. LLVM toolchain in your path (llc, llvm-link, llvm-as)
+7. LLVM toolchain (llc, llvm-link, llvm-as)
 
 ### For running it
 
@@ -74,13 +74,13 @@ prerequisites 5, 6 & 7 from above.
 3. Do a ```mkdir build && cd build```.
 
 4. Do a ```cmake ..```. This will generate Makefiles that are tailored specifically
-   to your system.
+   for your system.
    You might want to define an installation prefix: ```cmake -DCMAKE_INSTALL_PREFIX=/my/installdir ..```
    NOTE: In case you have some of the prerequisite programs/headers/libs installed
-   in non-standard locations, you can tell cmake:
+   in non-standard locations, you can tell cmake so:
    * For swig, clang, sbcl & llvm tools, define **CMAKE_PROGRAM_PATH**, e.g. ```cmake -DCMAKE_PROGRAM_PATH=/some/path/to/swig/bin ..```
    * For LLVM headers, define **CMAKE_INCLUDE_PATH**, e.g. ```cmake -DCMAKE_INCLUDE_PATH=/some/path/to/llvm/include ..```
-   * For LLVM library, define **CMAKE_LIBRARY_PATH**, e.g. ```cmake -DCMAKE_LIBRARY_PATH=/some/path/to/llvm/lib
+   * For LLVM library, define **CMAKE_LIBRARY_PATH**, e.g. ```cmake -DCMAKE_LIBRARY_PATH=/some/path/to/llvm/lib```
 
 5. Do a ```make```. This will do several things:
    * generate LLVM CFFI bindings via SWIG
