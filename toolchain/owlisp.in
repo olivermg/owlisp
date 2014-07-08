@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 OWLISP_DIR=$(dirname $0)
-RUNTIME_DIR=$OWLISP_DIR/runtime
+RUNTIME_DIR=$OWLISP_DIR/../lib
 
 OWLISP=$OWLISP_DIR/owlisp-frontend
 LLVM_LINK=$(which llvm-link)
@@ -40,7 +40,7 @@ if [ ! -f $RUNTIME ]; then
 	exit 1
 fi
 
-$OWLISP -i $SOURCEFILE -o $OBJFILE
+LD_LIBRARY_PATH=@LDLIBPATH@ $OWLISP -i $SOURCEFILE -o $OBJFILE
 $LLVM_LINK -o $LINKFILE $RUNTIME $OBJFILE
 $LLC -o $ASMFILE $LINKFILE
 $CLANG -Wall -o $BINFILE $ASMFILE
