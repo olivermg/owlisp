@@ -8,6 +8,7 @@ installed/
 
 make.lisp
 owlisp-frontend
+toolchain/owlisp
 
 src/llvm/cffi/llvm_api_low.lisp
 
