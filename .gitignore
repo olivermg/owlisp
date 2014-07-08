@@ -6,6 +6,9 @@
 build/
 installed/
 
+make.lisp
+owlisp-frontend
+
 src/llvm/cffi/llvm_api_low.lisp
 
 src/llvm/crt/*.ll

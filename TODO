@@ -7,6 +7,7 @@ TODO notepad
 - implement debugging functionality for llvm abstraction layer (dump values & types etc.)
 - get rid of global_frame functions
 - implement toolchain for linking etc. within lisp (via c-api)?
+- generate owlisp for llvm at build time
 
 
 

@@ -1,0 +1,10 @@
+(in-package :owlisp/llvm)
+
+
+
+(defun load-llvm-library ()
+  (cffi:define-foreign-library libllvm
+    (t (:default "@LLVMLIBNAMEWE@")))
+  (cffi:use-foreign-library libllvm))
+
+(load-llvm-library)

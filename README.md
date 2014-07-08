@@ -39,24 +39,29 @@ Feedback is always welcome!
 
 ## Prerequisites
 
-For using owlisp (at least in this stage of development) you need:
+### For building it
 
-* SWIG (Version >= 3.0 should work)
+For building owlisp, you need:
 
-* A working common lisp (currently, only SBCL will work) with the packages
-  **ASDF**, **CFFI** & **APPLY-ARGV** available.
+1. CMAKE (Version >= 2.8)
 
-* LLVM dynamic library in your library search path.
-  Currently, owlisp tries to load **libLLVM-3.4.so**; if you want to use a
-  different version of LLVM, you will at least have to adjust that in
-  **src/compiler/llvm-ir/cffi/loader.lisp** .
+2. SWIG (Version >= 3.0 will work, probably some late 2.x version is fine as well)
 
-* LLVM toolchain in your path (llc, llvm-link, llvm-as)
+3. LLVM C-API header files (Core.h, BitWriter.h)
 
-* LLVM C-API header files (Core.h, BitWriter.h) in system include path or
-  /usr/include or /usr/local/include
+4. CLANG C compiler (clang)
 
-* CLANG C compiler in your path (clang)
+5. A working common lisp (currently, only SBCL will work) with the packages
+   **ASDF**, **CFFI** & **APPLY-ARGV** available.
+
+6. LLVM dynamic library (e.g. libLLVM-3.4.so)
+
+7. LLVM toolchain in your path (llc, llvm-link, llvm-as)
+
+### For running it
+
+For running owlisp (i.e. compile Common Lisp source code to binaries), you need
+prerequisites 5, 6 & 7 from above.
 
 ## Usage
 
@@ -66,28 +71,39 @@ For using owlisp (at least in this stage of development) you need:
 
 2. cd into the root directory of owlisp.
 
-3. Do a ```make```. This will do several things:
+3. Do a ```mkdir build && cd build```.
+
+4. Do a ```cmake ..```. This will generate Makefiles that are tailored specifically
+   to your system.
+   You might want to define an installation prefix: ```cmake -DCMAKE_INSTALL_PREFIX=/my/installdir ..```
+   NOTE: In case you have some of the prerequisite programs/headers/libs installed
+   in non-standard locations, you can tell cmake:
+   * For swig, clang, sbcl & llvm tools, define **CMAKE_PROGRAM_PATH**, e.g. ```cmake -DCMAKE_PROGRAM_PATH=/some/path/to/swig/bin ..```
+   * For LLVM headers, define **CMAKE_INCLUDE_PATH**, e.g. ```cmake -DCMAKE_INCLUDE_PATH=/some/path/to/llvm/include ..```
+   * For LLVM library, define **CMAKE_LIBRARY_PATH**, e.g. ```cmake -DCMAKE_LIBRARY_PATH=/some/path/to/llvm/lib
+
+5. Do a ```make```. This will do several things:
    * generate LLVM CFFI bindings via SWIG
    * generate owlisp runtime llvm bytecode
    * compile the owlisp compiler frontend
-   After successful completion, you will find the compiler frontend
-   (owlisp-frontend) as well as a compilation logfile under ./build/
 
-4. Do a ```make install```. This will copy the compiler frontend, the
-   owlisp runtime & a script (owlisp) into the directory ./installed.
+6. Do a ```make install```. This will copy the compiler frontend, the
+   owlisp runtime & a script (owlisp) to your installation prefix (or the
+   cmake default installation prefix).
 
-5. Try it out, e.g. compile the included test file './tests/compileme.lisp':
-   ```$ ./installed/owlisp tests/compileme.lisp```
-   After completion, you should find several generated files in the ./tests
-   folder, among them a native executable file './tests/compileme'.
+7. Try it out, e.g. compile the included test file '../tests/compileme.lisp':
+   ```$ /my/installdir/owlisp ../tests/compileme.lisp```
+   After completion, you should find several generated files in the ../tests
+   folder, among them a native executable file '../tests/compileme', that you
+   can now run (but which does not do much).
 
-### Via REPL
+### Using the REPL
 
-You can also use owlisp as a REPL. Proceed like above until step 4, and then
+You can also use owlisp as a REPL. Proceed like above until step 6, and then
 
-5. ./installed/owlisp-frontend
+7. Run ```/my/installdir/owlisp-frontend```.
 
-6. You can now start a toplevel and evaluate & run lisp expressions, e.g.
+8. You can now start a toplevel and evaluate & run lisp expressions, e.g.
    ```lisp
     owlisp> ((lambda (a b) b) 11 22)
 
@@ -141,4 +157,11 @@ You can also use owlisp as a REPL. Proceed like above until step 4, and then
    ```
    You can exit from the REPL by entering ```(exit)```.
 
-Yay! :)
+### Cleaning
+
+Go to your build directory and do a ```make clean```.
+
+### Uninstalling
+
+Go to your build directory and do a ```make uninstall```.
+
