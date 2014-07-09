@@ -9,7 +9,11 @@
 	  TARGET-REFERENCE
 	  TARGET-DEFINE
 	  TARGET-LEAVE-DEFINE
-	  TARGET-CALL))
+	  TARGET-CALL
+	  TARGET-ALTERNATIVE-PREDICATE
+	  TARGET-ALTERNATIVE-THEN
+	  TARGET-ALTERNATIVE-ELSE
+	  TARGET-ALTERNATIVE-MERGE))
 
 
 
@@ -95,3 +99,17 @@
 
 (defun TARGET-CALL (fn &rest args)
   (apply #'rt-build-call fn args))
+
+(defun TARGET-ALTERNATIVE-PREDICATE ()
+  (llvm-get-current-basicblock))
+
+(defun TARGET-ALTERNATIVE-THEN ()
+  (llvm-add-basicblock "then"))
+
+(defun TARGET-ALTERNATIVE-ELSE ()
+  (llvm-add-basicblock "else"))
+
+(defun TARGET-ALTERNATIVE-MERGE (predicate-bb predicate then-bb else-bb)
+  (llvm-set-current-basicblock predicate-bb)
+  (llvm-build-conditional-jump predicate then-bb else-bb)
+  (llvm-merge-basicblocks then-bb else-bb))

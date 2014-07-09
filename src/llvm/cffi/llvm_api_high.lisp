@@ -150,6 +150,35 @@
 		     llvm-args-count
 		     ""))))
 
+(defun llvm-set-current-basicblock (bb)
+  (setf (first *bb-position-stack*)
+	bb)
+  (LLVMPositionbuilderatend *builder* bb))
+
+(defun llvm-get-current-basicblock ()
+  (first *bb-position-stack*))
+
+(defun llvm-build-conditional-jump (predicate then-bb else-bb)
+  (LLVMBuildcondbr *builder*
+		   predicate
+		   then-bb
+		   else-bb))
+
+(defun llvm-add-basicblock (&optional (name ""))
+  (let ((bb (LLVMAppendbasicblock (llvm-get-current-function)
+				  name)))
+    (LLVMPositionbuilderatend *builder* bb)
+    bb))
+
+(defun llvm-merge-basicblocks (&rest incoming-basicblocks)
+  (let ((merge-bb (llvm-add-basicblock "merge")))
+    (loop
+       for incoming-bb in incoming-basicblocks
+       do (LLVMPositionbuilderatend *builder* incoming-bb)
+	 (LLVMBuildbr *builder* merge-bb))
+    (LLVMPositionbuilderatend *builder* merge-bb)
+    merge-bb))
+
 (defun llvm-get-param (fn &optional (param-index 0))
   (let ((llvm-fn (ensure-llvm-representation fn)))
     (LLVMGetparam llvm-fn

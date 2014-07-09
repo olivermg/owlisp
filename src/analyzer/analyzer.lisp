@@ -265,10 +265,15 @@
 
 (defun analyze-if (expr decl-env)
   (format t "ALTERNATIVE ...")
-  (let ((analyzed-predicate (analyze (if-predicate expr) decl-env))
-	(analyzed-then (analyze (if-then expr) decl-env))
-	(analyzed-else (analyze (if-else expr) decl-env)))
-    (ALTERNATIVE analyzed-predicate analyzed-then analyzed-else)))
+  (let* ((predicate-bb (ALTERNATIVE-PREDICATE))
+	 (analyzed-predicate (analyze (if-predicate expr) decl-env))
+	 (then-bb (ALTERNATIVE-THEN))
+	 (analyzed-then (analyze (if-then expr) decl-env))
+	 (else-bb (ALTERNATIVE-ELSE))
+	 (analyzed-else (analyze (if-else expr) decl-env))
+	 (merge-bb (ALTERNATIVE-MERGE predicate-bb analyzed-predicate then-bb else-bb)))
+    ;(ALTERNATIVE analyzed-predicate analyzed-then analyzed-else)
+    merge-bb))
 
 (defun analyze-application (expr decl-env)
   (format t "APPLICATION ...")
@@ -343,6 +348,18 @@
       (funcall body extended-bind-env)))
 |#
   (list 13 bound-values-procs body))
+
+(defun ALTERNATIVE-PREDICATE ()
+  (TARGET-ALTERNATIVE-PREDICATE))
+
+(defun ALTERNATIVE-THEN ()
+  (TARGET-ALTERNATIVE-THEN))
+
+(defun ALTERNATIVE-ELSE ()
+  (TARGET-ALTERNATIVE-ELSE))
+
+(defun ALTERNATIVE-MERGE (predicate-bb predicate then-bb else-bb)
+  (TARGET-ALTERNATIVE-MERGE predicate-bb predicate then-bb else-bb))
 
 (defun ALTERNATIVE (predicate then else)
 #|
