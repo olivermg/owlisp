@@ -111,5 +111,5 @@
 
 (defun TARGET-ALTERNATIVE-MERGE (predicate-bb predicate then-bb else-bb)
   (llvm-set-current-basicblock predicate-bb)
-  (llvm-build-conditional-jump predicate then-bb else-bb)
+  (rt-build-conditional-jump predicate then-bb else-bb)
   (llvm-merge-basicblocks then-bb else-bb))

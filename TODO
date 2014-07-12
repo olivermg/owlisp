@@ -6,14 +6,18 @@ TODO notepad
 - remove layer of TARGET-... functions in llvm.lisp? should be the same as functions in runtime.lisp?
 - implement debugging functionality for llvm abstraction layer (dump values & types etc.)
 - get rid of global_frame functions
-- implement toolchain for linking etc. within lisp (via c-api)?
-- generate owlisp for llvm at build time
-- implement true/false in llvm logic (icmp etc.)
+- implement toolchain for linking etc. within lisp via c-api?
+- implement true/false for lisp values in llvm logic (icmp etc.)
+- fix toplevel to work correctly in toplevel when evaluating multiple expressions after another
+  e.g. evaluating (if 1 2 3) does not work twice in the same toplevel
+- build docker image for owlisp
+- make it a lisp2
 
 
 
 OLD (2014-07-06)
 ================
+- generate owlisp for llvm at build time
 - define special prototype for main function
 
 OLD (2014-07-05)

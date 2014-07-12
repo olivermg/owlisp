@@ -79,6 +79,9 @@
     (LLVMArraytype llvm-type
 		   count)))
 
+(defun llvm-inttype1 ()
+  (LLVMInt1type))
+
 (defun llvm-inttype8 ()
   (LLVMInt8type))
 

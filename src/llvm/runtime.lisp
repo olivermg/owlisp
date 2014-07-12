@@ -155,6 +155,12 @@
 					    *frame_p*)))
     (setf *shrink_global_frame*
 	  (llvm-declare-function "shrink_global_frame"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype (list *value_p*)
+					    (llvm-inttype1))))
+    (setf *is_value_true*
+	  (llvm-declare-function "is_value_true"
 				 fn-type))))
 
 (defun rt-build-new-value-int (value)
@@ -213,3 +219,13 @@
 				 arg)))
     (llvm-build-call fn
 		     (list activation-frame))))
+
+(defun rt-build-is-true (value)
+  (llvm-build-call *is_value_true*
+		   (list value)))
+
+(defun rt-build-conditional-jump (predicate truedest falsedest)
+  (let ((is-true (rt-build-is-true predicate)))
+    (llvm-build-conditional-jump is-true
+				 truedest
+				 falsedest)))

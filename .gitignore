@@ -21,4 +21,5 @@ src/llvm/crt/libowlisp-rt.so*
 tests/*.bc
 tests/*.s
 tests/compileme
+tests/compileme-if
 

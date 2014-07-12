@@ -28,6 +28,15 @@ unsigned char values_equal( const value_t* value1, const value_t* value2 )
   return equal;
 }
 
+unsigned char is_value_true( const value_t* value )
+{
+  if ( value->value ) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 void dump_value( value_t* value )
 {
   if ( value ) {
