@@ -4,6 +4,10 @@
 
 (defun init-types ()
 
+  (setf *value_container_t*
+	(llvm-declare-structtype "struct._value_container_t"
+				 (list (llvm-inttype32))))
+
   (setf *value_t*
 	(llvm-declare-structtype "struct._value_t"
 				 (list (llvm-inttype8)
@@ -104,10 +108,11 @@
 (defun rt-declare-runtime-functions (module)
   (declare (ignore module))
 
-  (let ((fn-type (llvm-declare-functiontype (list (llvm-inttype32))
+  (let ((fn-type (llvm-declare-functiontype (list (llvm-inttype8)
+						  *value_container_t*)
 					    *value_p*)))
-    (setf *new_value_int*
-	  (llvm-declare-function "new_value_int"
+    (setf *new_value*
+	  (llvm-declare-function "new_value"
 				 fn-type)))
 
   (let ((fn-type (llvm-declare-functiontype (list *frame_p*

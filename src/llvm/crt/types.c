@@ -25,7 +25,7 @@ unsigned char values_equal( const value_t* value1, const value_t* value2 )
   if ( value1->type == value2->type ) { // TODO: for now, do only strong typing
     switch ( value1->type ) {
     case TYPE_NUMBER:
-      equal = value1->value.number == value2->value.number;
+      equal = value1->value.number_v == value2->value.number_v;
       break;
     case TYPE_CHARACTER:
       break;
@@ -70,7 +70,7 @@ unsigned char values_equal( const value_t* value1, const value_t* value2 )
 
 unsigned char is_value_true( const value_t* value )
 {
-  if ( value->value.number ) {
+  if ( value->value.number_v ) {
     return 1;
   } else {
     return 0;

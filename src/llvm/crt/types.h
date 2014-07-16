@@ -22,23 +22,23 @@ typedef unsigned char type_t;
 #define TYPE_GENERICFUNCTION   0x17
 
 union value_container_t {
-  long number;
-  unsigned char* character;
-  unsigned char* symbol;
-  void* list;
-  void* array;
-  void* hashtable;
-  void* readtable;
-  unsigned char* package;
-  unsigned char* pathname;
-  long stream;
-  long randomstate;
-  void* structure;
-  void* function;
-  void* condition;
-  void* class;
-  void* method;
-  void* genericfunction;
+  long number_v;
+  unsigned char* character_v;
+  unsigned char* symbol_v;
+  void* list_v;
+  void* array_v;
+  void* hashtable_v;
+  void* readtable_v;
+  unsigned char* package_v;
+  unsigned char* pathname_v;
+  long stream_v;
+  long randomstate_v;
+  void* structure_v;
+  void* function_v;
+  void* condition_v;
+  void* class_v;
+  void* method_v;
+  void* genericfunction_v;
 };
 
 typedef struct _value_t {
