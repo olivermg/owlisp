@@ -4,10 +4,6 @@
 
 (defun init-types ()
 
-  (setf *value_container_t*
-	(llvm-declare-structtype "struct._value_container_t"
-				 (list (llvm-inttype32))))
-
   (setf *value_t*
 	(llvm-declare-structtype "struct._value_t"
 				 (list (llvm-inttype8)
@@ -109,7 +105,7 @@
   (declare (ignore module))
 
   (let ((fn-type (llvm-declare-functiontype (list (llvm-inttype8)
-						  *value_container_t*)
+						  (llvm-voidptrtype))
 					    *value_p*)))
     (setf *new_value*
 	  (llvm-declare-function "new_value"
@@ -168,10 +164,21 @@
 	  (llvm-declare-function "is_value_true"
 				 fn-type))))
 
+#|
 (defun rt-build-new-value-int (value)
   (let ((llvm-value (llvm-const-int32 value)))
     (llvm-build-call *new_value_int*
 		     (list llvm-value))))
+|#
+
+(defun rt-build-new-value (value)
+  (cond
+    ((integerp value)
+     (let ((value-foreign (cffi:foreign-alloc :long
+					      :initial-element value)))
+       (llvm-build-call *new_value*
+			(list #x01
+			      value-foreign))))))
 
 (defun rt-build-new-frame (&optional (parent-frame nil))
   (llvm-build-call *new_frame*

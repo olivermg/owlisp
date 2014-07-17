@@ -4,7 +4,7 @@
 #include "error.h"
 #include "types.h"
 
-value_t* new_value( type_t type, union value_container_t val )
+value_t* new_value( type_t type, void* val )
 {
   value_t* new_val = calloc( 1, sizeof( value_t ) );
   new_val->type = type;
@@ -25,7 +25,7 @@ unsigned char values_equal( const value_t* value1, const value_t* value2 )
   if ( value1->type == value2->type ) { // TODO: for now, do only strong typing
     switch ( value1->type ) {
     case TYPE_NUMBER:
-      equal = value1->value.number_v == value2->value.number_v;
+      equal = *(long*)(value1->value) == *(long*)(value2->value);
       break;
     case TYPE_CHARACTER:
       break;
@@ -70,7 +70,7 @@ unsigned char values_equal( const value_t* value1, const value_t* value2 )
 
 unsigned char is_value_true( const value_t* value )
 {
-  if ( value->value.number_v ) {
+  if ( *(long*)(value->value) ) {
     return 1;
   } else {
     return 0;
@@ -80,7 +80,7 @@ unsigned char is_value_true( const value_t* value )
 void dump_value( value_t* value )
 {
   if ( value ) {
-    fprintf( stderr, "(p%p,t%d,v%d)\n", value, value->type, value->value );
+    fprintf( stderr, "(p%p,t%d,v%ld)\n", value, value->type, *(long*)(value->value) );
   } else {
     fprintf( stderr, "(undef)\n" );
   }

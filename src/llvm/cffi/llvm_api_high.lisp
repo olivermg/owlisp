@@ -91,6 +91,9 @@
 (defun llvm-voidtype ()
   (LLVMVoidtype))
 
+(defun llvm-voidptrtype ()
+  (llvm-declare-pointertype (llvm-voidtype)))
+
 (defun llvm-declare-pointertype (type)
   (let ((llvm-type (ensure-llvm-representation type)))
     (LLVMPointertype llvm-type

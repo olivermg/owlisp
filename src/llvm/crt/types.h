@@ -21,6 +21,7 @@ typedef unsigned char type_t;
 #define TYPE_METHOD            0x16
 #define TYPE_GENERICFUNCTION   0x17
 
+/*
 union value_container_t {
   long number_v;
   unsigned char* character_v;
@@ -40,13 +41,14 @@ union value_container_t {
   void* method_v;
   void* genericfunction_v;
 };
+*/
 
 typedef struct _value_t {
   type_t type;
-  union value_container_t value;
+  void* value;
 } value_t;
 
-value_t* new_value( type_t type, union value_container_t val );
+value_t* new_value( type_t type, void* val );
 void free_value( value_t* value );
 unsigned char values_equal( const value_t* value1, const value_t* value2 );
 unsigned char is_value_true( const value_t* value );
