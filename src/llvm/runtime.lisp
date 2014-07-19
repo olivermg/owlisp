@@ -105,7 +105,7 @@
   (declare (ignore module))
 
   (let ((fn-type (llvm-declare-functiontype (list (llvm-inttype8)
-						  (llvm-voidptrtype))
+						  (llvm-inttype8ptr))
 					    *value_p*)))
     (setf *new_value*
 	  (llvm-declare-function "new_value"
@@ -174,11 +174,8 @@
 (defun rt-build-new-value (value)
   (cond
     ((integerp value)
-     (let ((value-foreign (cffi:foreign-alloc :long
-					      :initial-element value)))
-       (llvm-build-call *new_value*
-			(list #x01
-			      value-foreign))))))
+     (llvm-build-call *new_value*
+		      (list #x01 (llvm-build-int32-ptr value))))))
 
 (defun rt-build-new-frame (&optional (parent-frame nil))
   (llvm-build-call *new_frame*
