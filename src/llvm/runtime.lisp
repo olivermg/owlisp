@@ -227,7 +227,7 @@
 				 idx
 				 arg)))
     (llvm-build-call fn
-		     (list activation-frame))))
+		     (list extended-activation-frame))))
 
 (defun rt-build-is-true (value)
   (llvm-build-call *is_value_true*
