@@ -85,6 +85,9 @@
 (defun llvm-inttype8 ()
   (LLVMInt8type))
 
+(defun llvm-inttype8ptr ()
+  (llvm-declare-pointertype (llvm-inttype8)))
+
 (defun llvm-inttype32 ()
   (LLVMInt32type))
 
@@ -198,6 +201,13 @@
   (LLVMConstint (llvm-inttype32)
 		value
 		0))
+
+(defun llvm-build-int32-ptr (value)
+  (let ((llvm-value (ensure-llvm-representation value)))
+    (LLVMBuildinttoptr *builder*
+		       llvm-value
+		       (llvm-inttype8ptr)
+		       "")))
 
 (defun llvm-write-bitcode (module destfilepath)
   (LLVMWritebitcodetofile module

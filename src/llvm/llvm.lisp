@@ -1,6 +1,7 @@
 (in-package :owlisp/llvm)
 
 (export '(TARGET-INIT
+	  TARGET-FINISH
 	  TARGET-SHUTDOWN
 	  TARGET-SET-MODULE
 	  TARGET-CREATE-MODULE
@@ -70,6 +71,9 @@
     (rt-create-init-activation-frame)
     main-fn))
 
+(defun TARGET-FINISH ()
+  (TARGET-LEAVE-DEFINE 0))
+
 (defun TARGET-SHUTDOWN ()
   (llvm-shutdown))
 
@@ -83,7 +87,7 @@
       (llvm-dump-module *module*)))
 
 (defun TARGET-CONSTANT (value)
-  (RT-BUILD-NEW-VALUE-INT value))
+  (RT-BUILD-NEW-VALUE value))
 
 (defun TARGET-REFERENCE (frameindex varindex)
   (RT-BUILD-GET-BINDING frameindex varindex))

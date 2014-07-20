@@ -104,10 +104,11 @@
 (defun rt-declare-runtime-functions (module)
   (declare (ignore module))
 
-  (let ((fn-type (llvm-declare-functiontype (list (llvm-inttype32))
+  (let ((fn-type (llvm-declare-functiontype (list (llvm-inttype8)
+						  (llvm-inttype8ptr))
 					    *value_p*)))
-    (setf *new_value_int*
-	  (llvm-declare-function "new_value_int"
+    (setf *new_value*
+	  (llvm-declare-function "new_value"
 				 fn-type)))
 
   (let ((fn-type (llvm-declare-functiontype (list *frame_p*
@@ -163,10 +164,18 @@
 	  (llvm-declare-function "is_value_true"
 				 fn-type))))
 
+#|
 (defun rt-build-new-value-int (value)
   (let ((llvm-value (llvm-const-int32 value)))
     (llvm-build-call *new_value_int*
 		     (list llvm-value))))
+|#
+
+(defun rt-build-new-value (value)
+  (cond
+    ((integerp value)
+     (llvm-build-call *new_value*
+		      (list #x01 (llvm-build-int32-ptr value))))))
 
 (defun rt-build-new-frame (&optional (parent-frame nil))
   (llvm-build-call *new_frame*
@@ -218,7 +227,7 @@
 				 idx
 				 arg)))
     (llvm-build-call fn
-		     (list activation-frame))))
+		     (list extended-activation-frame))))
 
 (defun rt-build-is-true (value)
   (llvm-build-call *is_value_true*

@@ -2,6 +2,7 @@
 
 
 
+(defvar *value_container_t*)
 (defvar *value_t*)
 (defvar *value_p*)
 (defvar *frame_t*)
@@ -9,7 +10,7 @@
 (defvar *fn-type*)
 (defvar *main-fn-type*)
 
-(defvar *new_value_int*)
+(defvar *new_value*)
 (defvar *get_binding*)
 (defvar *new_frame*)
 (defvar *set_binding*)

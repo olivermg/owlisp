@@ -28,17 +28,17 @@
   (TARGET-INIT)
   (evaluate-file sourcepath
 		 (make-initialized-declaration-environment))
-  (TARGET-LEAVE-DEFINE 0)
+  (TARGET-FINISH)
   (TARGET-DUMP-MODULE destpath)
   (TARGET-SHUTDOWN))
 
 (defun toplevel ()
   (let ((last-result nil))
-    (TARGET-INIT)
     (loop
        (format t "~&owlisp> ")
        (finish-output)
        (let ((expr (read)))
+	 (TARGET-INIT)
 	 (if (is-exit-command expr)
 
 	     (progn (TARGET-SHUTDOWN)
@@ -60,7 +60,7 @@
 		     (funcall machine :run))
 	       (format t "RESULT: ~a~%~%" last-result)
 |#
-	       (TARGET-LEAVE-DEFINE 0)
+	       (TARGET-FINISH)
 	       (TARGET-DUMP-MODULE)
 	       (finish-output)))))
 
