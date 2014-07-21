@@ -10,6 +10,7 @@ TODO notepad
 - implement true/false for lisp values in llvm logic (icmp etc.)
 - build docker image for owlisp
 - make it a lisp2
+- use globals dynamically scoped for real (i.e. use let instead of setf)
 
 
 

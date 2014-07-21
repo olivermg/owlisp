@@ -175,7 +175,8 @@
   (cond
     ((integerp value)
      (llvm-build-call *new_value*
-		      (list #x01 (llvm-build-int32-ptr value))))))
+		      (list (llvm-const-int8 #x01)
+			    (llvm-build-int32-ptr value))))))
 
 (defun rt-build-new-frame (&optional (parent-frame nil))
   (llvm-build-call *new_frame*
@@ -213,6 +214,9 @@
 (defun rt-create-init-activation-frame ()
   (llvm-build-call *init_global_frame*
 		   '()))
+
+(defun rt-build-value-alloca ()
+  (llvm-build-alloca *value_p*))
 
 (defun rt-build-call (fn &rest args)
   (let* ((activation-frame (rt-get-activation-frame))

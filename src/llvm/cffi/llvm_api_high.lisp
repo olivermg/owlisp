@@ -131,6 +131,22 @@
     (push-position bb)
     fn))
 
+(defun llvm-build-alloca (type)
+  (LLVMBuildalloca *builder*
+		   type
+		   ""))
+
+(defun llvm-build-store (value ptr)
+  (let ((llvm-value (ensure-llvm-representation value)))
+    (LLVMBuildstore *builder*
+		    llvm-value
+		    ptr)))
+
+(defun llvm-build-load (ptr)
+  (LLVMBuildload *builder*
+		 ptr
+		 ""))
+
 (defun llvm-build-return (return-value)
   (let ((current-fn (llvm-get-current-function))
 	(llvm-return-value (ensure-llvm-representation return-value)))
@@ -176,14 +192,14 @@
     (LLVMPositionbuilderatend *builder* bb)
     bb))
 
-(defun llvm-merge-basicblocks (&rest incoming-basicblocks)
+(defun llvm-merge-basicblocks (phi-var &rest incoming-basicblocks)
   (let ((merge-bb (llvm-add-basicblock "merge")))
     (loop
        for incoming-bb in incoming-basicblocks
        do (LLVMPositionbuilderatend *builder* incoming-bb)
 	 (LLVMBuildbr *builder* merge-bb))
     (LLVMPositionbuilderatend *builder* merge-bb)
-    merge-bb))
+    (llvm-build-load phi-var)))
 
 (defun llvm-get-param (fn &optional (param-index 0))
   (let ((llvm-fn (ensure-llvm-representation fn)))
@@ -199,6 +215,11 @@
 
 (defun llvm-const-int32 (value)
   (LLVMConstint (llvm-inttype32)
+		value
+		0))
+
+(defun llvm-const-int8 (value)
+  (LLVMConstint (llvm-inttype8)
 		value
 		0))
 

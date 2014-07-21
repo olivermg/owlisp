@@ -12,6 +12,8 @@
 	  TARGET-LEAVE-DEFINE
 	  TARGET-CALL
 	  TARGET-ALTERNATIVE-PREDICATE
+	  TARGET-ALTERNATIVE-PHI-VAR
+	  TARGET-ALTERNATIVE-STORE-TO-PHI
 	  TARGET-ALTERNATIVE-THEN
 	  TARGET-ALTERNATIVE-ELSE
 	  TARGET-ALTERNATIVE-MERGE))
@@ -107,13 +109,20 @@
 (defun TARGET-ALTERNATIVE-PREDICATE ()
   (llvm-get-current-basicblock))
 
+(defun TARGET-ALTERNATIVE-PHI-VAR ()
+  (rt-build-value-alloca))
+
+(defun TARGET-ALTERNATIVE-STORE-TO-PHI (value phi-var)
+  (llvm-build-store value
+		    phi-var))
+
 (defun TARGET-ALTERNATIVE-THEN ()
   (llvm-add-basicblock "then"))
 
 (defun TARGET-ALTERNATIVE-ELSE ()
   (llvm-add-basicblock "else"))
 
-(defun TARGET-ALTERNATIVE-MERGE (predicate-bb predicate then-bb else-bb)
+(defun TARGET-ALTERNATIVE-MERGE (phi-var predicate-bb predicate then-bb else-bb)
   (llvm-set-current-basicblock predicate-bb)
   (rt-build-conditional-jump predicate then-bb else-bb)
-  (llvm-merge-basicblocks then-bb else-bb))
+  (llvm-merge-basicblocks phi-var then-bb else-bb))

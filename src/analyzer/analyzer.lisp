@@ -266,14 +266,17 @@
 (defun analyze-if (expr decl-env)
   (format t "ALTERNATIVE ...")
   (let* ((predicate-bb (ALTERNATIVE-PREDICATE))
+	 (phi-var (ALTERNATIVE-PHI-VAR))
 	 (analyzed-predicate (analyze (if-predicate expr) decl-env))
 	 (then-bb (ALTERNATIVE-THEN))
 	 (analyzed-then (analyze (if-then expr) decl-env))
+	 (then-end (ALTERNATIVE-STORE-TO-PHI analyzed-then phi-var))
 	 (else-bb (ALTERNATIVE-ELSE))
 	 (analyzed-else (analyze (if-else expr) decl-env))
-	 (merge-bb (ALTERNATIVE-MERGE predicate-bb analyzed-predicate then-bb else-bb)))
+	 (else-end (ALTERNATIVE-STORE-TO-PHI analyzed-else phi-var))
+	 (merged-value (ALTERNATIVE-MERGE phi-var predicate-bb analyzed-predicate then-bb else-bb)))
     ;(ALTERNATIVE analyzed-predicate analyzed-then analyzed-else)
-    merge-bb))
+    merged-value))
 
 (defun analyze-application (expr decl-env)
   (format t "APPLICATION ...")
@@ -352,14 +355,20 @@
 (defun ALTERNATIVE-PREDICATE ()
   (TARGET-ALTERNATIVE-PREDICATE))
 
+(defun ALTERNATIVE-PHI-VAR ()
+  (TARGET-ALTERNATIVE-PHI-VAR))
+
+(defun ALTERNATIVE-STORE-TO-PHI (value phi-var)
+  (TARGET-ALTERNATIVE-STORE-TO-PHI value phi-var))
+
 (defun ALTERNATIVE-THEN ()
   (TARGET-ALTERNATIVE-THEN))
 
 (defun ALTERNATIVE-ELSE ()
   (TARGET-ALTERNATIVE-ELSE))
 
-(defun ALTERNATIVE-MERGE (predicate-bb predicate then-bb else-bb)
-  (TARGET-ALTERNATIVE-MERGE predicate-bb predicate then-bb else-bb))
+(defun ALTERNATIVE-MERGE (phi-var predicate-bb predicate then-bb else-bb)
+  (TARGET-ALTERNATIVE-MERGE phi-var predicate-bb predicate then-bb else-bb))
 
 (defun ALTERNATIVE (predicate then else)
 #|
