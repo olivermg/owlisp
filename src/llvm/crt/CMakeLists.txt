@@ -9,6 +9,7 @@ set(CNAMES
 	${CMAKE_CURRENT_SOURCE_DIR}/error.c
 	${CMAKE_CURRENT_SOURCE_DIR}/types.c
 	${CMAKE_CURRENT_SOURCE_DIR}/frame.c
+	${CMAKE_CURRENT_SOURCE_DIR}/arecord.c
 )
 
 

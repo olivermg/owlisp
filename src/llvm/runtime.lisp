@@ -21,6 +21,15 @@
   (setf *frame_p*
 	(llvm-declare-pointertype *frame_t*))
 
+  (setf *arecord_t*
+	(llvm-declare-structtype "struct._arecord_t"
+				 (list (llvm-inttype8)
+				       (llvm-inttype8)
+				       *frame_p*)))
+
+  (setf *arecord_p*
+	(llvm-declare-pointertype *arecord_t*))
+
   (setf *fn-type*
 	(llvm-declare-functiontype (list *frame_p*)
 				   *value_p*))
@@ -144,6 +153,51 @@
 					    *frame_p*)))
     (setf *get_global_frame*
 	  (llvm-declare-function "get_global_frame"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype '()
+					    *arecord_p*)))
+    (setf *new_arecord*
+	  (llvm-declare-function "new_arecord"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype (list *arecord_p*
+						  (llvm-inttype8ptr))
+					    (llvm-voidtype))))
+    (setf *set_static_link*
+	  (llvm-declare-function "set_static_link"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype (list *arecord_p*)
+					    (llvm-inttype8ptr))))
+    (setf *get_static_link*
+	  (llvm-declare-function "get_static_link"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype (list *arecord_p*
+						  (llvm-inttype8ptr))
+					    (llvm-voidtype))))
+    (setf *set_dynamic_link*
+	  (llvm-declare-function "set_dynamic_link"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype (list *arecord_p*)
+					    (llvm-inttype8ptr))))
+    (setf *get_dynamic_link*
+	  (llvm-declare-function "get_dynamic_link"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype (list *arecord_p*
+						  *frame_p*)
+					    (llvm-voidtype))))
+    (setf *set_local_variables*
+	  (llvm-declare-function "set_local_variables"
+				 fn-type)))
+
+  (let ((fn-type (llvm-declare-functiontype (list *arecord_p*)
+					    *frame_p*)))
+    (setf *get_local_variables*
+	  (llvm-declare-function "get_local_variables"
 				 fn-type)))
 
   (let ((fn-type (llvm-declare-functiontype '()
