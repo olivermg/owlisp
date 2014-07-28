@@ -1,5 +1,11 @@
 TODO notepad
 ============
+- rework activation record implementation (in runtime)
+- implement explicit & modularized calling conventions
+- implement continuations (see below for details)
+- make evaluation of parameters to a function call more dynamic (so we can implement lazy evaluation)
+- implement garbage collector
+
 - use "&rest args" instead of "args" in several places
 - implement return value for main function
 - implement auto-names for anonymous functions
@@ -12,6 +18,20 @@ TODO notepad
 - make it a lisp2
 - use globals dynamically scoped for real (i.e. use let instead of setf)
 
+
+
+IMPLEMENTING ACTIVATION RECORDS
+===============================
+- allocate on heap => more flexible
+
+
+IMPLEMENTING CONTINUATIONS
+==========================
+- implement continuations stackless
+
+
+IMPLEMENTING GARBAGE COLLECTOR
+==============================
 
 
 OLD

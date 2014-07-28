@@ -77,7 +77,16 @@
 		       (:file "loader"))))
 
 		    :depends-on ("owlisp"
-				 "helper")))
+				 "helper"))
+
+		   (:module
+		    ctarget
+		    :components
+		    ((:file "globals")
+		     (:file "constant"
+			    :depends-on ("globals"))
+		     (:file "abstraction"
+			    :depends-on ("globals")))))
 
 		  :depends-on ("packages"))))
 

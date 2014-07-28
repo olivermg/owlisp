@@ -7,6 +7,9 @@
 (defpackage #:owlisp/llvm
   (:use cl))
 
+(defpackage #:owlisp/c
+  (:use cl))
+
 (defpackage #:owlisp/analyzer
   (:use cl owlisp owlisp/environment owlisp/llvm)
   (:shadow apply compile))

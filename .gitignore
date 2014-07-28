@@ -12,11 +12,11 @@ toolchain/owlisp
 
 src/llvm/cffi/llvm_api_low.lisp
 
-src/llvm/crt/*.ll
-src/llvm/crt/*.bc
-src/llvm/crt/*.o
-src/llvm/crt/test
-src/llvm/crt/libowlisp-rt.so*
+src/crt/*.ll
+src/crt/*.bc
+src/crt/*.o
+src/crt/test
+src/crt/libowlisp-rt.so*
 
 tests/*.bc
 tests/*.s

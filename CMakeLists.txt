@@ -61,7 +61,7 @@ endif (NOT SBCL)
 
 
 add_subdirectory(src/llvm/cffi)		# defines target 'swig_generation'
-add_subdirectory(src/llvm/crt)		# defines target 'runtime_generation'
+add_subdirectory(src/crt)		# defines target 'runtime_generation'
 
 
 
@@ -100,7 +100,7 @@ configure_file(
 
 
 # installation instructions:
-set(RUNTIMEBC ${CMAKE_CURRENT_SOURCE_DIR}/src/llvm/crt/runtime.bc)
+set(RUNTIMEBC ${CMAKE_CURRENT_SOURCE_DIR}/src/crt/runtime.bc)
 
 set(BININSTALLS ${OWLISPFRONTEND} ${OWLISP})
 set(LIBINSTALLS ${RUNTIMEBC})
