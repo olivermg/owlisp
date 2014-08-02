@@ -1,12 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "gc.h"
 #include "error.h"
 #include "types.h"
 
 value_t* new_value( type_t type, void* val )
 {
-  value_t* new_val = calloc( 1, sizeof( value_t ) );
+  value_t* new_val = gc_calloc( 1, sizeof( value_t ) );
   new_val->type = type;
   new_val->value = val;
 
@@ -15,7 +16,7 @@ value_t* new_value( type_t type, void* val )
 
 void free_value( value_t* value )
 {
-  free( value );
+  gc_free( value );
 }
 
 unsigned char values_equal( const value_t* value1, const value_t* value2 )

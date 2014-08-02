@@ -1,17 +1,18 @@
 #include <stdlib.h>
 
+#include "gc.h"
 #include "arecord.h"
 
 arecord_t* new_arecord()
 {
-  arecord_t* newar = calloc( 1, sizeof( arecord_t ) );
+  arecord_t* newar = gc_calloc( 1, sizeof( arecord_t ) );
 
   return newar;
 }
 
 void free_arecord( arecord_t* ar )
 {
-  free( ar );
+  gc_free( ar );
 }
 
 void set_static_link( arecord_t* ar, void* static_link )

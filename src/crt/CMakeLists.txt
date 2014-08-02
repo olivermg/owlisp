@@ -6,6 +6,7 @@ project(owlisp)
 # find all .c files:
 #file(GLOB CNAMES *.c)
 set(CNAMES
+	${CMAKE_CURRENT_SOURCE_DIR}/gc.c
 	${CMAKE_CURRENT_SOURCE_DIR}/error.c
 	${CMAKE_CURRENT_SOURCE_DIR}/types.c
 	${CMAKE_CURRENT_SOURCE_DIR}/frame.c

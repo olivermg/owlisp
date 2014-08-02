@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "gc.h"
 #include "frame.h"
 #include "types.h"
 #include "error.h"
@@ -9,7 +10,7 @@ static frame_t* global_frame;
 
 frame_t* new_frame( frame_t* parent )
 {
-  frame_t* newframe = calloc( 1, sizeof( frame_t ) );
+  frame_t* newframe = gc_calloc( 1, sizeof( frame_t ) );
   newframe->parent = parent;
 
   return newframe;
@@ -21,7 +22,7 @@ frame_t* free_frame( frame_t* f )
 
   if ( f ) {
     parent = f->parent;
-    free( f );
+    gc_free( f );
   }
 
   return parent;
