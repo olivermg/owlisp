@@ -48,9 +48,11 @@
 		   (:module
 		    analyzer
 		    :components
-		    ((:file "analyzer")
+		    ((:file "analyzer"
+			    :depends-on ("cps"))
 		     (:file "interpreter"
-			    :depends-on ("analyzer")))
+			    :depends-on ("analyzer"))
+		     (:file "cps"))
 		    :depends-on ("owlisp"
 				 "helper"
 				 "environment"

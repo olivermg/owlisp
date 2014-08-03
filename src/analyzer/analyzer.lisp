@@ -163,8 +163,7 @@
   (is-tagged-list expr :if))
 
 (defun application-p (expr)
-  (declare (ignore expr))
-  t)
+  (consp expr))
 
 
 
