@@ -42,7 +42,8 @@
 		    :components
 		    ((:file "environment")
 		     (:file "declarative")
-		     (:file "binding"))
+		     (:file "binding")
+		     (:file "arecord"))
 		    :depends-on ("owlisp"
 				 "helper"))
 
