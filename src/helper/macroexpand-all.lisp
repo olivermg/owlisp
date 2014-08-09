@@ -7,12 +7,23 @@
   `',(mea expr))
 
 (defun mea (expr)
+  (format t "mea: ~a~%" expr)
   (let ((me (macroexpand expr)))
+    (format t "mea-e: ~a~%" me)
     (if (consp me)
 
 	;; recursive solution using map:
-	(mapcar #'mea
-		me)
+	(if (equalp (car me)
+		    'function)
+
+	    (cons
+	     (cons (car me)
+		   (list (caadr me)))
+	     (mapcar #'mea
+		     (cdadr me)))
+
+	    (mapcar #'mea
+		    me))
 
 #|
 	;; custom recursive solution:

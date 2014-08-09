@@ -8,7 +8,10 @@
 
 
 (defmacro cps-transform (expr)
-  (cond ((self-evaluating-p expr)
+  (cond ((primitive-p expr)
+	 `,expr
+
+	 (self-evaluating-p expr)
 	 `(cps-transform-self-evaluating ,expr))
 
 	((quote-p expr)
@@ -25,6 +28,12 @@
 
 	(t (error "don't know how to cps transform ~a" expr))))
 
+(defun primitive-p (expr)
+  (let ((primitives '(funcall car cdr print + - * / format apply)))
+    (if (position expr primitives)
+	t
+	nil)))
+
 (defmacro cps-transform-self-evaluating (expr)
   `(lambda (k)
      (funcall k ,expr)))
@@ -37,11 +46,8 @@
   `(lambda (k)
      (funcall k ,expr)))
 
-(defmacro cps-transform-lambda (expr)
-  (let* ((lam (first expr))
-	 (arglist (second expr))
-	 (body (rest (rest expr)))
-	 (dyn-k (gensym)) ; TODO: this is not 100% collision safe as argument name
+(defmacro cps-transform-lambda ((lam (&rest arglist) &rest body))
+  (let* ((dyn-k (gensym)) ; TODO: this is not 100% collision safe as argument name
 	 (arglist-k (cons dyn-k arglist)))
     `(lambda (k)
        (funcall k
@@ -56,15 +62,14 @@
     `(lambda (k)
        (,fn (cps-transform-sequence (cons k ,paramlist))))))
 
-(defmacro cps-transform-sequence (exprs)
-  (if (consp exprs)
-      (let* ((e (first exprs))
-	     (e* (rest exprs))
-	     (cur-k (if (consp e*)
-			`(lambda (ret)
-			   (declare (ignore ret))
-			   (cps-transform-sequence ,e*))
-			`(lambda (ret)
-			   (funcall ret)))))
-	;`(cps-transform ,e)
-	cur-k)))
+(defmacro cps-transform-sequence (head . rest)
+  (if (consp rest)
+      `(lambda (k)
+	 (,head
+	  (lambda (x)
+	    ((cps-transform-sequence ,rest)
+	     k))))
+      `(lambda (k)
+	 (,head
+	  (lambda (x)
+	    (funcall k x))))))
