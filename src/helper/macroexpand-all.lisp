@@ -7,9 +7,7 @@
   `',(mea expr))
 
 (defun mea (expr)
-  (format t "mea: ~a~%" expr)
   (let ((me (macroexpand expr)))
-    (format t "mea-e: ~a~%" me)
     (if (consp me)
 
 	;; recursive solution using map:
