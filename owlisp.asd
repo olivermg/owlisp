@@ -53,7 +53,8 @@
 			    :depends-on ("cps"))
 		     (:file "interpreter"
 			    :depends-on ("analyzer"))
-		     (:file "cps"))
+		     (:file "cps")
+		     (:file "parameters"))
 		    :depends-on ("owlisp"
 				 "helper"
 				 "environment"

@@ -9,9 +9,9 @@
 
 (defmacro cps-transform (expr)
   (cond ((primitive-p expr)
-	 `,expr
+	 `,expr)
 
-	 (self-evaluating-p expr)
+	((self-evaluating-p expr)
 	 `(cps-transform-self-evaluating ,expr))
 
 	((quote-p expr)
@@ -53,7 +53,7 @@
        (funcall k
 		(,lam ,arglist-k
 		      (funcall ,dyn-k
-			       (cps-transform-sequence ,body)))))))
+			       (cps-transform-sequence ,@body)))))))
 
 (defmacro cps-transform-application (expr)
   (let* ((fn (first expr))
@@ -65,11 +65,10 @@
 (defmacro cps-transform-sequence (head . rest)
   (if (consp rest)
       `(lambda (k)
-	 (,head
+	 ((cps-transform ,head)
 	  (lambda (x)
 	    ((cps-transform-sequence ,rest)
 	     k))))
       `(lambda (k)
-	 (,head
-	  (lambda (x)
-	    (funcall k x))))))
+	 (funcall k
+		  (cps-transform ,head)))))
