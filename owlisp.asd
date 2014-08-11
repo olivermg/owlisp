@@ -35,7 +35,8 @@
 		     (:file "sequences")
 		     (:file "symbols")
 		     (:file "message-passing")
-		     (:file "macroexpand-all")))
+		     (:file "macroexpand-all")
+		     (:file "tree")))
 
 		   (:module
 		    environment
