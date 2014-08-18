@@ -36,7 +36,8 @@
 		     (:file "symbols")
 		     (:file "message-passing")
 		     (:file "macroexpand-all")
-		     (:file "tree")))
+		     (:file "tree")
+		     (:file "codewalker")))
 
 		   (:module
 		    environment
