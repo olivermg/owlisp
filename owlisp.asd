@@ -55,6 +55,7 @@
 		     (:file "interpreter"
 			    :depends-on ("analyzer"))
 		     (:file "cps")
+		     (:file "closure")
 		     (:file "parameters"))
 		    :depends-on ("owlisp"
 				 "helper"
