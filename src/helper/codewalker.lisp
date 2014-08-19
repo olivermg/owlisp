@@ -4,7 +4,7 @@
 
 
 (defparameter *walker-hooks*
-  (make-hash-table))
+  '())
 
 
 (defun generalize-symbol (symbol)
@@ -12,24 +12,27 @@
 	  'keyword))
 
 (defmacro walk (expr)
-  (if (consp expr)
-      (let* ((form-name (car expr))
-	     (form-name-key (generalize-symbol form-name))
-	     (form-hook (gethash form-name-key *walker-hooks*)))
-	(if form-hook
-	    (funcall form-hook expr)
-	    expr))
-      expr))
+  (loop
+     for (testfn transformfn) in *walker-hooks*
+     do (if (funcall testfn expr)
+	    (return (funcall transformfn expr)))))
 
-(defmacro defwalker-transformation ((form-name &rest pattern) &body transformation)
+(defmacro defwalker-transformation (testfn pattern &body transformation)
   (let ((form-arg (gensym)))
-    `(setf (gethash (generalize-symbol ',form-name)
-		    *walker-hooks*)
-	   #'(lambda (,form-arg)
-	       (destructuring-bind ,pattern
-		   (cdr ,form-arg)
-		 ,@transformation)))))
+    `(setf *walker-hooks*
+	   (append *walker-hooks*
+		   (list ,testfn
+			 #'(lambda (,form-arg)
+			     (destructuring-bind
+				   ,pattern
+				 ,form-arg
+			       ,@transformation)))))))
 
 (defwalker-transformation
-    (fn a b c)
-  `(+ ,c ,b ,a))
+    #'(lambda (expr)
+	(declare (ignore expr))
+	t)
+    (lambda (&rest args) &body body)
+  (declare (ignore lambda))
+  (let ((k-arg (gensym)))
+    `#'(lambda (,k-arg ,@args) ,@body)))
