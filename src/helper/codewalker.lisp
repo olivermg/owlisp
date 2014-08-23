@@ -1,6 +1,7 @@
 (in-package :owlisp/helper)
 
-(export '())
+(export '(defwalker-transformation
+	  walk))
 
 
 (defparameter *walker-hooks*
@@ -13,7 +14,7 @@
 
 (defmacro walk (expr)
   (loop
-     for (testfn transformfn) in *walker-hooks*
+     for (testfn . transformfn) in *walker-hooks*
      do (if (funcall testfn expr)
 	    (return (funcall transformfn expr)))))
 
@@ -21,18 +22,9 @@
   (let ((form-arg (gensym)))
     `(setf *walker-hooks*
 	   (append *walker-hooks*
-		   (list ,testfn
-			 #'(lambda (,form-arg)
-			     (destructuring-bind
-				   ,pattern
-				 ,form-arg
-			       ,@transformation)))))))
-
-(defwalker-transformation
-    #'(lambda (expr)
-	(declare (ignore expr))
-	t)
-    (lambda (&rest args) &body body)
-  (declare (ignore lambda))
-  (let ((k-arg (gensym)))
-    `#'(lambda (,k-arg ,@args) ,@body)))
+		   (list (cons ,testfn
+			       #'(lambda (,form-arg)
+				   (destructuring-bind
+					 (,pattern)
+				       (list ,form-arg)
+				     ,@transformation))))))))

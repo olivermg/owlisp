@@ -51,11 +51,14 @@
 		   (:module
 		    analyzer
 		    :components
-		    ((:file "analyzer"
-			    :depends-on ("cps"))
+		    ((:file "predicates")
+		     (:file "analyzer"
+			    :depends-on ("predicates"
+					 "cps"))
 		     (:file "interpreter"
 			    :depends-on ("analyzer"))
-		     (:file "cps")
+		     (:file "cps"
+			    :depends-on ("predicates"))
 		     (:file "closure")
 		     (:file "parameters"))
 		    :depends-on ("owlisp"

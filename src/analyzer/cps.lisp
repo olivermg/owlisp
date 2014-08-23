@@ -26,12 +26,6 @@
 
 	(t (error "don't know how to cps transform ~a" expr))))
 
-(defun primitive-p (expr)
-  (let ((primitives '(funcall car cdr print + - * / format apply)))
-    (if (position expr primitives)
-	t
-	nil)))
-
 (defmacro cps-transform-self-evaluating (expr)
   (format t "cps-transform-self-evaluating ~a~%" expr)
   (let ((result `(lambda (k)
@@ -117,3 +111,26 @@
 				k)))))
     (format t "  result: ~a~%" result)
     result))
+
+
+(defwalker-transformation
+
+    #'(lambda (expr)
+	(self-evaluating-p expr))
+
+    expr
+
+  `#'(lambda (k)
+       (funcall k ,expr)))
+
+(defwalker-transformation
+
+    #'(lambda (expr)
+	(declare (ignore expr))
+	t)
+
+    (lambda (&rest args) &body body)
+
+  (declare (ignore lambda))
+  (let ((k-arg (gensym)))
+    `#'(lambda (,k-arg ,@args) ,@body)))

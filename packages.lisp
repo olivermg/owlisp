@@ -14,5 +14,5 @@
   (:use cl))
 
 (defpackage #:owlisp/analyzer
-  (:use cl owlisp owlisp/environment owlisp/llvm)
+  (:use cl owlisp owlisp/environment owlisp/llvm owlisp/helper)
   (:shadow apply compile))
