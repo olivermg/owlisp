@@ -120,7 +120,10 @@
 
 
 
-(defwalker-transformation
+(defparameter *cps-transformation-definitions* '())
+
+
+(defwalker-step *cps-transformation-definitions*
 
     #'(lambda (expr)
 	(self-evaluating-p expr))
@@ -131,7 +134,7 @@
        (funcall k ,expr)))
 
 
-(defwalker-transformation
+(defwalker-step *cps-transformation-definitions*
 
     #'(lambda (expr)
 	(quote-p expr))
@@ -142,7 +145,7 @@
        (funcall k ,expr)))
 
 
-(defwalker-transformation
+(defwalker-step *cps-transformation-definitions*
 
     #'(lambda (expr)
 	(variable-p expr))
@@ -153,7 +156,7 @@
        (funcall k ,expr)))
 
 
-(defwalker-transformation
+(defwalker-step *cps-transformation-definitions*
 
     #'(lambda (expr)
 	(lambda-p expr))
@@ -169,7 +172,7 @@
 			       ,dyn-k))))))
 
 
-(defwalker-transformation
+(defwalker-step *cps-transformation-definitions*
 
     #'(lambda (expr)
 	(application-p expr))
