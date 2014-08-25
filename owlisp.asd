@@ -49,6 +49,11 @@
 				 "helper"))
 
 		   (:module
+		    environment-ng
+		    :components
+		    ((:file "compiletime")))
+
+		   (:module
 		    analyzer
 		    :components
 		    ((:file "predicates")
