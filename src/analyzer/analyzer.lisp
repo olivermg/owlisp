@@ -7,12 +7,6 @@
 
 
 
-(defun symbol-name-equals (symbol name)
-  (string-equal (symbol-name symbol)
-		(symbol-name name)))
-
-
-
 (defun evaluate-file (path decl-env)
   (with-open-file (stream path)
     (evaluate-stream stream

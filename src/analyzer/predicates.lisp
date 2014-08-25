@@ -10,6 +10,10 @@
 	  application-p))
 
 
+(defun symbol-name-equals (symbol name)
+  (string-equal (symbol-name symbol)
+		(symbol-name name)))
+
 (defun is-tagged-list (expr tag)
   (if (consp expr)
       (let ((head (first expr)))

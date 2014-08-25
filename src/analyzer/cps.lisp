@@ -3,10 +3,13 @@
 (export '())
 
 
+#|
 (defparameter *primitive-functions*
   '(funcall apply + * - / car cdr mapcar print format))
+|#
 
 
+#|
 (defmacro cps-transform (expr)
   (format t "~%cps-transform processing on ~a~%" expr)
   (cond ((self-evaluating-p expr)
@@ -87,7 +90,9 @@
 					       params))))))))
     (format t "  result: ~a~%" result)
     result))
+|#
 
+#|
 (defmacro cps-transform-params (head . rest)
   (format t "cps-transform-params head:~a rest:~a~%" head rest)
   (let ((result (if (consp rest)
@@ -96,21 +101,23 @@
 				(lambda ()))))))
     (format t "  result: ~a~%" result)
     result))
+|#
 
 (defmacro cps-transform-sequence (head . rest)
   (format t "cps-transform-sequence head:~a rest:~a~%" head rest)
   (let ((result (if (consp rest)
 		    `(lambda (k)
-		       (funcall (cps-transform ,head)
+		       (funcall (walk ,head)
 				(lambda (discard-k)
 				  (declare (ignore discard-k))
 				  (funcall (cps-transform-sequence ,@rest)
 					   k))))
 		    `(lambda (k)
-		       (funcall (cps-transform ,head)
+		       (funcall (walk ,head)
 				k)))))
     (format t "  result: ~a~%" result)
     result))
+
 
 
 (defwalker-transformation
@@ -123,6 +130,80 @@
   `#'(lambda (k)
        (funcall k ,expr)))
 
+
+(defwalker-transformation
+
+    #'(lambda (expr)
+	(quote-p expr))
+
+    expr
+
+  `#'(lambda (k)
+       (funcall k ,expr)))
+
+
+(defwalker-transformation
+
+    #'(lambda (expr)
+	(variable-p expr))
+
+    expr
+
+  `#'(lambda (k)
+       (funcall k ,expr)))
+
+
+(defwalker-transformation
+
+    #'(lambda (expr)
+	(lambda-p expr))
+
+    (lam (&rest arglist) &body body)
+
+  (let* ((dyn-k (gensym))
+	 (arglist-k (cons dyn-k arglist)))
+    `(lambda (k)
+       (funcall k
+		(,lam ,arglist-k
+		      (funcall (cps-transform-sequence ,@body)
+			       ,dyn-k))))))
+
+
+(defwalker-transformation
+
+    #'(lambda (expr)
+	(application-p expr))
+
+    (fn &rest params)
+
+  (if (primitive-p fn)
+      `(lambda (k)
+	 (funcall k (,fn ,@params)))
+      (labels ((tp (fn k paramsv &rest params)
+		 (if (consp params)
+		     (let ((newparamv (gensym)))
+		       `(funcall (walk ,(car params))
+				 (lambda (,newparamv)
+				   ,(cl:apply #'tp
+					      fn
+					      k
+					      (append paramsv (list newparamv))
+					      (cdr params)))))
+		     `(funcall ,fn
+			       ,k
+			       ,@paramsv))))
+	(let ((fn-result (gensym)))
+	  `(lambda (k)
+	     (funcall (walk ,fn)
+		      (lambda (,fn-result)
+			,(cl:apply #'tp
+				   fn-result
+				   'k
+				   '()
+				   params))))))))
+
+
+#|
 (defwalker-transformation
 
     #'(lambda (expr)
@@ -134,3 +215,4 @@
   (declare (ignore lambda))
   (let ((k-arg (gensym)))
     `#'(lambda (,k-arg ,@args) ,@body)))
+|#

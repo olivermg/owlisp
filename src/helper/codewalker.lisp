@@ -13,10 +13,13 @@
 	  'keyword))
 
 (defmacro walk (expr)
-  (loop
-     for (testfn . transformfn) in *walker-hooks*
-     do (if (funcall testfn expr)
-	    (return (funcall transformfn expr)))))
+  (format t "walk (in) : ~a~%" expr)
+  (let ((result (loop
+		   for (testfn . transformfn) in *walker-hooks*
+		   do (if (funcall testfn expr)
+			  (return (funcall transformfn expr))))))
+    (format t "walk (out): ~a~%" result)
+    result))
 
 (defmacro defwalker-transformation (testfn pattern &body transformation)
   (let ((form-arg (gensym)))
