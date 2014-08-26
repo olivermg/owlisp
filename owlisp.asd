@@ -61,7 +61,7 @@
 					 "cps"))
 		     (:file "interpreter"
 			    :depends-on ("analyzer"))
-		     (:file "macroexpand"
+		     (:file "macroexpand-all"
 			    :depends-on ("predicates"))
 		     (:file "cps"
 			    :depends-on ("predicates"))
