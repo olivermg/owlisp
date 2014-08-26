@@ -1,6 +1,7 @@
 (in-package :owlisp)
 
-(export '(primitive-p
+(export '(compiletime-macro-p
+	  primitive-p
 	  self-evaluating-p
 	  variable-p
 	  quote-p
@@ -24,6 +25,9 @@
 (defun primitive-procedure-p (expr)
   (is-tagged-list expr :primitive-procedure))
 |#
+
+(defun compiletime-macro-p (expr)
+  (macro-function expr))
 
 (defun primitive-p (expr)
   (let ((primitives '(funcall car cdr print + - * / format apply)))

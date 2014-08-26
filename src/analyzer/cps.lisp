@@ -176,6 +176,23 @@
 			       ,dyn-k))))))
 
 
+#|
+;; invocations of codewalker macro
+(defwalker-rule *cps-transformation-definitions*
+
+    #'(lambda (expr)
+	(and (consp expr)
+	     (eql 'owlisp/helper:walk
+		  (car expr))))
+
+    ((mcr ruleset mcr-expr &optional userdata) nil)
+
+  `(,mcr ,ruleset
+	 (walk *cps-transformation-definitions*
+	       ,mcr-expr)
+	 ,userdata))
+|#
+
 ;; application expression
 (defwalker-rule *cps-transformation-definitions*
 

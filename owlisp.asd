@@ -35,7 +35,6 @@
 		     (:file "sequences")
 		     (:file "symbols")
 		     (:file "message-passing")
-		     (:file "macroexpand-all")
 		     (:file "tree")
 		     (:file "codewalker")))
 
@@ -62,6 +61,8 @@
 					 "cps"))
 		     (:file "interpreter"
 			    :depends-on ("analyzer"))
+		     (:file "macroexpand"
+			    :depends-on ("predicates"))
 		     (:file "cps"
 			    :depends-on ("predicates"))
 		     (:file "environmentalize"

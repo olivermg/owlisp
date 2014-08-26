@@ -35,6 +35,21 @@
 		     body))))
 
 
+#|
+(defwalker-rule *envize-rules*
+
+    #'(lambda (expr)
+	(and (consp expr)
+	     (equal 'owlisp/helper:walk
+		    (car expr))))
+
+    ((mcr ruleset mcr-expr &optional userdata) (env))
+
+  (declare (ignore env))
+  `(,mcr ,ruleset ,mcr-expr ,userdata))
+|#
+
+
 (defwalker-rule *envize-rules*
 
     #'(lambda (expr)

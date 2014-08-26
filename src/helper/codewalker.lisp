@@ -24,6 +24,7 @@
 	   (append ,definitions
 		   (list (cons ,testfn
 			       #'(lambda (,form-arg ,userdata-arg)
+				   (format t "destructuring pattern ~a on (~a ~a)~%" ',pattern ,form-arg ,userdata-arg)
 				   (destructuring-bind
 					 ,pattern
 				       (list ,form-arg ,userdata-arg)
