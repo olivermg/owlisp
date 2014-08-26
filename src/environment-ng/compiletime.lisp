@@ -15,16 +15,19 @@
 	     :accessor env-bindings)))
 
 
-(defgeneric enter (&key parent bindings))
+(defgeneric enter (&key parent symbols))
 (defgeneric lookup (env symbol))
 (defgeneric update! (env symbol value))
 (defgeneric leave (env))
 
 
-(defmethod enter (&key parent bindings)
-  (make-instance 'environment
-		 :parent parent
-		 :bindings bindings))
+(defmethod enter (&key parent symbols)
+  (let ((bindings (mapcar #'(lambda (sym)
+			      (cons sym nil))
+			  symbols)))
+    (make-instance 'environment
+		   :parent parent
+		   :bindings bindings)))
 
 (defmethod lookup ((env null) symbol)
   (error "unbound symbol: ~a" symbol))

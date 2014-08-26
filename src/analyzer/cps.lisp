@@ -105,13 +105,15 @@
   (format t "cps-transform-sequence head:~a rest:~a~%" head rest)
   (let ((result (if (consp rest)
 		    `(lambda (k)
-		       (funcall (walk ,head)
+		       (funcall (walk *cps-transformation-definitions*
+				      ,head)
 				(lambda (discard-k)
 				  (declare (ignore discard-k))
 				  (funcall (cps-transform-sequence ,@rest)
 					   k))))
 		    `(lambda (k)
-		       (funcall (walk ,head)
+		       (funcall (walk *cps-transformation-definitions*
+				      ,head)
 				k)))))
     (format t "  result: ~a~%" result)
     result))
@@ -127,7 +129,7 @@
     #'(lambda (expr)
 	(self-evaluating-p expr))
 
-    expr
+    (expr nil)
 
   `#'(lambda (k)
        (funcall k ,expr)))
@@ -139,7 +141,7 @@
     #'(lambda (expr)
 	(quote-p expr))
 
-    expr
+    (expr nil)
 
   `#'(lambda (k)
        (funcall k ,expr)))
@@ -151,7 +153,7 @@
     #'(lambda (expr)
 	(variable-p expr))
 
-    expr
+    (expr nil)
 
   `#'(lambda (k)
        (funcall k ,expr)))
@@ -163,7 +165,7 @@
     #'(lambda (expr)
 	(lambda-p expr))
 
-    (lam (&rest arglist) &body body)
+    ((lam (&rest arglist) &body body) nil)
 
   (let* ((dyn-k (gensym))
 	 (arglist-k (cons dyn-k arglist)))
@@ -180,7 +182,7 @@
     #'(lambda (expr)
 	(application-p expr))
 
-    (fn &rest params)
+    ((fn &rest params) nil)
 
   (if (primitive-p fn)
       `(lambda (k)
@@ -188,7 +190,8 @@
       (labels ((tp (fn k paramsv &rest params)
 		 (if (consp params)
 		     (let ((newparamv (gensym)))
-		       `(funcall (walk ,(car params))
+		       `(funcall (walk *cps-transformation-definitions*
+				       ,(car params))
 				 (lambda (,newparamv)
 				   ,(cl:apply #'tp
 					      fn
@@ -200,7 +203,8 @@
 			       ,@paramsv))))
 	(let ((fn-result (gensym)))
 	  `(lambda (k)
-	     (funcall (walk ,fn)
+	     (funcall (walk *cps-transformation-definitions*
+			    ,fn)
 		      (lambda (,fn-result)
 			,(cl:apply #'tp
 				   fn-result

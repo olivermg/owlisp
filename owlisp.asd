@@ -64,6 +64,8 @@
 			    :depends-on ("analyzer"))
 		     (:file "cps"
 			    :depends-on ("predicates"))
+		     (:file "environmentalize"
+			    :depends-on ("predicates"))
 		     (:file "closure")
 		     (:file "parameters"))
 		    :depends-on ("owlisp"
