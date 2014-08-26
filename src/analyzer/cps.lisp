@@ -90,9 +90,7 @@
 					       params))))))))
     (format t "  result: ~a~%" result)
     result))
-|#
 
-#|
 (defmacro cps-transform-params (head . rest)
   (format t "cps-transform-params head:~a rest:~a~%" head rest)
   (let ((result (if (consp rest)
@@ -123,7 +121,8 @@
 (defparameter *cps-transformation-definitions* '())
 
 
-(defwalker-step *cps-transformation-definitions*
+;; self evaluating
+(defwalker-rule *cps-transformation-definitions*
 
     #'(lambda (expr)
 	(self-evaluating-p expr))
@@ -134,7 +133,8 @@
        (funcall k ,expr)))
 
 
-(defwalker-step *cps-transformation-definitions*
+;; quoted expression
+(defwalker-rule *cps-transformation-definitions*
 
     #'(lambda (expr)
 	(quote-p expr))
@@ -145,7 +145,8 @@
        (funcall k ,expr)))
 
 
-(defwalker-step *cps-transformation-definitions*
+;; variable
+(defwalker-rule *cps-transformation-definitions*
 
     #'(lambda (expr)
 	(variable-p expr))
@@ -156,7 +157,8 @@
        (funcall k ,expr)))
 
 
-(defwalker-step *cps-transformation-definitions*
+;; lambda expression
+(defwalker-rule *cps-transformation-definitions*
 
     #'(lambda (expr)
 	(lambda-p expr))
@@ -172,7 +174,8 @@
 			       ,dyn-k))))))
 
 
-(defwalker-step *cps-transformation-definitions*
+;; application expression
+(defwalker-rule *cps-transformation-definitions*
 
     #'(lambda (expr)
 	(application-p expr))

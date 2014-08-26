@@ -1,7 +1,7 @@
 (in-package :owlisp/helper)
 
 (export '(walk
-	  defwalker-step))
+	  defwalker-rule))
 
 
 (defun generalize-symbol (symbol)
@@ -17,7 +17,7 @@
     (format t "walk (out): ~a~%" result)
     result))
 
-(defmacro defwalker-step (definitions testfn pattern &body transformation)
+(defmacro defwalker-rule (definitions testfn pattern &body transformation)
   (let ((form-arg (gensym)))
     `(setf ,definitions
 	   (append ,definitions
