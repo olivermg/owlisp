@@ -1,5 +1,22 @@
 TODO notepad
 ============
+- combine steps of environmentalization & cps transformation
+- write unit tests for environmentalization & cps transformation
+- maybe implement optimizer regarding cps form
+- implement C code generator (get rid of stack, since we have cps form etc.)
+- revise C runtime with respect to C now being target instead of LLVM
+- implement explicit form of continuations
+- implement missing control structures via continuations
+
+- implement garbage collector
+- implement debugging stuff into generated C code
+- implement auto-names for anonymous functions
+- implement toolchain for linking etc. within lisp via c-api?
+- build docker image for owlisp
+- make it a lisp2
+
+TODO notepad (deprecated 2014-08-27)
+====================================
 - rework activation record implementation (in runtime)
 - implement explicit & modularized calling conventions
 - implement continuations (see below for details)
