@@ -30,7 +30,7 @@
   (macro-function expr))
 
 (defun primitive-p (expr)
-  (let ((primitives '(funcall car cdr print + - * / format apply)))
+  (let ((primitives '(owlisp/environment:lookup cl:funcall cl:car cl:cdr cl:print cl:+ cl:- cl:* cl:/ cl:format cl:apply)))
     (if (position expr primitives)
 	t
 	nil)))

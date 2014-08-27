@@ -238,33 +238,34 @@
     ((fn &rest params) nil)
 
   (format t "application-p: ~a ~a~%" fn params)
-  (let ((result (if (primitive-p fn)
-		    `(lambda (k)
-		       (funcall k (,fn ,@params)))
-		    (labels ((tp (fn k paramsv &rest params)
-			       (if (consp params)
-				   (let ((newparamv (gensym)))
-				     `(funcall ,(walk *cps-transformation-definitions*
-						      (car params))
-					       (lambda (,newparamv)
-						 ,(cl:apply #'tp
-							    fn
-							    k
-							    (append paramsv (list newparamv))
-							    (cdr params)))))
-				   `(funcall ,fn
-					     ,k
-					     ,@paramsv))))
-		      (let ((fn-result (gensym)))
-			`(lambda (k)
-			   (funcall ,(walk *cps-transformation-definitions*
-					   fn)
-				    (lambda (,fn-result)
-				      ,(cl:apply #'tp
-						 fn-result
-						 'k
-						 '()
-						 params)))))))))
+  (let* ((k-var (gensym))
+	 (result (if (primitive-p fn)
+		     `(lambda (,k-var)
+			(funcall ,k-var (,fn ,@params)))
+		     (labels ((tp (fn k paramsv &rest params)
+				(if (consp params)
+				    (let ((newparamv (gensym)))
+				      `(funcall ,(walk *cps-transformation-definitions*
+						       (car params))
+						(lambda (,newparamv)
+						  ,(cl:apply #'tp
+							     fn
+							     k
+							     (append paramsv (list newparamv))
+							     (cdr params)))))
+				    `(funcall ,fn
+					      ,k
+					      ,@paramsv))))
+		       (let ((fn-result (gensym)))
+			 `(lambda (,k-var)
+			    (funcall ,(walk *cps-transformation-definitions*
+					    fn)
+				     (lambda (,fn-result)
+				       ,(cl:apply #'tp
+						  fn-result
+						  k-var
+						  '()
+						  params)))))))))
     (format t "application-p result: ~a~%" result)
     result))
 
