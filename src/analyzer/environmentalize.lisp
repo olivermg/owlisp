@@ -29,7 +29,7 @@
   (let ((env-var (gensym)))
     `(,lam (,env-var)
 	   ,@(mapcar #'(lambda (body-expr)
-			 (walk-fn *envize-rules*
+			 (walk *envize-rules*
 				  body-expr
 				  (list env-var)))
 		     body))))
@@ -58,11 +58,11 @@
     ((fn &rest paramlist) (env))
 
   (format t "application: ~a ~a~%" fn paramlist)
-  `(,(walk-fn *envize-rules*
+  `(,(walk *envize-rules*
 	      fn
 	      (list env))
     ,@(mapcar #'(lambda (body-expr)
-		  (walk-fn *envize-rules*
+		  (walk *envize-rules*
 			   body-expr
 			   (list env)))
 	      paramlist)))

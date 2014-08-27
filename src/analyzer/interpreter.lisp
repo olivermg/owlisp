@@ -51,6 +51,7 @@
 			   ))
 		    ;(machine (make-default-machine code))
 		    )
+	       (declare (ignore code))
 #|
 	       (format t "~%COMPILED CODE: ~a~%~%" code)
 	       (format t "~a~%"
@@ -126,7 +127,7 @@
 
 (defun evaluate-call (fn args)
   (format t "call ~a ~a~%" fn args)
-  (apply fn args))
+  (cl:apply fn args))
 
 (defun evaluate-inpackage (name env)
   (format t "in-package ~a~%" name)

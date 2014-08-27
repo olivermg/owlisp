@@ -3,6 +3,8 @@
 (export '())
 
 
+(defparameter *cps-transformation-definitions* '())
+
 #|
 (defparameter *primitive-functions*
   '(funcall apply + * - / car cdr mapcar print format))
@@ -99,7 +101,6 @@
 				(lambda ()))))))
     (format t "  result: ~a~%" result)
     result))
-|#
 
 (defmacro cps-transform-sequence (head . rest)
   (format t "cps-transform-sequence head:~a rest:~a~%" head rest)
@@ -117,10 +118,29 @@
 				k)))))
     (format t "  result: ~a~%" result)
     result))
+|#
 
+(defun cps-transform-sequence (seq)
+  (let ((k-var (gensym))
+	(head (car seq))
+	(rest (cdr seq)))
+    (format t "cps-transform-sequence head:~a rest:~a~%" head rest)
+    (let ((result (if (consp rest)
+		      (let ((k-discard-var (gensym)))
+			`(lambda (,k-var)
+			   (funcall ,(walk *cps-transformation-definitions*
+					   head)
+				    (lambda (,k-discard-var)
+				      (declare (ignore ,k-discard-var))
+				      (funcall ,(cps-transform-sequence rest)
+					       ,k-var)))))
+		      `(lambda (,k-var)
+			 (funcall ,(walk *cps-transformation-definitions*
+					 head)
+				  ,k-var)))))
+      (format t "cps-transform-sequence result: ~a~%" result)
+      result)))
 
-
-(defparameter *cps-transformation-definitions* '())
 
 
 ;; self evaluating
@@ -131,8 +151,12 @@
 
     (expr nil)
 
-  `#'(lambda (k)
-       (funcall k ,expr)))
+  (format t "self-evaluating-p: ~a~%" expr)
+  (let ((k-var (gensym)))
+    (let ((result `(lambda (,k-var)
+		     (funcall ,k-var ,expr))))
+      (format t "self-evaluating-p result: ~a~%" result)
+      result)))
 
 
 ;; quoted expression
@@ -143,8 +167,12 @@
 
     (expr nil)
 
-  `#'(lambda (k)
-       (funcall k ,expr)))
+  (format t "quote-p: ~a~%" expr)
+  (let ((result (let ((k-var (gensym)))
+		  `(lambda (,k-var)
+		     (funcall ,k-var ,expr)))))
+    (format t "quote-p result: ~a~%" result)
+    result))
 
 
 ;; variable
@@ -155,8 +183,12 @@
 
     (expr nil)
 
-  `#'(lambda (k)
-       (funcall k ,expr)))
+  (format t "variable-p: ~a~%" expr)
+  (let ((result (let ((k-var (gensym)))
+		  `(lambda (,k-var)
+		     (funcall ,k-var ,expr)))))
+    (format t "variable-p result: ~a~%" result)
+    result))
 
 
 ;; lambda expression
@@ -167,13 +199,17 @@
 
     ((lam (&rest arglist) &body body) nil)
 
-  (let* ((dyn-k (gensym))
-	 (arglist-k (cons dyn-k arglist)))
-    `(lambda (k)
-       (funcall k
-		(,lam ,arglist-k
-		      (funcall (cps-transform-sequence ,@body)
-			       ,dyn-k))))))
+  (format t "lambda-p: ~a ~a ~a~%" lam arglist body)
+  (let ((result (let* ((k-var (gensym))
+		       (dyn-k (gensym))
+		       (arglist-k (cons dyn-k arglist)))
+		  `(lambda (,k-var)
+		     (funcall ,k-var
+			      (,lam ,arglist-k
+				    (funcall ,(cps-transform-sequence body)
+					     ,dyn-k)))))))
+    (format t "lambda-p result: ~a~%" result)
+    result))
 
 
 #|
@@ -201,33 +237,36 @@
 
     ((fn &rest params) nil)
 
-  (if (primitive-p fn)
-      `(lambda (k)
-	 (funcall k (,fn ,@params)))
-      (labels ((tp (fn k paramsv &rest params)
-		 (if (consp params)
-		     (let ((newparamv (gensym)))
-		       `(funcall (walk *cps-transformation-definitions*
-				       ,(car params))
-				 (lambda (,newparamv)
-				   ,(cl:apply #'tp
-					      fn
-					      k
-					      (append paramsv (list newparamv))
-					      (cdr params)))))
-		     `(funcall ,fn
-			       ,k
-			       ,@paramsv))))
-	(let ((fn-result (gensym)))
-	  `(lambda (k)
-	     (funcall (walk *cps-transformation-definitions*
-			    ,fn)
-		      (lambda (,fn-result)
-			,(cl:apply #'tp
-				   fn-result
-				   'k
-				   '()
-				   params))))))))
+  (format t "application-p: ~a ~a~%" fn params)
+  (let ((result (if (primitive-p fn)
+		    `(lambda (k)
+		       (funcall k (,fn ,@params)))
+		    (labels ((tp (fn k paramsv &rest params)
+			       (if (consp params)
+				   (let ((newparamv (gensym)))
+				     `(funcall ,(walk *cps-transformation-definitions*
+						      (car params))
+					       (lambda (,newparamv)
+						 ,(cl:apply #'tp
+							    fn
+							    k
+							    (append paramsv (list newparamv))
+							    (cdr params)))))
+				   `(funcall ,fn
+					     ,k
+					     ,@paramsv))))
+		      (let ((fn-result (gensym)))
+			`(lambda (k)
+			   (funcall ,(walk *cps-transformation-definitions*
+					   fn)
+				    (lambda (,fn-result)
+				      ,(cl:apply #'tp
+						 fn-result
+						 'k
+						 '()
+						 params)))))))))
+    (format t "application-p result: ~a~%" result)
+    result))
 
 
 #|
