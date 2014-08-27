@@ -1,12 +1,22 @@
 (in-package :owlisp/helper)
 
 (export '(walk
+	  walk-fn
 	  defwalker-rule))
 
 
 (defun generalize-symbol (symbol)
   (intern (symbol-name symbol)
 	  'keyword))
+
+(defun walk-fn (definitions expr &optional (userdata '()))
+  (format t "walk (in) : ~a ~a~%" expr userdata)
+  (let ((result (loop
+		   for (testfn . transformfn) in definitions
+		   do (if (funcall testfn expr)
+			  (return (funcall transformfn expr userdata))))))
+    (format t "walk (out): ~a~%" result)
+    result))
 
 (defmacro walk (definitions expr &optional (userdata '()))
   (format t "walk (in) : ~a ~a~%" expr userdata)
