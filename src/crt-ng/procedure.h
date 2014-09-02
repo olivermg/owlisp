@@ -4,8 +4,9 @@
 #include "environment.h"
 
 typedef struct _procedure_t {
-  char* parameters[];
-  void (code*)();
+  char** parameters;
+  int parameterscount;
+  void (*code)();
   environment_t environment;
 } procedure_t;
 

@@ -62,6 +62,7 @@ endif (NOT SBCL)
 
 add_subdirectory(src/llvm/cffi)		# defines target 'swig_generation'
 add_subdirectory(src/crt)		# defines target 'runtime_generation'
+add_subdirectory(src/crt-ng)		# builds libowlisprt.a
 
 
 

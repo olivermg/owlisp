@@ -3,7 +3,7 @@
 #include "environment.h"
 #include "binding.h"
 
-environment_t* new_environment( environment_t* parent, binding_t bindings[], int bindingscount )
+environment_t* new_environment( environment_t* parent, binding_t* bindings[], int bindingscount )
 {
   environment_t* newenv = malloc( sizeof( environment_t ) );
 
@@ -19,6 +19,7 @@ void free_environment( environment_t* environment )
   for ( int i = 0; i < environment->bindingscount; i++ ) {
     free_binding( environment->bindings[i] );
   }
+  free( environment->bindings );
   free( environment );
 }
 

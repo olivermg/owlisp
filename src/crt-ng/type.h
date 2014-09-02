@@ -3,6 +3,6 @@
 
 #define TYPE_INTEGER (0x01)
 
-typedef type_t unsigned char;
+typedef unsigned char type_t;
 
 #endif
