@@ -26,7 +26,8 @@
 
 
 (defun ow.compile-reference (symbol &optional (env *global-env*))
-  (dump (format nil "int ~a = lookup( \"~a\" );~%" (ow.next-varname) symbol)))
+  (let ((address (funcall env symbol)))
+   (dump (format nil "int ~a = lookup( ~a, ~a );~%" (ow.next-varname) (car address) (cdr address)))))
 
 (defun ow.compile-atom (value &optional (env *global-env*))
   (dump (format nil "int ~a = ~a;~%" (ow.next-varname) value)))
@@ -38,7 +39,6 @@
   (let ((resultvar (ow.next-varname))
 	(procname (ow.next-procedurename)))
     (dump (format nil "int ~a() {~%" procname))
-    (dump (format nil "set_local_values( ~a );~%" args))
     (dump (format nil "~a = ~a;~%" resultvar body))
     (dump (format nil "return ~a;~%" resultvar))
     (dump (format nil "}~%"))
