@@ -23,21 +23,33 @@
 
 
 (defun ow.compile-reference (symbol &optional (env *global-env*))
-  (dump (format nil "int val = lookup( \"~a\" );~%" symbol)))
+  (dump (format nil "int ~a = lookup( \"~a\" );~%" (ow.next-varname) symbol)))
 
 (defun ow.compile-atom (value &optional (env *global-env*))
-  (dump (format nil "int val = ~a;~%" value)))
+  (dump (format nil "int ~a = ~a;~%" (ow.next-varname) value)))
 
 (defun ow.compile-quoted (symbol &optional (env *global-env*))
   (format nil "quoted: ~a~%" symbol))
 
 (defun ow.compile-abstraction (args body &optional (env *global-env*))
-  (dump (format nil "int fn() {~%"))
-  (dump (format nil "set_local_values( ~a );~%" args))
-  (dump (format nil "~a;~%" body))
-  (dump (format nil "return result;~%"))
-  (dump (format nil "}~%")))
+  (let ((resultvar (ow.next-varname)))
+    (dump (format nil "int ~a() {~%" (ow.next-procedurename)))
+    (dump (format nil "set_local_values( ~a );~%" args))
+    (dump (format nil "~a = ~a;~%" resultvar body))
+    (dump (format nil "return ~a;~%" resultvar))
+    (dump (format nil "}~%"))))
 
 (defun ow.compile-application (operator params &optional (env *global-env*))
-  (dump (format nil "void* procedure = lookup_procedure( ~a );~%" operator))
-  (dump (format nil "invoke( procedure, ~a );~%" params)))
+  (let ((procname (ow.next-procedurename)))
+    (dump (format nil "void* ~a = lookup_procedure( ~a );~%" procname operator))
+    (dump (format nil "invoke( ~a, ~a );~%" procname params))))
+
+
+(defparameter *varname-index* 0)
+(defparameter *procedurename-index* 0)
+
+(defun ow.next-varname ()
+  (format nil "v~d" (incf *varname-index*)))
+
+(defun ow.next-procedurename ()
+  (format nil "p~d" (incf *procedurename-index*)))

@@ -11,5 +11,7 @@
 	       (:file "environment"
 		      :depends-on ("package"))
                (:file "compiler"
-		      :depends-on ("package"))))
+		      :depends-on ("package"
+				   "environment"
+				   "cdumper"))))
 
