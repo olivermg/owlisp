@@ -49,8 +49,8 @@
 
 (defun ow.compile-application (operator params &optional (env *global-env*))
   (let ((procname (ow.next-procedurename)))
-    (dump (format nil "void* ~a = lookup_procedure( ~a );~%" procname operator))
-    (dump (format nil "invoke( ~a, ~a );~%" procname params))))
+    (dump (format nil "void* ~a = lookup_procedure( ~a );~%" procname operator)) ; lookup_procedure sets procedure environment as current environment
+    (dump (format nil "invoke( ~a, ~a );~%" procname params)))) ; invoke extends procedure-environment with given parameters
 
 
 (defun ow.next-varname ()
