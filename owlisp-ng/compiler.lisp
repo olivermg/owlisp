@@ -4,6 +4,9 @@
 
 
 (defparameter *global-env* (env.extend '()))
+(defparameter *varname-index* 0)
+(defparameter *procedurename-index* 0)
+(defparameter *symbol-table* (make-hash-table))
 
 
 (defun ow.compile (expr &optional (env *global-env*))
@@ -32,12 +35,17 @@
   (format nil "quoted: ~a~%" symbol))
 
 (defun ow.compile-abstraction (args body &optional (env *global-env*))
-  (let ((resultvar (ow.next-varname)))
-    (dump (format nil "int ~a() {~%" (ow.next-procedurename)))
+  (let ((resultvar (ow.next-varname))
+	(procname (ow.next-procedurename)))
+    (dump (format nil "int ~a() {~%" procname))
     (dump (format nil "set_local_values( ~a );~%" args))
     (dump (format nil "~a = ~a;~%" resultvar body))
     (dump (format nil "return ~a;~%" resultvar))
-    (dump (format nil "}~%"))))
+    (dump (format nil "}~%"))
+    (dump (format nil "insert_into_symboltable( ~a );~%" procname))
+    (setf (gethash procname *symbol-table*)
+	  nil)
+    procname))
 
 (defun ow.compile-application (operator params &optional (env *global-env*))
   (let ((procname (ow.next-procedurename)))
@@ -45,11 +53,10 @@
     (dump (format nil "invoke( ~a, ~a );~%" procname params))))
 
 
-(defparameter *varname-index* 0)
-(defparameter *procedurename-index* 0)
-
 (defun ow.next-varname ()
-  (format nil "v~d" (incf *varname-index*)))
+  (intern
+   (format nil "var~4,'0d" (incf *varname-index*))))
 
 (defun ow.next-procedurename ()
-  (format nil "p~d" (incf *procedurename-index*)))
+  (intern
+   (format nil "proc~4,'0d" (incf *procedurename-index*))))
