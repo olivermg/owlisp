@@ -24,13 +24,22 @@
 
 	 (t (ow.compile-application (car expr) (cdr expr) env))))))
 
+(defun ow.compile-sequence (exprs &optional (compiled "") (env *global-env*))
+  (if exprs
+      (ow.compile-sequence (cdr exprs)
+			   (concatenate 'string
+					compiled
+					(ow.compile (car exprs) env))
+			   env)
+      (format nil "{~%~a}~%" compiled)))
+
 
 (defun ow.compile-reference (symbol &optional (env *global-env*))
   (let ((address (funcall env symbol)))
-   (dump (format nil "int ~a = lookup( ~a, ~a );~%" (ow.next-varname) (car address) (cdr address)))))
+    (format nil "lookup( ~a, ~a );~%" (car address) (cdr address))))
 
 (defun ow.compile-atom (value &optional (env *global-env*))
-  (dump (format nil "int ~a = ~a;~%" (ow.next-varname) value)))
+  (format nil "~a;~%" value))
 
 (defun ow.compile-quoted (symbol &optional (env *global-env*))
   (format nil "quoted: ~a~%" symbol))
@@ -39,18 +48,19 @@
   (let ((resultvar (ow.next-varname))
 	(procname (ow.next-procedurename))
 	(ext-env (env.extend args env)))
-    (dump (format nil "int ~a() {~%" procname))
-    (dump (format nil "~a = ~a;~%" resultvar body))
-    (dump (format nil "return ~a;~%" resultvar))
-    (dump (format nil "}~%"))
     (setf (gethash procname *symbol-table*)
-	  (args ext-env))
-    procname))
+	  (list args ext-env))
+    (concatenate 'string
+		 (format nil "int ~a() {~%" procname)
+		 (format nil "int ~a = ~a" resultvar (ow.compile-sequence body "" ext-env))
+		 (format nil "return ~a;~%" resultvar)
+		 (format nil "}~%"))))
 
 (defun ow.compile-application (operator params &optional (env *global-env*))
   (let ((procname (ow.next-procedurename)))
-    (dump (format nil "void* (*~a)() = lookup_procedure( ~a );~%" procname operator))
-    (dump (format nil "invoke( ~a, ~a );~%" procname params))))
+    (concatenate 'string
+		 (format nil "void* (*~a)() = lookup_procedure( ~a );~%" procname operator)
+		 (format nil "invoke( ~a, ~a );~%" procname params))))
 
 
 (defun ow.next-varname ()
