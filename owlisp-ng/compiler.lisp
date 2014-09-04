@@ -37,20 +37,20 @@
 
 (defun ow.compile-abstraction (args body &optional (env *global-env*))
   (let ((resultvar (ow.next-varname))
-	(procname (ow.next-procedurename)))
+	(procname (ow.next-procedurename))
+	(ext-env (env.extend args env)))
     (dump (format nil "int ~a() {~%" procname))
     (dump (format nil "~a = ~a;~%" resultvar body))
     (dump (format nil "return ~a;~%" resultvar))
     (dump (format nil "}~%"))
-    (dump (format nil "insert_into_symboltable( ~a );~%" procname))
     (setf (gethash procname *symbol-table*)
-	  nil)
+	  (args ext-env))
     procname))
 
 (defun ow.compile-application (operator params &optional (env *global-env*))
   (let ((procname (ow.next-procedurename)))
-    (dump (format nil "void* ~a = lookup_procedure( ~a );~%" procname operator)) ; lookup_procedure sets procedure environment as current environment
-    (dump (format nil "invoke( ~a, ~a );~%" procname params)))) ; invoke extends procedure-environment with given parameters
+    (dump (format nil "void* (*~a)() = lookup_procedure( ~a );~%" procname operator))
+    (dump (format nil "invoke( ~a, ~a );~%" procname params))))
 
 
 (defun ow.next-varname ()
