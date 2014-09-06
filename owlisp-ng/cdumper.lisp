@@ -1,50 +1,62 @@
-(in-package #:owlisp)
+(in-package #:owlisp/dumper)
+
+(export '(with-dumper
+	  dump-assignment
+	  dump-fndefinition))
 
 
 (defmacro with-dumper (&body body)
-  `(labels ((new-buf ()
-	      (make-array '(0) :element-type 'base-char :fill-pointer 0 :adjustable t)))
-     (let* ((*varname-index* 0)
-	    (*procedurename-index* 0)
-	    (*dumper-buffers* (list (new-buf)))
-	    (*current-buffer* (car *dumper-buffers*)))
-       (declare (special *varname-index* *procedurename-index* *dumper-buffers* *current-buffer*))
-       ,@body
-       (apply #'concatenate
-	      'string
-	      *dumper-buffers*))))
+  `(let* ((*varname-index* 0)
+	  (*procedurename-index* 0)
+	  (*buffers* '())
+	  (*current-buffer* '()))
+     (declare (special *varname-index* *procedurename-index* *buffers* *current-buffer*))
+     (new-buffer)
+     ,@body
+     (apply #'concatenate
+	    'string
+	    *buffers*)))
 
 
 (defun dump (formatstr &rest args)
-  (declare (special *dumper-buffer*))
-  (setf *dumper-buffer*
-	(concatenate 'string
-		     *dumper-buffer*
-		     (apply #'format nil formatstr args))))
+  (declare (special *current-buffer*))
+  (apply #'format (car *current-buffer*) formatstr args))
 
-(defun dump-global (formatstr &rest args)
-  (declare (special *dumper-buffer*))
-  (setf *dumper-buffer*
-	(concatenate 'string
-		     (apply #'format nil formatstr args)
-		     *dumper-buffer*)))
+(defun new-buffer ()
+  (declare (special *buffers* *current-buffer*))
+  (let ((newbuf (make-array '(0) :element-type 'base-char :fill-pointer 0 :adjustable t)))
+    (setf *buffers*
+	  (cons newbuf
+		*buffers*))
+    (setf *current-buffer*
+	  (cons newbuf
+		*current-buffer*))))
+
+(defun pop-buffer ()
+  (declare (special *buffers* *current-buffer*))
+  (setf *current-buffer*
+	(cdr *current-buffer*)))
 
 
-(defun ow.next-varname ()
+(defun next-varname ()
+  (declare (special *varname-index*))
   (intern
    (format nil "VAR~d" (incf *varname-index*))))
 
-(defun ow.next-procedurename ()
+(defun next-procedurename ()
+  (declare (special *procedurename-index*))
   (intern
    (format nil "PROC~d" (incf *procedurename-index*))))
 
 
 (defun dump-assignment (value)
-  (let ((varname (ow.next-varname)))
+  (let ((varname (next-varname)))
     (dump "int ~a = ~a;~%" varname value)
     varname))
 
 (defun dump-fndefinition (body)
-  (let ((procname (ow.next-procedurename)))
-    (dump-global "int ~a() {~%}~%" procname)
+  (let ((procname (next-procedurename)))
+    (new-buffer)
+    (dump "int ~a() {~%}~%" procname)
+    (pop-buffer)
     procname))
