@@ -8,6 +8,10 @@
 
 
 (defun ow.compile (expr &optional (env *global-env*))
+  (with-dumper
+    (ow.compile-expression expr env)))
+
+(defun ow.compile-expression (expr &optional (env *global-env*))
   (cond
 
     ((symbolp expr) (ow.compile-reference expr env))
@@ -31,13 +35,13 @@
       (ow.compile-sequence (cdr exprs)
 			   env
 			   (append compiled
-				   (list (ow.compile (car exprs) env))))
+				   (list (ow.compile-expression (car exprs) env))))
       compiled))
 
 
 (defun ow.compile-reference (symbol &optional (env *global-env*))
   (let ((address (funcall env symbol)))
-    (format nil "lookup( ~a, ~a )" (car address) (cdr address))))
+    (dump-reference (car address) (cdr address))))
 
 (defun ow.compile-atom (value &optional (env *global-env*))
   (declare (ignore env))
@@ -61,6 +65,6 @@
 		 (format nil "}~%"))))
 
 (defun ow.compile-application (operator params &optional (env *global-env*))
-  (let ((compiled-operator (ow.compile operator env))
+  (let ((compiled-operator (ow.compile-expression operator env))
 	(compiled-params (ow.compile-sequence params env)))
    (format nil "invoke( ~a, ~{~a~^, ~} );~%" compiled-operator compiled-params)))

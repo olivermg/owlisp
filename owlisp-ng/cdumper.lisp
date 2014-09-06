@@ -1,7 +1,8 @@
 (in-package #:owlisp/dumper)
 
 (export '(with-dumper
-	  dump-assignment
+	  dump-reference
+	  dump-constant
 	  dump-fndefinition-start
 	  dump-fndefinition-end
 	  dump-fndefinition))
@@ -51,7 +52,12 @@
    (format nil "PROC~d" (incf *procedurename-index*))))
 
 
-(defun dump-assignment (value)
+(defun dump-reference (frameindex varindex)
+  (let ((varname (next-varname)))
+    (dump "int ~a = lookup( ~a, ~a );~%" varname frameindex varindex)
+    varname))
+
+(defun dump-constant (value)
   (let ((varname (next-varname)))
     (dump "int ~a = ~a;~%" varname value)
     varname))
