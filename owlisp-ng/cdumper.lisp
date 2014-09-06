@@ -2,6 +2,8 @@
 
 (export '(with-dumper
 	  dump-assignment
+	  dump-fndefinition-start
+	  dump-fndefinition-end
 	  dump-fndefinition))
 
 
@@ -54,9 +56,19 @@
     (dump "int ~a = ~a;~%" varname value)
     varname))
 
+(defun dump-fndefinition-start ()
+  (let ((procname (next-procedurename)))
+    (new-buffer)
+    (dump "int ~a() {~%" procname)
+    procname))
+
+(defun dump-fndefinition-end ()
+  (dump "}~%")
+  (pop-buffer))
+
 (defun dump-fndefinition (body)
   (let ((procname (next-procedurename)))
     (new-buffer)
-    (dump "int ~a() {~%}~%" procname)
+    (dump "int ~a() {~%~a}~%" procname body)
     (pop-buffer)
     procname))
