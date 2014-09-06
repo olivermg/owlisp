@@ -38,6 +38,9 @@
 				   (list (ow.compile-expression (car exprs) env))))
       compiled))
 
+(defun ow.compile-sequence-last (exprs &optional (env *global-env*))
+  (car (last (ow.compile-sequence exprs env))))
+
 
 (defun ow.compile-reference (symbol &optional (env *global-env*))
   (let ((address (funcall env symbol)))
@@ -45,26 +48,21 @@
 
 (defun ow.compile-atom (value &optional (env *global-env*))
   (declare (ignore env))
-  (format nil "~a" value))
+  (dump-constant value))
 
 (defun ow.compile-quoted (symbol &optional (env *global-env*))
   (declare (ignore env))
-  (format nil "quoted: ~a~%" symbol))
+  (error "don't know yet how to compile symbol ~a" symbol))
 
 (defun ow.compile-abstraction (args body &optional (env *global-env*))
-  (let* ((resultvar (ow.next-varname))
-	 (procname (ow.next-procedurename))
-	 (ext-env (env.extend args env))
-	 (compiled-body (format nil "{~%~{  ~a;~%~}}~%" (ow.compile-sequence body ext-env))))
+  (let* ((ext-env (env.extend args env))
+	 (procname (dump-fndefinition-start))
+	 (resultname (ow.compile-sequence-last body ext-env)))
     (setf (gethash procname *symbol-table*)
 	  (list procname args ext-env))
-    (concatenate 'string
-		 (format nil "int ~a() {~%" procname)
-		 (format nil "int ~a = ~a~%" resultvar compiled-body)
-		 (format nil "return ~a;~%" resultvar)
-		 (format nil "}~%"))))
+    (dump-fndefinition-end resultname)
+    procname))
 
 (defun ow.compile-application (operator params &optional (env *global-env*))
-  (let ((compiled-operator (ow.compile-expression operator env))
-	(compiled-params (ow.compile-sequence params env)))
-   (format nil "invoke( ~a, ~{~a~^, ~} );~%" compiled-operator compiled-params)))
+  (dump-application (ow.compile-expression operator env)
+		    (ow.compile-sequence params env)))

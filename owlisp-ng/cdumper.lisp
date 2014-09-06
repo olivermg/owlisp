@@ -5,7 +5,8 @@
 	  dump-constant
 	  dump-fndefinition-start
 	  dump-fndefinition-end
-	  dump-fndefinition))
+	  dump-fndefinition
+	  dump-application))
 
 
 (defmacro with-dumper (&body body)
@@ -68,9 +69,10 @@
     (dump "int ~a() {~%" procname)
     procname))
 
-(defun dump-fndefinition-end ()
-  (dump "}~%")
-  (pop-buffer))
+(defun dump-fndefinition-end (result)
+  (dump "return ~a;~%}~%" result)
+  (pop-buffer)
+  nil)
 
 (defun dump-fndefinition (body)
   (let ((procname (next-procedurename)))
@@ -78,3 +80,8 @@
     (dump "int ~a() {~%~a}~%" procname body)
     (pop-buffer)
     procname))
+
+(defun dump-application (fnname args)
+  (let ((resultname (next-varname)))
+   (dump "int ~a = invoke( \"~a\", ~{~a~^,~} );~%" resultname fnname args)
+   resultname))
