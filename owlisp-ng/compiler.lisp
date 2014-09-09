@@ -7,9 +7,15 @@
 (defparameter *symbol-table* (make-hash-table))
 
 
+(defun ow.define-closure (symbol args env)
+  (setf (gethash symbol *symbol-table*)
+	(list args env)))
+
+
 (defun ow.compile (expr &optional (env *global-env*))
   (with-dumper
-    (ow.compile-expression expr env)))
+    (ow.compile-expression expr env)
+    (ow.compile-symboltable *symbol-table*)))
 
 (defun ow.compile-expression (expr &optional (env *global-env*))
   (cond
@@ -56,13 +62,19 @@
 
 (defun ow.compile-abstraction (args body &optional (env *global-env*))
   (let* ((ext-env (env.extend args env))
-	 (procname (dump-fndefinition-start))
+	 (procname (dump-fndefinition-start args))
 	 (resultname (ow.compile-sequence-last body ext-env)))
-    (setf (gethash procname *symbol-table*)
-	  (list procname args ext-env))
+    (ow.define-closure procname args ext-env)
     (dump-fndefinition-end resultname)
     procname))
 
 (defun ow.compile-application (operator params &optional (env *global-env*))
   (dump-application (ow.compile-expression operator env)
 		    (ow.compile-sequence params env)))
+
+
+(defun ow.compile-symboltable (table)
+  (maphash #'(lambda (key val)
+	       (destructuring-bind (args env) val
+		 (dump-constant args)))
+	   table))

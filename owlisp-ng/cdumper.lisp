@@ -65,7 +65,7 @@
     (dump "int ~a = ~a;~%" varname value)
     varname))
 
-(defun dump-fndefinition-start (&optional (procname (next-procedurename)))
+(defun dump-fndefinition-start (args &optional (procname (next-procedurename)))
   (new-buffer)
   (dump "int ~a() {~%" procname)
   procname)
@@ -83,5 +83,11 @@
 
 (defun dump-application (fnname args)
   (let ((resultname (next-varname)))
-   (dump "int ~a = invoke( \"~a\", ~{~a~^,~} );~%" resultname fnname args)
-   resultname))
+    (dump "int ~a = invoke( \"~a\", ~{~a~^,~} );~%" resultname fnname args)
+    resultname))
+
+(defun dump-environment (env)
+  )
+
+(defun dump-closure-definition (procname args env)
+  )
