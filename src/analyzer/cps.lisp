@@ -270,6 +270,27 @@
     result))
 
 
+(defmacro kont ((&rest args) &body body)
+  `(lambda (,@args)
+     ,@body))
+
+(defmacro kexp ((&rest args) &body body)
+  (let ((kont-var (gensym)))
+    `(lambda (,kont-var ,@args)
+       (macrolet ((funcall-kontz (&rest fkargs)
+		    `(funcall ,',kont-var ,@fkargs)))
+	 ,@body))))
+
+#|
+(defmacro funcall-kont (&rest args)
+  (declare (special kont-var))
+  `(funcall ,kont-var ,@args))
+
+(defmacro funcall-kexp (kexp kont)
+  `(funcall ,kexp ,kont))
+|#
+
+
 #|
 (defwalker-transformation
 
