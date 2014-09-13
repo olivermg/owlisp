@@ -156,7 +156,9 @@
     (let ((result `(lambda (,k-var)
 		     (funcall ,k-var ,expr))))
       (format t "self-evaluating-p result: ~a~%" result)
-      result)))
+      result))
+  (kexp ()
+    (funcall-kont expr)))
 
 
 ;; quoted expression
@@ -277,7 +279,7 @@
 (defmacro kexp ((&rest args) &body body)
   (let ((kont-var (gensym)))
     `(lambda (,kont-var ,@args)
-       (macrolet ((funcall-kontz (&rest fkargs)
+       (macrolet ((funcall-kont (&rest fkargs)
 		    `(funcall ,',kont-var ,@fkargs)))
 	 ,@body))))
 
