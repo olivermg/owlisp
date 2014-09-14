@@ -151,14 +151,11 @@
 
     (expr nil)
 
-  (format t "self-evaluating-p: ~a~%" expr)
-  (let ((k-var (gensym)))
-    (let ((result `(lambda (,k-var)
-		     (funcall ,k-var ,expr))))
-      (format t "self-evaluating-p result: ~a~%" result)
-      result))
-  (kexp ()
-    (funcall-kont expr)))
+  (format t "-> self-evaluating: ~a~%" expr)
+  (let ((result `(kexp ()
+		   (funcall-kont ,expr))))
+    (format t "<- self-evaluating: ~a~%" result)
+    result))
 
 
 ;; quoted expression
@@ -169,11 +166,10 @@
 
     (expr nil)
 
-  (format t "quote-p: ~a~%" expr)
-  (let ((result (let ((k-var (gensym)))
-		  `(lambda (,k-var)
-		     (funcall ,k-var ,expr)))))
-    (format t "quote-p result: ~a~%" result)
+  (format t "-> quoted: ~a~%" expr)
+  (let ((result `(kexp ()
+		   (funcall-kont ,expr))))
+    (format t "<- quoted: ~a~%" result)
     result))
 
 
@@ -185,11 +181,10 @@
 
     (expr nil)
 
-  (format t "variable-p: ~a~%" expr)
-  (let ((result (let ((k-var (gensym)))
-		  `(lambda (,k-var)
-		     (funcall ,k-var ,expr)))))
-    (format t "variable-p result: ~a~%" result)
+  (format t "-> variable: ~a~%" expr)
+  (let ((result `(kexp ()
+		   (funcall-kont ,expr))))
+    (format t "<- variable: ~a~%" result)
     result))
 
 
@@ -201,16 +196,12 @@
 
     ((lam (&rest arglist) &body body) nil)
 
-  (format t "lambda-p: ~a ~a ~a~%" lam arglist body)
-  (let ((result (let* ((k-var (gensym))
-		       (dyn-k (gensym))
-		       (arglist-k (cons dyn-k arglist)))
-		  `(lambda (,k-var)
-		     (funcall ,k-var
-			      (,lam ,arglist-k
-				    (funcall ,(cps-transform-sequence body)
-					     ,dyn-k)))))))
-    (format t "lambda-p result: ~a~%" result)
+  (format t "-> lambda: ~a ~a ~a~%" lam arglist body)
+  (let ((result `(kexp ()
+		   (funcall-kont (kexp ,arglist
+				   (funcall ,(cps-transform-sequence body)
+					    (get-kont)))))))
+    (format t "<- lambda: ~a~%" result)
     result))
 
 
@@ -279,7 +270,9 @@
 (defmacro kexp ((&rest args) &body body)
   (let ((kont-var (gensym)))
     `(lambda (,kont-var ,@args)
-       (macrolet ((funcall-kont (&rest fkargs)
+       (macrolet ((get-kont ()
+		    `,',kont-var)
+		  (funcall-kont (&rest fkargs)
 		    `(funcall ,',kont-var ,@fkargs)))
 	 ,@body))))
 
