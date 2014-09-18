@@ -58,19 +58,22 @@
   expr)
 
 
+(defparameter *static-bindings* '())
+
+
 (defmacro call-closure (closure &rest args)
-  `(funcall (car ,closure) ,@args))
+  `(funcall (car ,closure)
+	    ,closure
+	    ,@args))
 
 (defmacro closure-lambda ((&rest args) &body body)
-  (let ((closure-var (gensym)))
+  (let ((*static-bindings* (cons args *static-bindings*))
+	(closure-var (gensym)))
+    (declare (special *static-bindings*))
     `(macrolet ((get-closure ()
 		  ,closure-var)
 		(lookup-symbol (symbol)
 		  `(gethash ,symbol (cadr ,closure-var))))
        (list (lambda (,closure-var ,@args)
 	       ,@body)
-	     (let ((bindings-var (make-hash-table)))
-	       (loop
-		  for arg in ,args
-		  do (setf (gethash arg bindings-var)
-			   '?))))))) ; TODO: need to access args one level higher
+	     ',*static-bindings*))))
