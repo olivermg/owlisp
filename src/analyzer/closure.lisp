@@ -58,22 +58,21 @@
   expr)
 
 
-(defparameter *static-bindings* '())
+(defparameter *static-symbols* '())
 
 
 (defmacro call-closure (closure &rest args)
-  `(funcall (car ,closure)
-	    ,closure
-	    ,@args))
+  (setf *static-symbols*
+	(cons args (cadr closure)))
+  ;; TODO: implement separate invoke function
+  (let ((closure-var (gensym)))
+   `(let ((,closure-var ,closure))
+     (funcall (car ,closure-var)
+	      ,closure-var
+	      ,@args))))
 
 (defmacro closure-lambda ((&rest args) &body body)
-  (let ((*static-bindings* (cons args *static-bindings*))
-	(closure-var (gensym)))
-    (declare (special *static-bindings*))
-    `(macrolet ((get-closure ()
-		  ,closure-var)
-		(lookup-symbol (symbol)
-		  `(gethash ,symbol (cadr ,closure-var))))
-       (list (lambda (,closure-var ,@args)
-	       ,@body)
-	     ',*static-bindings*))))
+  (let ((closure-var (gensym)))
+    `(list (lambda (,closure-var ,@args)
+	     ,@body)
+	   ,*static-symbols*)))
