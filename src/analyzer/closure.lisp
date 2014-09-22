@@ -39,7 +39,8 @@
 
   (declare (ignore lam))
   (let ((*local-variables* args))
-    `(closure-lambda ,args (closure-convert-sequence ',body))))
+    `(closure-lambda ,(closure-convert-sequence args) ; TODO: need sequence conversion that returns list, not only last element
+       ,(closure-convert-sequence body))))
 
 
 (defwalker-rule *closure-conversion-definitions*
@@ -50,7 +51,9 @@
     ((closure &rest args) nil)
 
   (let ((*static-symbols* (cons args (cadr closure))))
-    `(call-closure ,closure ,@args)))
+    `(call-closure ,(walk *closure-conversion-definitions*
+			  closure)
+		   ,(closure-convert-sequence args)))) ; TODO: need sequence conversion that returns list, not only last element
 
 
 (defwalker-rule *closure-conversion-definitions*
