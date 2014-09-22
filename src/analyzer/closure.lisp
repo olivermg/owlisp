@@ -3,7 +3,9 @@
 (export '())
 
 
+(defparameter *local-variables* '())
 (defparameter *closure-conversion-definitions* '())
+(defparameter *static-symbols* '())
 
 
 (defun closure-convert-sequence (exprs)
@@ -23,7 +25,9 @@
 
   (expr nil)
 
-  `(lookup-symbol ,expr))
+  (if (position expr *local-variables*)
+      expr
+      `(lookup-symbol ,expr)))
 
 
 (defwalker-rule *closure-conversion-definitions*
@@ -34,7 +38,8 @@
   ((lam (&rest args) &body body) nil)
 
   (declare (ignore lam))
-  `(closure-lambda ,args (closure-convert-sequence ',body)))
+  (let ((*local-variables* args))
+    `(closure-lambda ,args (closure-convert-sequence ',body))))
 
 
 (defwalker-rule *closure-conversion-definitions*
@@ -44,7 +49,8 @@
 
     ((closure &rest args) nil)
 
-  `(call-closure ,closure ,@args))
+  (let ((*static-symbols* (cons args (cadr closure))))
+    `(call-closure ,closure ,@args)))
 
 
 (defwalker-rule *closure-conversion-definitions*
@@ -58,12 +64,7 @@
   expr)
 
 
-(defparameter *static-symbols* '())
-
-
 (defmacro call-closure (closure &rest args)
-  (setf *static-symbols*
-	(cons args (cadr closure)))
   ;; TODO: implement separate invoke function
   (let ((closure-var (gensym)))
    `(let ((,closure-var ,closure))
