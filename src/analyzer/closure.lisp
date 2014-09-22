@@ -12,10 +12,10 @@
   (if (consp (cdr exprs))
       `(prog2
 	   (walk *closure-conversion-definitions*
-		 ,(car exprs))
+		 ',(car exprs))
 	   (closure-convert-sequence ',(cdr exprs)))
       `(walk *closure-conversion-definitions*
-	     ,(car exprs))))
+	     ',(car exprs))))
 
 
 (defwalker-rule *closure-conversion-definitions*
