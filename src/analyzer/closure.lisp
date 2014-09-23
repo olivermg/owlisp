@@ -8,6 +8,30 @@
 (defparameter *static-symbols* '())
 
 
+(defstruct closure code env)
+
+(defgeneric invoke (obj &rest args))
+
+(defmethod invoke ((obj closure) &rest args)
+  (cl:apply (closure-code obj) obj args))
+
+
+(defstruct environment parent symbols)
+
+(defgeneric lookup (env symbol))
+
+(defmethod lookup ((env environment) (symbol symbol))
+  (labels ((lookup-rec (env frameindex)
+	     (if (null env)
+		 (error "unknown symbol ~a" symbol)
+		 (let ((pos (position symbol (environment-symbols env))))
+		   (if pos
+		       (cons frameindex pos)
+		       (lookup-rec (environment-parent env)
+				   (1+ frameindex)))))))
+    (lookup-rec env 0)))
+
+
 (defun closure-convert-sequence (exprs)
   (if (consp (cdr exprs))
       `(prog2
