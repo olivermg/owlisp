@@ -34,12 +34,18 @@
 
 (defun closure-convert-sequence (exprs)
   (if (consp (cdr exprs))
-      `(prog2
-	   (walk *closure-conversion-definitions*
-		 ',(car exprs))
-	   (closure-convert-sequence ',(cdr exprs)))
-      `(walk *closure-conversion-definitions*
-	     ',(car exprs))))
+      (prog2
+	  (walk *closure-conversion-definitions*
+		(car exprs))
+	  (closure-convert-sequence (cdr exprs)))
+      (walk *closure-conversion-definitions*
+	    (car exprs))))
+
+(defun closure-convert-sequence-list (exprs)
+  (if (consp exprs)
+      (cons (walk *closure-conversion-definitions*
+		  (car exprs))
+	    (closure-convert-sequence-list (cdr exprs)))))
 
 
 (defwalker-rule *closure-conversion-definitions*
@@ -59,12 +65,13 @@
     #'(lambda (expr)
 	(lambda-p expr))
 
-  ((lam (&rest args) &body body) nil)
+    ((lam (&rest args) &body body) nil)
 
-  (declare (ignore lam))
   (let ((*local-variables* args))
-    `(closure-lambda ,(closure-convert-sequence args) ; TODO: need sequence conversion that returns list, not only last element
-       ,(closure-convert-sequence body))))
+    (make-closure
+     :code (let ((closure-var (gensym)))
+	     `(,lam (,closure-var ,@(closure-convert-sequence-list args))
+		    ,@(closure-convert-sequence-list body))))))
 
 
 (defwalker-rule *closure-conversion-definitions*
@@ -75,9 +82,9 @@
     ((closure &rest args) nil)
 
   (let ((*static-symbols* (cons args (cadr closure))))
-    `(call-closure ,(walk *closure-conversion-definitions*
-			  closure)
-		   ,(closure-convert-sequence args)))) ; TODO: need sequence conversion that returns list, not only last element
+    `(invoke ,(walk *closure-conversion-definitions*
+		    closure)
+	     ,@(closure-convert-sequence-list args))))
 
 
 (defwalker-rule *closure-conversion-definitions*
