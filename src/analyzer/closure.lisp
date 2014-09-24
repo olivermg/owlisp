@@ -71,7 +71,9 @@
     (make-closure
      :code (let ((closure-var (gensym)))
 	     `(,lam (,closure-var ,@(closure-convert-sequence-list args))
-		    ,@(closure-convert-sequence-list body))))))
+		    ,@(let ((*static-symbols* (cons args *static-symbols*)))
+			   (closure-convert-sequence-list body))))
+     :env *static-symbols*)))
 
 
 (defwalker-rule *closure-conversion-definitions*
@@ -81,10 +83,9 @@
 
     ((closure &rest args) nil)
 
-  (let ((*static-symbols* (cons args (cadr closure))))
-    `(invoke ,(walk *closure-conversion-definitions*
-		    closure)
-	     ,@(closure-convert-sequence-list args))))
+  `(invoke ,(walk *closure-conversion-definitions*
+		  closure)
+	   ,@(closure-convert-sequence-list args)))
 
 
 (defwalker-rule *closure-conversion-definitions*
