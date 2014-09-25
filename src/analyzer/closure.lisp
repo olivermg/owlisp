@@ -16,6 +16,9 @@
 (defmethod invoke ((obj closure) &rest args)
   (cl:apply (closure-code obj) obj args))
 
+(defmethod invoke ((obj list) &rest args)
+  (cl:apply obj args))
+
 
 (defstruct environment parent symbols)
 
@@ -33,20 +36,20 @@
     (lookup-rec env 0)))
 
 
-(defun closure-convert-sequence (exprs)
-  (if (consp (cdr exprs))
-      (prog2
-	  (walk *closure-conversion-definitions*
-		(car exprs))
-	  (closure-convert-sequence (cdr exprs)))
-      (walk *closure-conversion-definitions*
-	    (car exprs))))
+(defun walk-closure (expr)
+  (walk *closure-conversion-definitions*
+	expr))
 
-(defun closure-convert-sequence-list (exprs)
-  (if (consp exprs)
-      (cons (walk *closure-conversion-definitions*
-		  (car exprs))
-	    (closure-convert-sequence-list (cdr exprs)))))
+(defun walk-closure-sequence (exprs)
+  (mapcar #'(lambda (expr)
+	      (walk-closure expr))
+	  exprs))
+
+(defun walk-closure-sequence-last (exprs)
+  (reduce #'(lambda (l expr)
+	      (declare (ignore l))
+	      (walk-closure expr))
+	  exprs))
 
 
 (defwalker-rule *closure-conversion-definitions*
@@ -74,15 +77,14 @@
   (let* ((*local-variables* args)
 	 (*referenced-free-variables* '())
 	 (converted-body (let ((*static-symbols* (cons args *static-symbols*)))
-			   (closure-convert-sequence-list body)))
-	 (converted-args (closure-convert-sequence-list args)))
+			   (walk-closure-sequence body))))
     (if *referenced-free-variables*
 	(make-closure
 	 :code (let ((closure-var (gensym)))
-		 `(,lam (,closure-var ,@converted-args)
+		 `(,lam (,closure-var ,@args)
 			,@converted-body))
 	 :env *static-symbols*)
-	`(,lam (,@converted-args)
+	`(,lam (,@args)
 	       ,@converted-body))))
 
 
@@ -93,9 +95,8 @@
 
     ((closure &rest args) nil)
 
-  `(invoke ,(walk *closure-conversion-definitions*
-		  closure)
-	   ,@(closure-convert-sequence-list args)))
+  `(invoke ,(closure-walk closure)
+	   ,@(walk-closure-sequence args)))
 
 
 (defwalker-rule *closure-conversion-definitions*
