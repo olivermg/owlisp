@@ -6,6 +6,7 @@
 (defparameter *local-variables* '())
 (defparameter *closure-conversion-definitions* '())
 (defparameter *static-symbols* '())
+(defparameter *referenced-free-variables* '())
 
 
 (defstruct closure code env)
@@ -57,7 +58,10 @@
 
   (if (position expr *local-variables*)
       expr
-      `(lookup-symbol ,expr)))
+      (progn
+	(setf *referenced-free-variables*
+	      (cons expr *referenced-free-variables*))
+	`(lookup-symbol ,expr))))
 
 
 (defwalker-rule *closure-conversion-definitions*
@@ -67,13 +71,19 @@
 
     ((lam (&rest args) &body body) nil)
 
-  (let ((*local-variables* args))
-    (make-closure
-     :code (let ((closure-var (gensym)))
-	     `(,lam (,closure-var ,@(closure-convert-sequence-list args))
-		    ,@(let ((*static-symbols* (cons args *static-symbols*)))
-			   (closure-convert-sequence-list body))))
-     :env *static-symbols*)))
+  (let* ((*local-variables* args)
+	 (*referenced-free-variables* '())
+	 (converted-body (let ((*static-symbols* (cons args *static-symbols*)))
+			   (closure-convert-sequence-list body)))
+	 (converted-args (closure-convert-sequence-list args)))
+    (if *referenced-free-variables*
+	(make-closure
+	 :code (let ((closure-var (gensym)))
+		 `(,lam (,closure-var ,@converted-args)
+			,@converted-body))
+	 :env *static-symbols*)
+	`(,lam (,@converted-args)
+	       ,@converted-body))))
 
 
 (defwalker-rule *closure-conversion-definitions*
