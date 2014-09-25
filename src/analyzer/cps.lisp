@@ -5,6 +5,12 @@
 
 (defparameter *cps-transformation-definitions* '())
 
+
+(defun walk-cps (expr)
+  (walk *cps-transformation-definitions*
+	expr))
+
+
 #|
 (defparameter *primitive-functions*
   '(funcall apply + * - / car cdr mapcar print format))
@@ -128,15 +134,13 @@
     (let ((result (if (consp rest)
 		      (let ((k-discard-var (gensym)))
 			`(lambda (,k-var)
-			   (funcall ,(walk *cps-transformation-definitions*
-					   head)
+			   (funcall ,(walk-cps head)
 				    (lambda (,k-discard-var)
 				      (declare (ignore ,k-discard-var))
 				      (funcall ,(cps-transform-sequence rest)
 					       ,k-var)))))
 		      `(lambda (,k-var)
-			 (funcall ,(walk *cps-transformation-definitions*
-					 head)
+			 (funcall ,(walk-cps head)
 				  ,k-var)))))
       (format t "cps-transform-sequence result: ~a~%" result)
       result)))
@@ -238,8 +242,7 @@
 		     (labels ((tp (fn k paramsv &rest params)
 				(if (consp params)
 				    (let ((newparamv (gensym)))
-				      `(funcall ,(walk *cps-transformation-definitions*
-						       (car params))
+				      `(funcall ,(walk-cps (car params))
 						(lambda (,newparamv)
 						  ,(cl:apply #'tp
 							     fn
@@ -251,8 +254,7 @@
 					      ,@paramsv))))
 		       (let ((fn-result (gensym)))
 			 `(lambda (,k-var)
-			    (funcall ,(walk *cps-transformation-definitions*
-					    fn)
+			    (funcall ,(walk-cps fn)
 				     (lambda (,fn-result)
 				       ,(cl:apply #'tp
 						  fn-result
