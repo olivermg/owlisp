@@ -36,7 +36,9 @@
 		     (:file "symbols")
 		     (:file "message-passing")
 		     (:file "tree")
-		     (:file "codewalker")))
+		     (:file "codewalker")
+		     (:file "gensyms")
+		     (:file "defun")))
 
 		   (:module
 		    environment

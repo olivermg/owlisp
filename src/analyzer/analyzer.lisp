@@ -60,7 +60,13 @@
 
 (defparameter *indentation* "")
 
-(defun analyze (expr decl-env)
+(defun analyze (expr &optional (decl-env nil))
+  (declare (ignore decl-env))
+  (walk-closure
+   (walk-cps
+    expr)))
+
+(defun analyze-old (expr decl-env)
   (let ((*indentation*
 	 (concatenate 'string *indentation* "  ")))
     (format t "~%~a(" *indentation*)

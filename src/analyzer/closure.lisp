@@ -1,6 +1,6 @@
 (in-package :owlisp/analyzer)
 
-(export '())
+(export '(walk-closure))
 
 
 (defparameter *local-variables* '())
@@ -95,7 +95,7 @@
 
     ((closure &rest args) nil)
 
-  `(invoke ,(closure-walk closure)
+  `(invoke ,(walk-closure closure)
 	   ,@(walk-closure-sequence args)))
 
 

@@ -1,6 +1,6 @@
 (in-package :owlisp/analyzer)
 
-(export '())
+(export '(walk-cps))
 
 
 (defparameter *cps-transformation-definitions* '())
@@ -156,8 +156,7 @@
     (expr nil)
 
   (format t "-> self-evaluating: ~a~%" expr)
-  (let ((result `(kexp ()
-		   (funcall-kont ,expr))))
+  (let ((result (kexp `(() (funcall-kont ,expr)))))
     (format t "<- self-evaluating: ~a~%" result)
     result))
 
@@ -171,8 +170,7 @@
     (expr nil)
 
   (format t "-> quoted: ~a~%" expr)
-  (let ((result `(kexp ()
-		   (funcall-kont ,expr))))
+  (let ((result (kexp `(() (funcall-kont ,expr)))))
     (format t "<- quoted: ~a~%" result)
     result))
 
@@ -186,8 +184,7 @@
     (expr nil)
 
   (format t "-> variable: ~a~%" expr)
-  (let ((result `(kexp ()
-		   (funcall-kont ,expr))))
+  (let ((result (kexp `(() (funcall-kont ,expr)))))
     (format t "<- variable: ~a~%" result)
     result))
 
@@ -201,10 +198,11 @@
     ((lam (&rest arglist) &body body) nil)
 
   (format t "-> lambda: ~a ~a ~a~%" lam arglist body)
-  (let ((result `(kexp ()
-		   (funcall-kont (kexp ,arglist
-				   (funcall ,(cps-transform-sequence body)
-					    (get-kont)))))))
+  (let ((result (kexp `(()
+			(funcall-kont
+			 ,(kexp `(,arglist
+				  (funcall ,(cps-transform-sequence body)
+					   (get-kont)))))))))
     (format t "<- lambda: ~a~%" result)
     result))
 
@@ -265,17 +263,17 @@
     result))
 
 
-(defmacro kont ((&rest args) &body body)
+(defun/destructure kont ((&rest args) &body body)
   `(lambda (,@args)
      ,@body))
 
-(defmacro kexp ((&rest args) &body body)
-  (let ((kont-var (gensym)))
+(defun/destructure kexp ((&rest args) &body body)
+  (with-gensyms (kont-var fn-args-var)
     `(lambda (,kont-var ,@args)
-       (macrolet ((get-kont ()
-		    `,',kont-var)
-		  (funcall-kont (&rest fkargs)
-		    `(funcall ,',kont-var ,@fkargs)))
+       (labels ((get-kont ()
+		  ,kont-var)
+		(funcall-kont (&rest ,fn-args-var)
+		  (cl:apply ,kont-var ,fn-args-var)))
 	 ,@body))))
 
 #|
