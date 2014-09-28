@@ -36,9 +36,10 @@
 		     (:file "symbols")
 		     (:file "message-passing")
 		     (:file "tree")
-		     (:file "codewalker")
 		     (:file "gensyms")
-		     (:file "defun")))
+		     (:file "defun")
+		     (:file "codewalker"
+			    :depends-on ("gensyms"))))
 
 		   (:module
 		    environment
