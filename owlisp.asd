@@ -58,6 +58,7 @@
 		    analyzer
 		    :components
 		    ((:file "predicates")
+		     (:file "objects")
 		     (:file "analyzer"
 			    :depends-on ("predicates"
 					 "cps"))
@@ -65,12 +66,16 @@
 			    :depends-on ("analyzer"))
 		     (:file "macroexpand-all"
 			    :depends-on ("predicates"))
+		     (:file "transform"
+			    :depends-on ("predicates" "objects"))
 		     (:file "cps"
-			    :depends-on ("predicates"))
+			    :depends-on ("predicates" "objects"))
 		     (:file "environmentalize"
-			    :depends-on ("predicates"))
-		     (:file "closure")
-		     (:file "parameters"))
+			    :depends-on ("predicates" "objects"))
+		     (:file "closure"
+			    :depends-on ("predicates" "objects"))
+		     (:file "parameters"
+			    :depends-on ("predicates")))
 		    :depends-on ("owlisp"
 				 "helper"
 				 "environment"

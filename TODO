@@ -1,7 +1,8 @@
 TODO notepad
 ============
-- combine steps of environmentalization & cps transformation
-- write unit tests for environmentalization & cps transformation
+- include "walk-...-sequence-..." macros in walker definition
+- create macro for compilation passes (e.g. 1.transform, 2.cps, 3.closure conversion...)
+- create separate struct for continuations?
 - maybe implement optimizer regarding cps form
 - implement C code generator (get rid of stack, since we have cps form etc.)
 - revise C runtime with respect to C now being target instead of LLVM
@@ -14,6 +15,11 @@ TODO notepad
 - implement toolchain for linking etc. within lisp via c-api?
 - build docker image for owlisp
 - make it a lisp2
+
+TODO notepad (deprecated 2014-09-28)
+====================================
+- combine steps of environmentalization & cps transformation
+- write unit tests for environmentalization & cps transformation
 
 TODO notepad (deprecated 2014-08-27)
 ====================================

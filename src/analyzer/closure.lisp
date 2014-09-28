@@ -9,40 +9,12 @@
 (defparameter *referenced-free-variables* '())
 
 
-(defstruct closure code env)
-
-(defgeneric invoke (obj &rest args))
-
-(defmethod invoke ((obj closure) &rest args)
-  (cl:apply (closure-code obj) obj args))
-
-(defmethod invoke ((obj list) &rest args)
-  (cl:apply obj args))
-
-
-(defstruct environment parent symbols)
-
-(defgeneric lookup (env symbol))
-
-(defmethod lookup ((env environment) (symbol symbol))
-  (labels ((lookup-rec (env frameindex)
-	     (if (null env)
-		 (error "unknown symbol ~a" symbol)
-		 (let ((pos (position symbol (environment-symbols env))))
-		   (if pos
-		       (cons frameindex pos)
-		       (lookup-rec (environment-parent env)
-				   (1+ frameindex)))))))
-    (lookup-rec env 0)))
-
-
 (defun walk-closure (expr)
   (walk *closure-conversion-definitions*
 	expr))
 
 (defun walk-closure-sequence (exprs)
-  (mapcar #'(lambda (expr)
-	      (walk-closure expr))
+  (mapcar #'walk-closure
 	  exprs))
 
 (defun walk-closure-sequence-last (exprs)
@@ -79,7 +51,7 @@
 	 (converted-body (let ((*static-symbols* (cons args *static-symbols*)))
 			   (walk-closure-sequence body))))
     (if *referenced-free-variables*
-	(make-closure
+	(make-closure*
 	 :code (let ((closure-var (gensym)))
 		 `(,lam (,closure-var ,@args)
 			,@converted-body))
@@ -110,6 +82,7 @@
   expr)
 
 
+#|
 (defmacro call-closure (closure &rest args)
   ;; TODO: implement separate invoke function
   (let ((closure-var (gensym)))
@@ -123,3 +96,4 @@
     `(list (lambda (,closure-var ,@args)
 	     ,@body)
 	   ,*static-symbols*)))
+|#
