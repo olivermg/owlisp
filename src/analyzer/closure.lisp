@@ -4,82 +4,68 @@
 
 
 (defparameter *local-variables* '())
-(defparameter *closure-conversion-definitions* '())
 (defparameter *static-symbols* '())
 (defparameter *referenced-free-variables* '())
 
 
-(defun walk-closure (expr)
-  (walk *closure-conversion-definitions*
-	expr))
+(with-walker-definitions closure-conversion
 
-(defun walk-closure-sequence (exprs)
-  (mapcar #'walk-closure
-	  exprs))
+  (defwalker-rule *closure-conversion-definitions*
 
-(defun walk-closure-sequence-last (exprs)
-  (reduce #'(lambda (l expr)
-	      (declare (ignore l))
-	      (walk-closure expr))
-	  exprs))
+      #'(lambda (expr)
+	  (variable-p expr))
 
+      (expr nil)
 
-(defwalker-rule *closure-conversion-definitions*
-
-    #'(lambda (expr)
-	(variable-p expr))
-
-  (expr nil)
-
-  (if (position expr *local-variables*)
-      expr
-      (progn
-	(setf *referenced-free-variables*
-	      (cons expr *referenced-free-variables*))
-	`(lookup-symbol ,expr))))
+    (if (position expr *local-variables*)
+	expr
+	(progn
+	  (setf *referenced-free-variables*
+		(cons expr *referenced-free-variables*))
+	  `(lookup-symbol ,expr))))
 
 
-(defwalker-rule *closure-conversion-definitions*
+  (defwalker-rule *closure-conversion-definitions*
 
-    #'(lambda (expr)
-	(lambda-p expr))
+      #'(lambda (expr)
+	  (lambda-p expr))
 
-    ((lam (&rest args) &body body) nil)
+      ((lam (&rest args) &body body) nil)
 
-  (let* ((*local-variables* args)
-	 (*referenced-free-variables* '())
-	 (converted-body (let ((*static-symbols* (cons args *static-symbols*)))
-			   (walk-closure-sequence body))))
-    (if *referenced-free-variables*
-	(make-closure*
-	 :code (let ((closure-var (gensym)))
-		 `(,lam (,closure-var ,@args)
-			,@converted-body))
-	 :env *static-symbols*)
-	`(,lam (,@args)
-	       ,@converted-body))))
-
-
-(defwalker-rule *closure-conversion-definitions*
-
-    #'(lambda (expr)
-	(application-p expr))
-
-    ((closure &rest args) nil)
-
-  `(invoke ,(walk-closure closure)
-	   ,@(walk-closure-sequence args)))
+    (let* ((*local-variables* args)
+	   (*referenced-free-variables* '())
+	   (converted-body (let ((*static-symbols* (cons args *static-symbols*)))
+			     (walk-closure-sequence body))))
+      (if *referenced-free-variables*
+	  (make-closure*
+	   :code (let ((closure-var (gensym)))
+		   `(,lam (,closure-var ,@args)
+			  ,@converted-body))
+	   :env *static-symbols*)
+	  `(,lam (,@args)
+		 ,@converted-body))))
 
 
-(defwalker-rule *closure-conversion-definitions*
+  (defwalker-rule *closure-conversion-definitions*
 
-    #'(lambda (expr)
-	(declare (ignore expr))
-	t)
+      #'(lambda (expr)
+	  (application-p expr))
 
-    (expr nil)
+      ((closure &rest args) nil)
 
-  expr)
+    `(invoke ,(walk-closure closure)
+	     ,@(walk-closure-sequence args)))
+
+
+  (defwalker-rule *closure-conversion-definitions*
+
+      #'(lambda (expr)
+	  (declare (ignore expr))
+	  t)
+
+      (expr nil)
+
+    expr))
 
 
 #|
