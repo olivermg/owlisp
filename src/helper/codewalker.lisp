@@ -1,7 +1,10 @@
 (in-package :owlisp/helper)
 
 (export '(with-walker-definitions
-	  defwalker-rule))
+	  defwalker-rule
+	  walk
+	  walk-sequence
+	  walk-sequence-last))
 
 
 #|
@@ -22,7 +25,7 @@
 (defmacro with-walker-definitions (name &body body)
 
   (let* ((name-upcase (string-upcase name))
-	 (rules-symbol (intern (concatenate 'string "*" name-upcase "-WALKER-RULES*"))))
+	 (rules-symbol (intern (concatenate 'string name-upcase "-WALKER-RULES"))))
 
     `(progn
 

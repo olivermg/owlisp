@@ -1,6 +1,6 @@
 (in-package :owlisp/analyzer)
 
-(export '(walk-closure))
+(export '(do-closure-conversion))
 
 
 (defparameter *local-variables* '())
@@ -8,64 +8,68 @@
 (defparameter *referenced-free-variables* '())
 
 
-(with-walker-definitions closure-conversion
+(defun do-closure-conversion (expr)
 
-  (defwalker-rule *closure-conversion-definitions*
+  (with-walker-definitions closure-conversion
 
-      #'(lambda (expr)
-	  (variable-p expr))
+    (defwalker-rule
 
-      (expr nil)
+	#'(lambda (expr)
+	    (variable-p expr))
 
-    (if (position expr *local-variables*)
-	expr
-	(progn
-	  (setf *referenced-free-variables*
-		(cons expr *referenced-free-variables*))
-	  `(lookup-symbol ,expr))))
+	(expr nil)
 
-
-  (defwalker-rule *closure-conversion-definitions*
-
-      #'(lambda (expr)
-	  (lambda-p expr))
-
-      ((lam (&rest args) &body body) nil)
-
-    (let* ((*local-variables* args)
-	   (*referenced-free-variables* '())
-	   (converted-body (let ((*static-symbols* (cons args *static-symbols*)))
-			     (walk-closure-sequence body))))
-      (if *referenced-free-variables*
-	  (make-closure*
-	   :code (let ((closure-var (gensym)))
-		   `(,lam (,closure-var ,@args)
-			  ,@converted-body))
-	   :env *static-symbols*)
-	  `(,lam (,@args)
-		 ,@converted-body))))
+      (if (position expr *local-variables*)
+	  expr
+	  (progn
+	    (setf *referenced-free-variables*
+		  (cons expr *referenced-free-variables*))
+	    `(lookup-symbol ,expr))))
 
 
-  (defwalker-rule *closure-conversion-definitions*
+    (defwalker-rule
 
-      #'(lambda (expr)
-	  (application-p expr))
+	#'(lambda (expr)
+	    (lambda-p expr))
 
-      ((closure &rest args) nil)
+	((lam (&rest args) &body body) nil)
 
-    `(invoke ,(walk-closure closure)
-	     ,@(walk-closure-sequence args)))
+      (let* ((*local-variables* args)
+	     (*referenced-free-variables* '())
+	     (converted-body (let ((*static-symbols* (cons args *static-symbols*)))
+			       (walk-sequence body))))
+	(if *referenced-free-variables*
+	    (make-closure*
+	     :code (let ((closure-var (gensym)))
+		     `(,lam (,closure-var ,@args)
+			    ,@converted-body))
+	     :env *static-symbols*)
+	    `(,lam (,@args)
+		   ,@converted-body))))
 
 
-  (defwalker-rule *closure-conversion-definitions*
+    (defwalker-rule
 
-      #'(lambda (expr)
-	  (declare (ignore expr))
-	  t)
+	#'(lambda (expr)
+	    (application-p expr))
 
-      (expr nil)
+	((closure &rest args) nil)
 
-    expr))
+      `(invoke ,(walk closure)
+	       ,@(walk-sequence args)))
+
+
+    (defwalker-rule
+
+	#'(lambda (expr)
+	    (declare (ignore expr))
+	    t)
+
+	(expr nil)
+
+      expr)
+
+    (walk expr)))
 
 
 #|
