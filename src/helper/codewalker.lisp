@@ -23,15 +23,15 @@
 (defmacro with-walker-definitions (name &body body)
 
   (macrolet ((defwalker-rule (definitions testfn pattern &body transformation)
-		 (with-gensyms (form-arg userdata-arg)
-		   `(setf ,definitions
-			  (append ,definitions
-				  (list (cons ,testfn
-					      #'(lambda (,form-arg ,userdata-arg)
-						  (destructuring-bind
-							,pattern
-						      (list ,form-arg ,userdata-arg)
-						    ,@transformation)))))))))
+	       (with-gensyms (form-arg userdata-arg)
+		 `(setf ,definitions
+			(append ,definitions
+				(list (cons ,testfn
+					    #'(lambda (,form-arg ,userdata-arg)
+						(destructuring-bind
+						      ,pattern
+						    (list ,form-arg ,userdata-arg)
+						  ,@transformation)))))))))
 
     (let* ((name-upcase (string-upcase name))
 	   (rules-symbol (intern (concatenate 'string "*" name-upcase "-WALKER-RULES*")))
@@ -43,19 +43,19 @@
 
 	 (defparameter ,rules-symbol '())
 
-	 (defun ,walk-symbol (expr)
-	   (walk ,rules-symbol
-		 expr))
+	 (labels ((,walk-symbol (expr)
+		    (walk ,rules-symbol
+			  expr))
 
-	 (defun ,walk-sq-symbol (expr-list)
-	   (mapcar #'(lambda (expr)
-		       (,walk-symbol expr))
-		   expr-list))
+		  (,walk-sq-symbol (expr-list)
+		    (mapcar #'(lambda (expr)
+				(,walk-symbol expr))
+			    expr-list))
 
-	 (defun ,walk-sq-symbol-last (expr-list)
-	   (reduce #'(lambda (l expr)
-		       (declare (ignore l))
-		       (,walk-symbol expr))
-		   expr-list))
+		  (,walk-sq-symbol-last (expr-list)
+		    (reduce #'(lambda (l expr)
+				(declare (ignore l))
+				(,walk-symbol expr))
+			    expr-list)))
 
-	 ,@body))))
+	   ,@body)))))
