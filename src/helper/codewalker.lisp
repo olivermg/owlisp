@@ -1,7 +1,7 @@
 (in-package :owlisp/helper)
 
-(export '(with-walker-definitions
-	  defwalker-rule
+(export '(make-walker
+	  defrule
 	  walk
 	  walk-sequence
 	  walk-sequence-last))
@@ -13,6 +13,7 @@
 	  'keyword))
 |#
 
+#|
 (defun walk-internal (definitions expr &optional (userdata '()))
   (format t "walk-internal (in) : ~a ~a~%" expr userdata)
   (let ((result (loop
@@ -21,40 +22,41 @@
 			  (return (funcall transformfn expr userdata))))))
     (format t "walk-internal (out): ~a~%" result)
     result))
+|#
 
-(defmacro with-walker-definitions (name &body body)
+(defmacro make-walker (&body body)
 
-  (let* ((name-upcase (string-upcase name))
-	 (rules-symbol (intern (concatenate 'string name-upcase "-WALKER-RULES"))))
+  (with-gensyms (rules-var)
 
-    `(progn
+    `(let ((,rules-var '()))
 
-       (let ((,rules-symbol '()))
+       (macrolet ((defrule (testfn pattern &body transformation)
+		    (with-gensyms (form-arg userdata-arg)
+		      `(setf ,',rules-var
+			     (append ,',rules-var
+				     (list (cons ,testfn
+						 #'(lambda (,form-arg ,userdata-arg)
+						     (destructuring-bind
+							   ,pattern
+							 (list ,form-arg ,userdata-arg)
+						       ,@transformation)))))))))
+	 (labels ((walk (expr &optional (userdata '()))
+		    (loop
+		       for (testfn . transformfn) in ,rules-var
+		       do (if (funcall testfn expr)
+			      (return (funcall transformfn expr userdata)))))
 
-	 (macrolet ((defwalker-rule (testfn pattern &body transformation)
-			(with-gensyms (form-arg userdata-arg)
-			  `(setf ,',rules-symbol
-				 (append ,',rules-symbol
-					 (list (cons ,testfn
-						     #'(lambda (,form-arg ,userdata-arg)
-							 (destructuring-bind
-							       ,pattern
-							     (list ,form-arg ,userdata-arg)
-							   ,@transformation)))))))))
+		  (walk-sequence (expr-list)
+		    (mapcar #'(lambda (expr)
+				(walk expr))
+			    expr-list))
 
-	   (labels ((walk (expr)
-		      (walk-internal ,rules-symbol
-				     expr))
+		  (walk-sequence-last (expr-list)
+		    (reduce #'(lambda (l expr)
+				(declare (ignore l))
+				(walk expr))
+			    expr-list)))
+	   ,@body
 
-		    (walk-sequence (expr-list)
-		      (mapcar #'(lambda (expr)
-				  (walk expr))
-			      expr-list))
-
-		    (walk-sequence-last (expr-list)
-		      (reduce #'(lambda (l expr)
-				  (declare (ignore l))
-				  (walk expr))
-			      expr-list)))
-
-	     ,@body))))))
+	   (lambda (expr)
+	     (walk expr)))))))

@@ -3,73 +3,67 @@
 (export '())
 
 
-(defparameter *transform-rules* '())
+(defparameter *transform-walker*
+
+  (make-walker
+
+    (declare (ignore #'walk-sequence-last))
+
+    (defrule
+
+	#'self-evaluating-p
+
+      (expr nil)
+
+      (make-constant* :value expr))
 
 
-(defun walk-transform (expr)
-  (walk *transform-rules*
-	expr))
+    (defrule
 
-(defun walk-transform-sequence (exprs)
-  (mapcar #'walk-transform
-	  exprs))
+	#'quote-p
 
+      (expr nil)
 
-(defwalker-rule *transform-rules*
-
-    #'self-evaluating-p
-
-    (expr nil)
-
-  (make-constant* :value expr))
+      (make-symbol* :name expr))
 
 
-(defwalker-rule *transform-rules*
+    (defrule
 
-    #'quote-p
+	#'variable-p
 
-    (expr nil)
+      (expr nil)
 
-  (make-symbol* :name expr))
-
-
-(defwalker-rule *transform-rules*
-
-    #'variable-p
-
-    (expr nil)
-
-  (make-reference* :symbol expr))
+      (make-reference* :symbol expr))
 
 
-(defwalker-rule *transform-rules*
+    (defrule
 
-    #'lambda-p
+	#'lambda-p
 
-    ((lam (&rest arglist) &body body) nil)
+      ((lam (&rest arglist) &body body) nil)
 
-  (let ((transformed-body (walk-transform-sequence body)))
-    (make-abstraction* :code `#'(,lam (,@arglist) ,@transformed-body))))
-
-
-(defwalker-rule *transform-rules*
-
-    #'application-p
-
-    ((fn &rest args) nil)
-
-  (let ((transformed-fn (walk-transform fn))
-	(transformed-args (walk-transform-sequence args)))
-    (make-application* :fn transformed-fn
-		       :args transformed-args)))
+      (let ((transformed-body (walk-sequence body)))
+	(make-abstraction* :code `#'(,lam (,@arglist) ,@transformed-body))))
 
 
-(defwalker-rule *transform-rules*
+    (defrule
 
-    #'(lambda (expr)
-	(declare (ignore expr))
-	t)
+	#'application-p
 
-    (expr nil)
+      ((fn &rest args) nil)
 
-  (error "unknown expression: ~a" expr))
+      (let ((transformed-fn (walk fn))
+	    (transformed-args (walk-sequence args)))
+	(make-application* :fn transformed-fn
+			   :args transformed-args)))
+
+
+    (defrule
+
+	#'(lambda (expr)
+	    (declare (ignore expr))
+	    t)
+
+      (expr nil)
+
+      (error "unknown expression: ~a" expr))))
