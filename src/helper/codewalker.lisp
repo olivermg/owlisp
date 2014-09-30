@@ -40,6 +40,7 @@
 							   ,pattern
 							 (list ,form-arg ,userdata-arg)
 						       ,@transformation)))))))))
+
 	 (labels ((walk (expr &optional (userdata '()))
 		    (loop
 		       for (testfn . transformfn) in ,rules-var
@@ -56,6 +57,7 @@
 				(declare (ignore l))
 				(walk expr))
 			    expr-list)))
+
 	   ,@body
 
 	   (lambda (expr)
