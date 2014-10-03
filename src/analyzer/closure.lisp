@@ -1,18 +1,18 @@
 (in-package :owlisp/analyzer)
 
-(export '(do-closure-conversion))
-
+(export '())
 
 (defparameter *local-variables* '())
 (defparameter *static-symbols* '())
 (defparameter *referenced-free-variables* '())
 
+(defparameter *closure-walker*
 
-(defun do-closure-conversion (expr)
+  (make-walker
 
-  (with-walker-definitions closure-conversion
+    (declare (ignore #'walk-sequence-last))
 
-    (defwalker-rule
+    (defrule
 
 	#'(lambda (expr)
 	    (variable-p expr))
@@ -27,7 +27,7 @@
 	    `(lookup-symbol ,expr))))
 
 
-    (defwalker-rule
+    (defrule
 
 	#'(lambda (expr)
 	    (lambda-p expr))
@@ -48,7 +48,7 @@
 		   ,@converted-body))))
 
 
-    (defwalker-rule
+    (defrule
 
 	#'(lambda (expr)
 	    (application-p expr))
@@ -59,7 +59,7 @@
 	       ,@(walk-sequence args)))
 
 
-    (defwalker-rule
+    (defrule
 
 	#'(lambda (expr)
 	    (declare (ignore expr))
@@ -67,9 +67,7 @@
 
 	(expr nil)
 
-      expr)
-
-    (walk expr)))
+      expr)))
 
 
 #|

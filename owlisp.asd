@@ -37,6 +37,7 @@
 		     (:file "message-passing")
 		     (:file "tree")
 		     (:file "gensyms")
+		     (:file "let")
 		     (:file "defun")
 		     (:file "codewalker"
 			    :depends-on ("gensyms"))))

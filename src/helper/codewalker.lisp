@@ -60,5 +60,5 @@
 
 	   ,@body
 
-	   (lambda (expr)
-	     (walk expr)))))))
+	   #'(lambda (expr)
+	       (walk expr)))))))
