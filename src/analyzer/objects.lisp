@@ -12,10 +12,10 @@
 (defstruct reference* symbol)
 
 
-(defstruct abstraction* code)
+(defstruct abstraction* args body)
 
 
-(defstruct closure* code env)
+(defstruct closure* args body env)
 
 
 (defstruct application* fn args)
@@ -36,7 +36,7 @@
 		 (let ((pos (position symbol (environment*-symbols env))))
 		   (if pos
 		       (cons frameindex pos)
-		       (lookup-rec (environment-parent* env)
+		       (lookup-rec (environment*-parent env)
 				   (1+ frameindex)))))))
     (lookup-rec env 0)))
 

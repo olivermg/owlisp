@@ -13,7 +13,7 @@
 
 	#'self-evaluating-p
 
-      (expr nil)
+	(expr nil)
 
       (make-constant* :value expr))
 
@@ -22,7 +22,7 @@
 
 	#'quote-p
 
-      (expr nil)
+	(expr nil)
 
       (make-symbol* :name expr))
 
@@ -31,7 +31,7 @@
 
 	#'variable-p
 
-      (expr nil)
+	(expr nil)
 
       (make-reference* :symbol expr))
 
@@ -40,17 +40,19 @@
 
 	#'lambda-p
 
-      ((lam (&rest arglist) &body body) nil)
+	((lam (&rest arglist) &body body) nil)
 
+      (declare (ignore lam))
       (let ((transformed-body (walk-sequence body)))
-	(make-abstraction* :code `#'(,lam (,@arglist) ,@transformed-body))))
+	(make-abstraction* :args arglist
+			   :body transformed-body)))
 
 
     (defrule
 
 	#'application-p
 
-      ((fn &rest args) nil)
+	((fn &rest args) nil)
 
       (let ((transformed-fn (walk fn))
 	    (transformed-args (walk-sequence args)))
@@ -64,6 +66,6 @@
 	    (declare (ignore expr))
 	    t)
 
-      (expr nil)
+	(expr nil)
 
       (error "unknown expression: ~a" expr))))

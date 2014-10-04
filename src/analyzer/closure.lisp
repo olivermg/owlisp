@@ -6,6 +6,9 @@
 (defparameter *static-symbols* '())
 (defparameter *referenced-free-variables* '())
 
+(defun is-local-variable (var)
+  (position var *local-variables*))
+
 (defparameter *closure-walker*
 
   (make-walker
@@ -14,44 +17,42 @@
 
     (defrule
 
-	#'(lambda (expr)
-	    (variable-p expr))
+	#'reference*-p
 
-	(expr nil)
+	(obj nil)
 
-      (if (position expr *local-variables*)
-	  expr
+      (if (is-local-variable obj)
+	  obj
 	  (progn
 	    (setf *referenced-free-variables*
-		  (cons expr *referenced-free-variables*))
-	    `(lookup-symbol ,expr))))
+		  (cons obj *referenced-free-variables*))
+	    `(lookup-symbol ,obj))))
 
 
     (defrule
 
-	#'(lambda (expr)
-	    (lambda-p expr))
+	#'abstraction*-p
 
-	((lam (&rest args) &body body) nil)
+	(obj nil)
 
-      (let* ((*local-variables* args)
-	     (*referenced-free-variables* '())
-	     (converted-body (let ((*static-symbols* (cons args *static-symbols*)))
-			       (walk-sequence body))))
-	(if *referenced-free-variables*
-	    (make-closure*
-	     :code (let ((closure-var (gensym)))
-		     `(,lam (,closure-var ,@args)
-			    ,@converted-body))
-	     :env *static-symbols*)
-	    `(,lam (,@args)
-		   ,@converted-body))))
+      (let ((args (abstraction*-args obj))
+	    (body (abstraction*-body obj)))
+	(let* ((*local-variables* args)
+	       (*referenced-free-variables* '())
+	       (converted-body (let ((*static-symbols* (cons args *static-symbols*)))
+				 (walk-sequence body))))
+	  (if *referenced-free-variables*
+	      (with-gensyms (closure-var)
+		(make-closure*
+		 :args (cons closure-var args)
+		 :body converted-body
+		 :env *static-symbols*))
+	      obj))))
 
 
     (defrule
 
-	#'(lambda (expr)
-	    (application-p expr))
+	#'application*-p
 
 	((closure &rest args) nil)
 
