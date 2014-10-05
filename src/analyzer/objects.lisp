@@ -1,6 +1,7 @@
 (in-package :owlisp/analyzer)
 
-(export '())
+(export '(constant*-p
+	  constant*-value))
 
 
 (defstruct constant* value)

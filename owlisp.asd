@@ -78,6 +78,7 @@
 			    :depends-on ("predicates" "objects"))
 		     (:file "parameters"
 			    :depends-on ("predicates")))
+
 		    :depends-on ("owlisp"
 				 "helper"
 				 "environment"
@@ -113,7 +114,13 @@
 		     (:file "constant"
 			    :depends-on ("globals"))
 		     (:file "abstraction"
-			    :depends-on ("globals")))))
+			    :depends-on ("globals"))
+		     (:file "dumper")
+		     (:file "walker"
+			    :depends-on ("dumper")))
+
+		    :depends-on ("helper"
+				 "analyzer")))
 
 		  :depends-on ("packages"))))
 
