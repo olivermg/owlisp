@@ -21,7 +21,7 @@
 
 	(obj nil)
 
-      (if (is-local-variable obj)
+      (if (is-local-variable (reference*-symbol obj))
 	  obj
 	  (progn
 	    (setf *referenced-free-variables*
@@ -47,17 +47,19 @@
 		 :args (cons closure-var args)
 		 :body converted-body
 		 :env *static-symbols*))
-	      obj))))
+	      (make-abstraction*
+	       :args args
+	       :body converted-body)))))
 
 
     (defrule
 
 	#'application*-p
 
-	((closure &rest args) nil)
+	(obj nil)
 
-      `(invoke ,(walk closure)
-	       ,@(walk-sequence args)))
+      `(invoke ,(walk (application*-fn obj))
+	       ,@(walk-sequence (application*-args obj))))
 
 
     (defrule
