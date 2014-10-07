@@ -1,7 +1,21 @@
 (in-package :owlisp/analyzer)
 
 (export '(constant*-p
-	  constant*-value))
+	  constant*-value
+	  symbol*-p
+	  symbol*-name
+	  reference*-p
+	  reference*-symbol
+	  abstraction*-p
+	  abstraction*-args
+	  abstraction*-body
+	  closure*-p
+	  closure*-args
+	  closure*-body
+	  closure*-env
+	  application*-p
+	  application*-fn
+	  application*-args))
 
 
 (defstruct constant* value)
@@ -50,4 +64,4 @@
   (cl:apply obj args))
 
 (defmethod invoke ((obj closure*) &rest args)
-  (cl:apply (closure*-code obj) obj args))
+  (cl:apply (closure*-body obj) obj args)) ; FIXME
