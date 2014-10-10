@@ -1,12 +1,22 @@
 (in-package #:owlisp/c)
 
 (export '(with-dumper
+	  ;init-dumper
+	  ;finish-dumper
 	  dump-reference
 	  dump-constant
 	  dump-fndefinition-start
 	  dump-fndefinition-end
 	  dump-fndefinition
 	  dump-application))
+
+
+#|
+(defparameter *varname-index* 0)
+(defparameter *procedurename-index* 0)
+(defparameter *buffers* '())
+(defparameter *current-buffer* '())
+|#
 
 
 (defmacro with-dumper (&body body)
@@ -22,6 +32,22 @@
      (apply #'concatenate
 	    'string
 	    *buffers*)))
+
+#|
+(defun init-dumper ()
+  (setf *varname-index* 0)
+  (setf *procedurename-index* 0)
+  (setf *buffers* '())
+  (setf *current-buffer* '())
+  (new-buffer)
+  (dump-fndefinition-start "main"))
+
+(defun finish-dumper ()
+  (dump-fndefinition-end (dump-constant 0)) ; TODO: meaningful return code
+  (apply #'concatenate
+	 'string
+	 *buffers*))
+|#
 
 
 (defun dump (formatstr &rest args)
@@ -55,9 +81,9 @@
    (format nil "PROC~d" (incf *procedurename-index*))))
 
 
-(defun dump-reference (frameindex varindex)
+(defun dump-reference (symbol)
   (let ((varname (next-varname)))
-    (dump "int ~a = lookup( ~a, ~a );~%" varname frameindex varindex)
+    (dump "int ~a = lookup( ~a );~%" varname symbol)
     varname))
 
 (defun dump-constant (value)
@@ -65,7 +91,7 @@
     (dump "int ~a = ~a;~%" varname value)
     varname))
 
-(defun dump-fndefinition-start (args &optional (procname (next-procedurename)))
+(defun dump-fndefinition-start (&optional (procname (next-procedurename)))
   (new-buffer)
   (dump "int ~a() {~%" procname)
   procname)
