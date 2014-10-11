@@ -30,7 +30,7 @@
 (defstruct abstraction* args body)
 
 
-(defstruct closure* args body env)
+(defstruct closure* args body env) ; TODO: make passed closure a separate field instead of assuming it's the first arg
 
 
 (defstruct application* fn args)
