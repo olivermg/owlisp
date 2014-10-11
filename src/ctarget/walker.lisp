@@ -1,9 +1,9 @@
 (in-package :owlisp/c)
 
-(export '(*dumper-walker*))
+(export '(do-dump))
 
 
-(defparameter *private-dumper-walker*
+(defparameter *dumper-walker*
 
   (make-walker
 
@@ -45,8 +45,9 @@
       (dump-application (application*-fn obj)
 			(application*-args obj)))))
 
-(defparameter *dumper-walker*
-  #'(lambda (expr)
-      (with-dumper
-	(funcall *private-dumper-walker*
-		 expr))))
+
+(defun do-dump (expr)
+  (funcall #'(lambda ()
+	       (with-dumper
+		 (funcall *dumper-walker*
+			  expr)))))

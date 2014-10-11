@@ -43,15 +43,6 @@
 			    :depends-on ("gensyms"))))
 
 		   (:module
-		    environment
-		    :components
-		    ((:file "environment")
-		     (:file "declarative")
-		     (:file "binding"))
-		    :depends-on ("owlisp"
-				 "helper"))
-
-		   (:module
 		    environment-ng
 		    :components
 		    ((:file "compiletime")))
@@ -61,48 +52,21 @@
 		    :components
 		    ((:file "predicates")
 		     (:file "objects")
-		     (:file "analyzer"
-			    :depends-on ("predicates"
-					 "cps"))
-		     (:file "interpreter"
-			    :depends-on ("analyzer"))
+		     (:file "applier")
+		     #|
 		     (:file "macroexpand-all"
 			    :depends-on ("predicates"))
+		     |#
 		     (:file "transform"
 			    :depends-on ("predicates" "objects"))
+		     #|
 		     (:file "cps"
 			    :depends-on ("predicates" "objects"))
-		     (:file "environmentalize"
-			    :depends-on ("predicates" "objects"))
+		     |#
 		     (:file "closure"
 			    :depends-on ("predicates" "objects"))
 		     (:file "parameters"
 			    :depends-on ("predicates")))
-
-		    :depends-on ("owlisp"
-				 "helper"
-				 "environment"
-				 "llvm"))
-
-		   (:module
-		    llvm
-		    :components
-		    ((:file "llvm"
-			    :depends-on ("globals"
-					 "runtime"
-					 "cffi"))
-		     (:file "runtime"
-			    :depends-on ("globals"))
-		     (:file "globals")
-
-		     (:module
-		      cffi
-		      :components
-		      ((:file "llvm_api_high"
-			      :depends-on ("llvm_api_low"))
-		       (:file "llvm_api_low"
-			      :depends-on ("loader"))
-		       (:file "loader"))))
 
 		    :depends-on ("owlisp"
 				 "helper"))

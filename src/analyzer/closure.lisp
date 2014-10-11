@@ -1,6 +1,7 @@
 (in-package :owlisp/analyzer)
 
-(export '())
+(export '(do-closure-conversion))
+
 
 (defparameter *local-variables* '())
 (defparameter *static-symbols* '())
@@ -16,11 +17,8 @@
     (declare (ignore #'walk-sequence-last))
 
     (defrule
-
 	#'reference*-p
-
 	(obj nil)
-
       (if (is-local-variable (reference*-symbol obj))
 	  obj
 	  (progn
@@ -30,11 +28,8 @@
 
 
     (defrule
-
 	#'abstraction*-p
-
 	(obj nil)
-
       (let ((args (abstraction*-args obj))
 	    (body (abstraction*-body obj)))
 	(let* ((*local-variables* args)
@@ -53,23 +48,17 @@
 
 
     (defrule
-
 	#'application*-p
-
 	(obj nil)
-
       `(invoke ,(walk (application*-fn obj))
 	       ,@(walk-sequence (application*-args obj))))
 
 
     (defrule
-
 	#'(lambda (expr)
 	    (declare (ignore expr))
 	    t)
-
 	(expr nil)
-
       expr)))
 
 
@@ -88,3 +77,7 @@
 	     ,@body)
 	   ,*static-symbols*)))
 |#
+
+(defun do-closure-conversion (expr)
+  (funcall *closure-walker*
+	   expr))
