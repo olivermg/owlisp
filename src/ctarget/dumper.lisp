@@ -26,7 +26,7 @@
 	  (*current-buffer* '()))
      (declare (special *varname-index* *procedurename-index* *buffers* *current-buffer*))
      (new-buffer)
-     (dump-fndefinition ,@body "main")
+     (dump-fndefinition '() ,@body "main")
      (apply #'concatenate
 	    'string
 	    *buffers*)))
