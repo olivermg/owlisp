@@ -7,7 +7,7 @@
 
   (make-walker
 
-    (declare (ignore #'walk-sequence #'walk-sequence-last))
+    (declare (ignore #'walk-sequence))
 
     (defrule
 	#'constant*-p
@@ -28,16 +28,16 @@
     (defrule
 	#'abstraction*-p
 	(obj nil)
-      (dump-fndefinition-start (abstraction*-args obj))
-      (dump-fndefinition (abstraction*-body obj))
-      (dump-fndefinition-end 0))	; TODO: auto-return last value
+      (dump-fndefinition (abstraction*-args obj)
+			 (walk-sequence-last
+			  (abstraction*-body obj)))) ; TODO: auto-return last value
 
     (defrule
 	#'closure*-p
 	(obj nil)
-      (dump-fndefinition-start (abstraction*-args obj)) ; TODO: make use of lexical environment
-      (dump-fndefinition (abstraction*-body obj))
-      (dump-fndefinition-end 0))	; TODO: auto-return last value
+      (dump-fndefinition (abstraction*-args obj)
+			 (walk-sequence-last
+			  (abstraction*-body obj)))) ; TODO: auto-return last value
 
     (defrule
 	#'application*-p

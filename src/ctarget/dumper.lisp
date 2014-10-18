@@ -26,9 +26,7 @@
 	  (*current-buffer* '()))
      (declare (special *varname-index* *procedurename-index* *buffers* *current-buffer*))
      (new-buffer)
-     (dump-fndefinition-start "main")
-     ,@body
-     (dump-fndefinition-end (dump-constant 0))
+     (dump-fndefinition ,@body "main")
      (apply #'concatenate
 	    'string
 	    *buffers*)))
@@ -91,6 +89,7 @@
     (dump "int ~a = ~a;~%" varname value)
     varname))
 
+#|
 (defun dump-fndefinition-start (&optional (procname (next-procedurename)))
   (new-buffer)
   (dump "int ~a() {~%" procname)
@@ -100,10 +99,11 @@
   (dump "return ~a;~%}~%" result)
   (pop-buffer)
   nil)
+|#
 
-(defun dump-fndefinition (body &optional (procname (next-procedurename)))
+(defun dump-fndefinition (args body &optional (procname (next-procedurename)))
   (new-buffer)
-  (dump "int ~a() {~%~a}~%" procname body)
+  (dump "int ~a(~a) {~%~a}~%" procname args body)
   (pop-buffer)
   procname)
 
