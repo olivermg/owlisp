@@ -58,70 +58,77 @@
 
     (declare (ignore))
 
-    (defrule
-	#'constant*-p
-	(obj nil)
-      (let ((varname (next-varname)))
-	(express "int ~a = ~a;~%"
-		 varname
-		 (constant*-value obj))))
+    (let ((*previous-var* ""))
+      (declare (special *previous-var*))
 
-    (defrule
-	#'symbol*-p
-	(obj nil)
-      (declare (ignore obj))
-      (error "not implemented yet"))
+      (defrule
+	  #'constant*-p
+	  (obj nil)
+	(let ((varname (next-varname)))
+	  (setf *previous-var* varname)
+	  (express "int ~a = ~a;~%"
+		   varname
+		   (constant*-value obj))))
 
-    (defrule
-	#'reference*-p
-	(obj nil)
-      (let ((varname (next-varname)))
-	(express "int ~a = lookup( ~a );~%"
-		 varname
-		 (reference*-symbol obj))))
+      (defrule
+	  #'symbol*-p
+	  (obj nil)
+	(declare (ignore obj))
+	(error "not implemented yet"))
 
-    (defrule
-	#'abstraction*-p
-	(obj nil)
-      (new-buffer)
-      (let ((procname (next-procedurename))
-	    (walked-body (apply #'concatenate
-				'string
-				(walk-sequence (abstraction*-body obj)))))
-	(dump "int ~a(~a) {~%~a}~%~%"
-	      procname
-	      (dump-formal-args (abstraction*-args obj))
-	      walked-body)
-	(pop-buffer)
-	(express "int (~a_ref*) = ~a;~%" procname procname)))
+      (defrule
+	  #'reference*-p
+	  (obj nil)
+	(let ((varname (next-varname)))
+	  (setf *previous-var* varname)
+	  (express "int ~a = lookup( ~a );~%"
+		   varname
+		   (reference*-symbol obj))))
 
-    (defrule
-	#'closure*-p
-	(obj nil)
-      (new-buffer)
-      (let ((procname (next-procedurename))
-	    (walked-body (walk-sequence (abstraction*-body obj))))
-	(pop-buffer)
-	`(dump "int ~a(~a) {~%~a}~%"
-	       ,procname
-	       ,(abstraction*-args obj)
-	       ,walked-body)))		; TODO: auto-return last value
+      (defrule
+	  #'abstraction*-p
+	  (obj nil)
+	(new-buffer)
+	(let* ((procname (next-procedurename))
+	       (walked-body-list (walk-sequence (abstraction*-body obj)))
+	       (walked-body (apply #'concatenate
+				   'string
+				   walked-body-list)))
+	  (dump "int ~a(~a) {~%~areturn ~a;~%}~%~%"
+		procname
+		(dump-formal-args (abstraction*-args obj))
+		walked-body
+		*previous-var*)
+	  (pop-buffer)
+	  (express "int (~a_ref*) = ~a;~%" procname procname)))
 
-    (defrule
-	#'application*-p
-	(obj nil)
-      (let ((resultname (next-varname)))
-	`(dump "int ~a = invoke( \"~a\", ~{~a~^,~} );~%"
-	       ,resultname
-	       ,(application*-fn obj)
-	       ,(application*-args obj))))
+      (defrule
+	  #'closure*-p
+	  (obj nil)
+	(new-buffer)
+	(let ((procname (next-procedurename))
+	      (walked-body (walk-sequence (abstraction*-body obj))))
+	  (pop-buffer)
+	  `(dump "int ~a(~a) {~%~a}~%"
+		 ,procname
+		 ,(abstraction*-args obj)
+		 ,walked-body)))	; TODO: auto-return last value
 
-    (defrule
-	#'(lambda (obj)
-	    (declare (ignore obj))
-	    t)
-	(obj nil)
-      (error "dumper-walker: unknown object ~a" obj))))
+      (defrule
+	  #'application*-p
+	  (obj nil)
+	(let ((resultname (next-varname)))
+	  `(dump "int ~a = invoke( \"~a\", ~{~a~^,~} );~%"
+		 ,resultname
+		 ,(application*-fn obj)
+		 ,(application*-args obj))))
+
+      (defrule
+	  #'(lambda (obj)
+	      (declare (ignore obj))
+	      t)
+	  (obj nil)
+	(error "dumper-walker: unknown object ~a" obj)))))
 
 
 (defun do-dump (expr)
