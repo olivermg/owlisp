@@ -10,10 +10,13 @@
 	  (*current-buffer* '()))
      (declare (special *varname-index* *procedurename-index* *buffers* *current-buffer*))
      (new-buffer)
-     (dump-fndefinition '() ,@body "main")
+     (dump "int main() {~%~a}~%~%" (express "~a" (progn ,@body)))
      (apply #'concatenate
 	    'string
 	    *buffers*)))
+
+(defun express (formatstr &rest args)
+  (apply #'format nil formatstr args))
 
 (defun dump (formatstr &rest args)
   (declare (special *current-buffer*))
@@ -55,7 +58,10 @@
     (defrule
 	#'constant*-p
 	(obj nil)
-      (dump-constant (constant*-value obj)))
+      (let ((varname (next-varname)))
+	(express "int ~a = ~a;~%"
+		 varname
+		 (constant*-value obj))))
 
     (defrule
 	#'symbol*-p
@@ -67,33 +73,34 @@
 	#'reference*-p
 	(obj nil)
       (let ((varname (next-varname)))
-	`(dump "int ~a = lookup( ~a )~%"
-	       ,varname
-	       ,(reference*-symbol obj))))
+	(express "int ~a = lookup( ~a );~%"
+		 varname
+		 (reference*-symbol obj))))
 
     (defrule
 	#'abstraction*-p
 	(obj nil)
-      (let ((procname (next-procedurename)))
-	`(progn
-	   (new-buffer)
-	   (dump "int ~a(~a) {~%~a}~%"
-		 ,procname
-		 ,(abstraction*-args obj)
-		 ,(walk-sequence (abstraction*-body obj)))
-	   (pop-buffer)))) ; TODO: auto-return last value
+      (new-buffer)
+      (let ((procname (next-procedurename))
+	    (walked-body (walk-sequence (abstraction*-body obj))))
+	(dump "int ~a(~a) {~%~a}~%~%"
+	      procname
+	      (abstraction*-args obj)
+	      walked-body)
+	(pop-buffer)
+	(express "int (~a_ref*) = ~a;~%" procname procname)))
 
     (defrule
 	#'closure*-p
 	(obj nil)
-      (let ((procname (next-procedurename)))
-	`(progn
-	   (new-buffer)
-	   (dump "int ~a(~a) {~%~a}~%"
-		 ,procname
-		 ,(abstraction*-args obj)
-		 ,(walk-sequence (abstraction*-body obj)))
-	   (pop-buffer)))) ; TODO: auto-return last value
+      (new-buffer)
+      (let ((procname (next-procedurename))
+	    (walked-body (walk-sequence (abstraction*-body obj))))
+	(pop-buffer)
+	`(dump "int ~a(~a) {~%~a}~%"
+	       ,procname
+	       ,(abstraction*-args obj)
+	       ,walked-body)))		; TODO: auto-return last value
 
     (defrule
 	#'application*-p
