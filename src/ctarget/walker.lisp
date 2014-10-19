@@ -22,6 +22,9 @@
   (declare (special *current-buffer*))
   (apply #'format (car *current-buffer*) formatstr args))
 
+(defun dump-formal-args (args)
+  (format nil "~{int ~a~^, ~}" args))
+
 (defun new-buffer ()
   (declare (special *buffers* *current-buffer*))
   (let ((newbuf (make-array '(0) :element-type 'base-char :fill-pointer 0 :adjustable t)))
@@ -82,10 +85,12 @@
 	(obj nil)
       (new-buffer)
       (let ((procname (next-procedurename))
-	    (walked-body (walk-sequence (abstraction*-body obj))))
+	    (walked-body (apply #'concatenate
+				'string
+				(walk-sequence (abstraction*-body obj)))))
 	(dump "int ~a(~a) {~%~a}~%~%"
 	      procname
-	      (abstraction*-args obj)
+	      (dump-formal-args (abstraction*-args obj))
 	      walked-body)
 	(pop-buffer)
 	(express "int (~a_ref*) = ~a;~%" procname procname)))
