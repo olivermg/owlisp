@@ -10,7 +10,8 @@
 	  (*current-buffer* '()))
      (declare (special *varname-index* *procedurename-index* *buffers* *current-buffer*))
      (new-buffer)
-     (dump "int main() {~%~a}~%~%" (express "~a" (progn ,@body)))
+     (dump "int main() {~%~areturn 0;~%}~%~%"
+	   (express "~a" (progn ,@body)))
      (apply #'concatenate
 	    'string
 	    *buffers*)))
@@ -22,8 +23,11 @@
   (declare (special *current-buffer*))
   (apply #'format (car *current-buffer*) formatstr args))
 
-(defun dump-formal-args (args)
+(defun formal-args (args)
   (format nil "~{int ~a~^, ~}" args))
+
+(defun formal-prototype (args)
+  (format nil "~{int~*~^, ~}" args))
 
 (defun new-buffer ()
   (declare (special *buffers* *current-buffer*))
@@ -81,7 +85,7 @@
 	  (obj nil)
 	(let ((varname (next-varname)))
 	  (setf *previous-var* varname)
-	  (express "int ~a = lookup( ~a );~%"
+	  (express "int ~a = lookup(\"~a\");~%"
 		   varname
 		   (reference*-symbol obj))))
 
@@ -90,17 +94,22 @@
 	  (obj nil)
 	(new-buffer)
 	(let* ((procname (next-procedurename))
+	       (procname-ptr (format nil "~a_P" procname))
 	       (walked-body-list (walk-sequence (abstraction*-body obj)))
 	       (walked-body (apply #'concatenate
 				   'string
 				   walked-body-list)))
 	  (dump "int ~a(~a) {~%~areturn ~a;~%}~%~%"
 		procname
-		(dump-formal-args (abstraction*-args obj))
+		(formal-args (abstraction*-args obj))
 		walked-body
 		*previous-var*)
 	  (pop-buffer)
-	  (express "int (~a_ref*) = ~a;~%" procname procname)))
+	  (setf *previous-var* procname-ptr)
+	  (express "int (*~a)(~a) = &~a;~%"
+		   procname-ptr
+		   (formal-prototype (abstraction*-args obj))
+		   procname)))
 
       (defrule
 	  #'closure*-p
@@ -118,10 +127,11 @@
 	  #'application*-p
 	  (obj nil)
 	(let ((resultname (next-varname)))
-	  `(dump "int ~a = invoke( \"~a\", ~{~a~^,~} );~%"
-		 ,resultname
-		 ,(application*-fn obj)
-		 ,(application*-args obj))))
+	  (setf *previous-var* resultname)
+	  (express "int ~a = invoke(lookup_fn(\"~a\"), ~{~a~^, ~});~%"
+		   resultname
+		   (application*-fn obj)
+		   (application*-args obj))))
 
       (defrule
 	  #'(lambda (obj)
