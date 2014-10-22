@@ -126,11 +126,14 @@
       (defrule
 	  #'application*-p
 	  (obj nil)
-	(let ((resultname (next-varname)))
+	(let* ((resultname (next-varname))
+	       (walked-fn (express (walk (application*-fn obj))))
+	       (walked-fn-var *previous-var*))
 	  (setf *previous-var* resultname)
-	  (express "int ~a = invoke(lookup_fn(\"~a\"), ~{~a~^, ~});~%"
+	  (express "~aint ~a = ~a(~{~a~^, ~});~%"
+		   walked-fn
 		   resultname
-		   (application*-fn obj)
+		   walked-fn-var
 		   (application*-args obj))))
 
       (defrule
