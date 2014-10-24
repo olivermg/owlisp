@@ -52,7 +52,6 @@
 		    :components
 		    ((:file "predicates")
 		     (:file "objects")
-		     (:file "applier")
 		     #|
 		     (:file "macroexpand-all"
 			    :depends-on ("predicates"))
@@ -82,7 +81,15 @@
 		     (:file "walker"))
 
 		    :depends-on ("helper"
-				 "analyzer")))
+				 "analyzer"))
+
+		   (:module
+		    compiler
+		    :components
+		    ((:file "applier"))
+
+		    :depends-on ("analyzer"
+				 "ctarget")))
 
 		  :depends-on ("packages"))))
 

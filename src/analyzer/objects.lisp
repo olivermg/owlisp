@@ -6,6 +6,10 @@
 	  symbol*-name
 	  reference*-p
 	  reference*-symbol
+	  free-reference*-p
+	  free-reference*-symbol
+	  bound-reference*-p
+	  bound-reference*-symbol
 	  abstraction*-p
 	  abstraction*-args
 	  abstraction*-body
@@ -19,23 +23,13 @@
 
 
 (defstruct constant* value)
-
-
 (defstruct symbol* name)
-
-
 (defstruct reference* symbol)
-
-
+(defstruct free-reference* symbol)
+(defstruct bound-reference* symbol)
 (defstruct abstraction* args body)
-
-
 (defstruct closure* args body env) ; TODO: make passed closure a separate field instead of assuming it's the first arg
-
-
 (defstruct application* fn args)
-
-
 (defstruct environment* parent symbols)
 
 

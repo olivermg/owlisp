@@ -70,9 +70,10 @@
 	  (obj nil)
 	(let ((varname (next-varname)))
 	  (setf *previous-var* varname)
-	  (express "int ~a = ~a;~%"
-		   varname
-		   (constant*-value obj))))
+	  (dump "int ~a = ~a;~%"
+		varname
+		(constant*-value obj))
+	  (express "~a" varname)))
 
       (defrule
 	  #'symbol*-p
@@ -83,11 +84,8 @@
       (defrule
 	  #'reference*-p
 	  (obj nil)
-	(let ((varname (next-varname)))
-	  (setf *previous-var* varname)
-	  (express "int ~a = lookup(\"~a\");~%"
-		   varname
-		   (reference*-symbol obj))))
+	(setf *previous-var* (symbol-name (reference*-symbol obj)))
+	"")
 
       (defrule
 	  #'abstraction*-p
@@ -128,13 +126,18 @@
 	  (obj nil)
 	(let* ((resultname (next-varname))
 	       (walked-fn (express (walk (application*-fn obj))))
-	       (walked-fn-var *previous-var*))
+	       (walked-fn-var *previous-var*)
+	       (walked-args (walk-sequence (application*-args obj)))
+	       (walked-args-str (apply #'concatenate
+				       'string
+				       walked-args)))
 	  (setf *previous-var* resultname)
-	  (express "~aint ~a = ~a(~{~a~^, ~});~%"
+	  (express "~a~aint ~a = ~a(~{~a~^, ~});~%"
+		   walked-args-str
 		   walked-fn
 		   resultname
 		   walked-fn-var
-		   (application*-args obj))))
+		   walked-args)))
 
       (defrule
 	  #'(lambda (obj)

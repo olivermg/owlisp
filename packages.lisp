@@ -16,3 +16,6 @@
 
 (defpackage #:owlisp/c
   (:use cl owlisp/helper owlisp/analyzer))
+
+(defpackage #:owlisp/compiler
+  (:use cl owlisp/analyzer owlisp/c))

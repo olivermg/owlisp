@@ -19,7 +19,7 @@
     (defrule
 	#'reference*-p
 	(obj nil)
-      (if (is-local-variable (reference*-symbol obj))
+      (if (is-local-variable (reference*-symbol obj)) ; TODO: generate distinct object for free or bound references
 	  obj
 	  (progn
 	    (setf *referenced-free-variables*
@@ -50,7 +50,7 @@
     (defrule
 	#'application*-p
 	(obj nil)
-      `(invoke ,(walk (application*-fn obj))
+      `(invoke ,(walk (application*-fn obj)) ; TODO: update this
 	       ,@(walk-sequence (application*-args obj))))
 
 
