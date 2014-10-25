@@ -78,7 +78,10 @@
 			    :depends-on ("globals"))
 		     (:file "abstraction"
 			    :depends-on ("globals"))
-		     (:file "walker"))
+		     (:file "objects")
+		     (:file "walker")
+		     (:file "restructure"
+			    :depends-on ("objects")))
 
 		    :depends-on ("helper"
 				 "analyzer"))
