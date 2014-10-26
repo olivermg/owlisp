@@ -57,9 +57,12 @@
       (defrule
 	  #'application*-p
 	  (obj nil)
-	(make-assignment/c :lvalue (next-varname)
-			   :value (make-application/c :fn (application*-fn obj)
-						      :args (application*-args obj))))
+	(make-sequence/c :sequence (list (make-assignment/c :lvalue (next-varname)
+							    :value (application*-fn obj))
+					 ())
+			 (make-assignment/c :lvalue (next-varname)
+					    :value (make-application/c :fn (application*-fn obj)
+								       :args (application*-args obj)))))
 
       (defrule
 	  #'(lambda (obj)
