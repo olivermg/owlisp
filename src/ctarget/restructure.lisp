@@ -57,12 +57,22 @@
       (defrule
 	  #'application*-p
 	  (obj nil)
-	(make-sequence/c :sequence (list (make-assignment/c :lvalue (next-varname)
-							    :value (application*-fn obj))
-					 ())
-			 (make-assignment/c :lvalue (next-varname)
-					    :value (make-application/c :fn (application*-fn obj)
-								       :args (application*-args obj)))))
+	(let* ((fn-assignment
+		(make-assignment/c :lvalue (next-varname)
+				   :value (application*-fn obj)))
+	       (args-assignments
+		(mapcar #'(lambda (arg)
+			    (make-assignment/c :lvalue (next-varname)
+					       :value arg))
+			(application*-args obj)))
+	       (result-assignment
+		(make-application/c :fn (assignment/c-lvalue fn-assignment)
+				    :args (mapcar #'assignment/c-lvalue
+						  args-assignments))))
+	  (make-sequence/c :sequence (append
+				      (cons fn-assignment
+					    args-assignments)
+				      (list result-assignment)))))
 
       (defrule
 	  #'(lambda (obj)
