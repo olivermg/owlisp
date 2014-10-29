@@ -43,8 +43,8 @@
       (defrule
 	  #'reference*-p
 	  (obj nil)
-	(make-reference/c :lvalue (next-varname)
-			  :symbol (reference*-symbol obj)))
+	(make-assignment/c :lvalue (next-varname)
+			   :value (make-reference/c :symbol (reference*-symbol obj))))
 
       (defrule
 	  #'abstraction*-p
@@ -66,9 +66,10 @@
 					       :value arg))
 			(application*-args obj)))
 	       (result-assignment
-		(make-application/c :fn (assignment/c-lvalue fn-assignment)
-				    :args (mapcar #'assignment/c-lvalue
-						  args-assignments))))
+		(make-assignment/c :lvalue (next-varname)
+				   :value (make-application/c :fn (assignment/c-lvalue fn-assignment)
+							      :args (mapcar #'assignment/c-lvalue
+									    args-assignments)))))
 	  (make-sequence/c :sequence (append
 				      (cons fn-assignment
 					    args-assignments)
