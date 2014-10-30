@@ -58,8 +58,7 @@
 	  #'application*-p
 	  (obj nil)
 	(let* ((fn-assignment
-		(make-assignment/c :lvalue (next-varname)
-				   :value (walk (application*-fn obj))))
+		(walk (application*-fn obj)))
 	       (args-assignments
 		(mapcar #'(lambda (arg)
 			    (make-assignment/c :lvalue (next-varname)
