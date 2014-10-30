@@ -52,19 +52,19 @@
 	(make-assignment/c :lvalue (next-varname)
 			   :value (make-abstraction/c :name (next-procedurename)
 						      :args (abstraction*-args obj)
-						      :body (abstraction*-body obj))))
+						      :body (walk-sequence (abstraction*-body obj)))))
 
       (defrule
 	  #'application*-p
 	  (obj nil)
 	(let* ((fn-assignment
 		(make-assignment/c :lvalue (next-varname)
-				   :value (application*-fn obj)))
+				   :value (walk (application*-fn obj))))
 	       (args-assignments
 		(mapcar #'(lambda (arg)
 			    (make-assignment/c :lvalue (next-varname)
 					       :value arg))
-			(application*-args obj)))
+			(walk-sequence (application*-args obj))))
 	       (result-assignment
 		(make-assignment/c :lvalue (next-varname)
 				   :value (make-application/c :fn (assignment/c-lvalue fn-assignment)
