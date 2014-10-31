@@ -49,10 +49,14 @@
       (defrule
 	  #'abstraction*-p
 	  (obj nil)
-	(make-assignment/c :lvalue (next-varname)
-			   :value (make-abstraction/c :name (next-procedurename)
-						      :args (abstraction*-args obj)
-						      :body (walk-sequence (abstraction*-body obj)))))
+	(let* ((walked-body (walk-sequence (abstraction*-body obj)))
+	       (last-var (get-return-var (car (last walked-body))))
+	       (body-with-return (append walked-body
+					 (list (make-return/c :variable-name last-var)))))
+	  (make-assignment/c :lvalue (next-varname)
+			     :value (make-abstraction/c :name (next-procedurename)
+							:args (abstraction*-args obj)
+							:body body-with-return))))
 
       (defrule
 	  #'application*-p

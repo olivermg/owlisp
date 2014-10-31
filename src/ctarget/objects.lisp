@@ -9,7 +9,7 @@
 (defstruct reference/c symbol)
 (defstruct abstraction/c name args body)
 (defstruct application/c fn args)
-(defstruct return/c value)
+(defstruct return/c variable-name)
 
 (defgeneric get-return-var (obj))
 
