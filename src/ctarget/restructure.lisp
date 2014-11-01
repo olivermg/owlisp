@@ -50,7 +50,7 @@
 	  #'abstraction*-p
 	  (obj nil)
 	(let* ((walked-body (walk-sequence (abstraction*-body obj)))
-	       (last-var (get-return-var (car (last walked-body))))
+	       (last-var (get-return-var walked-body))
 	       (body-with-return (append walked-body
 					 (list (make-return/c :variable-name last-var)))))
 	  (make-assignment/c :lvalue (next-varname)
