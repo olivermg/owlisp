@@ -1,3 +1,4 @@
+#|
 (defpackage #:owlisp/environment/tests
   (:use cl fiveam owlisp owlisp/environment))
 
@@ -9,3 +10,7 @@
 
 (defpackage #:owlisp/evaluator/tests
   (:use cl fiveam owlisp/evaluator owlisp/environment owlisp/machines))
+|#
+
+(defpackage #:owlisp/c/tests
+  (:use cl fiveam owlisp/analyzer owlisp/c))

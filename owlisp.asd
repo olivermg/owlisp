@@ -112,7 +112,5 @@
 	       (:module
 		tests
 		:components
-		((:file "environment")
-		 (:file "register")
-		 (:file "evaluator"))
+		((:file "restructure"))
 		:depends-on ("packages.test"))))

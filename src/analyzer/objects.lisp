@@ -1,22 +1,30 @@
 (in-package :owlisp/analyzer)
 
-(export '(constant*-p
+(export '(make-constant*
+	  constant*-p
 	  constant*-value
+	  make-symbol*
 	  symbol*-p
 	  symbol*-name
+	  make-reference*
 	  reference*-p
 	  reference*-symbol
+	  make-free-reference*
 	  free-reference*-p
 	  free-reference*-symbol
+	  make-bound-reference*
 	  bound-reference*-p
 	  bound-reference*-symbol
+	  make-abstraction*
 	  abstraction*-p
 	  abstraction*-args
 	  abstraction*-body
+	  make-closure*
 	  closure*-p
 	  closure*-args
 	  closure*-body
 	  closure*-env
+	  make-application*
 	  application*-p
 	  application*-fn
 	  application*-args))

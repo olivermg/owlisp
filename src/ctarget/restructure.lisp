@@ -32,7 +32,7 @@
 	  #'constant*-p
 	  (obj nil)
 	(make-assignment/c :lvalue (next-varname)
-			   :value (constant*-value obj)))
+			   :value (make-constant/c :value (constant*-value obj))))
 
       (defrule
 	  #'symbol*-p

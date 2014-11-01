@@ -66,6 +66,13 @@
       (declare (special *previous-var*))
 
       (defrule
+	  #'assignment/c-p
+	  (obj nil)
+	(dump "value_t ~a = ~a;~%"
+	      (assignment/c-lvalue obj)
+	      (walk (assignment/c-value obj))))
+
+      (defrule
 	  #'constant*-p
 	  (obj nil)
 	(let ((varname (next-varname)))
