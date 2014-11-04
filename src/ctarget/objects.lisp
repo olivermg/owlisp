@@ -37,8 +37,11 @@
 
 (defgeneric get-return-var (obj))
 
+(defmethod get-return-var ((obj list))
+  (get-return-var (car (last obj))))
+
 (defmethod get-return-var ((obj sequence/c))
-  (get-return-var (car (last (sequence/c-sequence obj)))))
+  (get-return-var (sequence/c-sequence obj)))
 
 (defmethod get-return-var ((obj assignment/c))
   (assignment/c-lvalue obj))
