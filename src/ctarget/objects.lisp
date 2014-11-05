@@ -10,6 +10,9 @@
 	  make-constant/c
 	  constant/c-p
 	  constant/c-value
+	  make-symbol/c
+	  symbol/c-p
+	  symbol/c-name
 	  make-reference/c
 	  reference/c-p
 	  reference/c-symbol
@@ -29,6 +32,7 @@
 (defstruct sequence/c sequence)
 (defstruct assignment/c lvalue value)
 (defstruct constant/c value)
+(defstruct symbol/c name)
 ;(defstruct variable/c name)
 (defstruct reference/c symbol)
 (defstruct abstraction/c name args body)

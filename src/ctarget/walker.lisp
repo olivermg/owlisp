@@ -68,53 +68,44 @@
       (defrule
 	  #'assignment/c-p
 	  (obj nil)
-	(dump "value_t ~a = ~a;~%"
-	      (assignment/c-lvalue obj)
-	      (walk (assignment/c-value obj))))
+	(express "value_t ~a = ~a;~%"
+		 (assignment/c-lvalue obj)
+		 (walk (assignment/c-value obj))))
 
       (defrule
-	  #'constant*-p
+	  #'constant/c-p
 	  (obj nil)
-	(let ((varname (next-varname)))
-	  (setf *previous-var* varname)
-	  (dump "int ~a = ~a;~%"
-		varname
-		(constant*-value obj))
-	  (express "~a" varname)))
+	(express "constant( ~a )"
+		 (constant/c-value obj)))
 
       (defrule
-	  #'symbol*-p
+	  #'symbol/c-p
 	  (obj nil)
 	(declare (ignore obj))
 	(error "not implemented yet"))
 
       (defrule
-	  #'reference*-p
+	  #'reference/c-p
 	  (obj nil)
-	(setf *previous-var* (symbol-name (reference*-symbol obj)))
-	"")
+					;(setf *previous-var* (symbol-name (reference/c-symbol obj)))
+	(express "lookup( \"~a\" )"
+		 (reference/c-symbol obj)))
 
       (defrule
-	  #'abstraction*-p
+	  #'abstraction/c-p
 	  (obj nil)
 	(new-buffer)
-	(let* ((procname (next-procedurename))
-	       (procname-ptr (format nil "~a_P" procname))
-	       (walked-body-list (walk-sequence (abstraction*-body obj)))
-	       (walked-body (apply #'concatenate
-				   'string
-				   walked-body-list)))
-	  (dump "int ~a(~a) {~%~areturn ~a;~%}~%~%"
-		procname
-		(formal-args (abstraction*-args obj))
-		walked-body
-		*previous-var*)
-	  (pop-buffer)
-	  (setf *previous-var* procname-ptr)
-	  (express "int (*~a)(~a) = &~a;~%"
-		   procname-ptr
-		   (formal-prototype (abstraction*-args obj))
-		   procname)))
+	(dump "value_t ~a(~{~a~^, ~}) {~%~{~a~}}~%~%"
+	      (abstraction/c-name obj)
+	      (mapcar #'(lambda (arg)
+			  (format nil
+				  "value_t ~a"
+				  arg))
+		      (abstraction/c-args obj))
+	      (walk (abstraction/c-body obj)))
+	(pop-buffer)
+	(express "~a"
+		 (abstraction/c-name obj)))
 
       (defrule
 	  #'closure*-p
@@ -145,6 +136,11 @@
 		   resultname
 		   walked-fn-var
 		   walked-args)))
+
+      (defrule
+	  #'sequence/c-p
+	  (obj nil)
+	(walk-sequence (sequence/c-sequence obj)))
 
       (defrule
 	  #'(lambda (obj)
