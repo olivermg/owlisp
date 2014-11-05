@@ -62,15 +62,18 @@
 
     (declare (ignore))
 
-    (let ((*previous-var* ""))
-      (declare (special *previous-var*))
+    (let ((*previous-assignment* nil))
+      (declare (special *previous-assignment*))
 
       (defrule
 	  #'assignment/c-p
 	  (obj nil)
-	(express "value_t ~a = ~a;~%"
-		 (assignment/c-lvalue obj)
-		 (walk (assignment/c-value obj))))
+	(let ((result (express "value_t ~a = ~a;~%"
+			       (assignment/c-lvalue obj)
+			       (walk (assignment/c-value obj)))))
+	  (setf *previous-assignment*
+		(assignment/c-lvalue obj))
+	  result))
 
       (defrule
 	  #'constant/c-p
@@ -95,14 +98,15 @@
 	  #'abstraction/c-p
 	  (obj nil)
 	(new-buffer)
-	(dump "value_t ~a(~{~a~^, ~}) {~%~{~a~}}~%~%"
+	(dump "value_t ~a(~{~a~^, ~}) {~%~{~a~}return ~a;~%}~%~%"
 	      (abstraction/c-name obj)
 	      (mapcar #'(lambda (arg)
 			  (format nil
 				  "value_t ~a"
 				  arg))
 		      (abstraction/c-args obj))
-	      (walk (abstraction/c-body obj)))
+	      (walk (abstraction/c-body obj))
+	      *previous-assignment*)
 	(pop-buffer)
 	(express "~a"
 		 (abstraction/c-name obj)))
@@ -124,12 +128,12 @@
 	  (obj nil)
 	(let* ((resultname (next-varname))
 	       (walked-fn (express (walk (application*-fn obj))))
-	       (walked-fn-var *previous-var*)
+	       (walked-fn-var *previous-assignment*)
 	       (walked-args (walk-sequence (application*-args obj)))
 	       (walked-args-str (apply #'concatenate
 				       'string
 				       walked-args)))
-	  (setf *previous-var* resultname)
+	  (setf *previous-assignment* resultname)
 	  (express "~a~aint ~a = ~a(~{~a~^, ~});~%"
 		   walked-args-str
 		   walked-fn
