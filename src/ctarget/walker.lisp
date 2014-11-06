@@ -124,22 +124,12 @@
 		 ,walked-body)))	; TODO: auto-return last value
 
       (defrule
-	  #'application*-p
+	  #'application/c-p
 	  (obj nil)
-	(let* ((resultname (next-varname))
-	       (walked-fn (express (walk (application*-fn obj))))
-	       (walked-fn-var *previous-assignment*)
-	       (walked-args (walk-sequence (application*-args obj)))
-	       (walked-args-str (apply #'concatenate
-				       'string
-				       walked-args)))
-	  (setf *previous-assignment* resultname)
-	  (express "~a~aint ~a = ~a(~{~a~^, ~});~%"
-		   walked-args-str
-		   walked-fn
-		   resultname
-		   walked-fn-var
-		   walked-args)))
+	(express "~a(~{~a~^, ~});~%"
+		 (application/c-fn obj)
+		 (sequence/c-sequence
+		  (application/c-args obj))))
 
       (defrule
 	  #'sequence/c-p
