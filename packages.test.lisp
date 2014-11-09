@@ -14,3 +14,6 @@
 
 (defpackage #:owlisp/c/tests
   (:use cl fiveam owlisp/analyzer owlisp/c))
+
+(defpackage #:owlisp/compiler/tests
+  (:use cl fiveam owlisp/compiler))
