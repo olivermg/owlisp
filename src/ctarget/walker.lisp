@@ -61,8 +61,6 @@
   (make-walker
     (declare (ignore #'walk-sequence-last))
 
-    (declare (ignore))
-
     (defrule
 	#'assignment/c-p
 	(obj nil)
