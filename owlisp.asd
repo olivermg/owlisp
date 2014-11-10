@@ -112,5 +112,6 @@
 	       (:module
 		tests
 		:components
-		((:file "restructure"))
+		((:file "restructure")
+		 (:file "compiler"))
 		:depends-on ("packages.test"))))

@@ -59,89 +59,89 @@
 (defparameter *dumper-walker*
 
   (make-walker
+    (declare (ignore #'walk-sequence-last))
 
     (declare (ignore))
 
-    (let ((*previous-assignment* nil))
-      (declare (special *previous-assignment*))
+    (defrule
+	#'assignment/c-p
+	(obj nil)
+      (express "value_t ~a = ~a;~%"
+	       (assignment/c-lvalue obj)
+	       (walk (assignment/c-value obj))))
 
-      (defrule
-	  #'assignment/c-p
-	  (obj nil)
-	(let ((result (express "value_t ~a = ~a;~%"
-			       (assignment/c-lvalue obj)
-			       (walk (assignment/c-value obj)))))
-	  (setf *previous-assignment*
-		(assignment/c-lvalue obj))
-	  result))
+    (defrule
+	#'constant/c-p
+	(obj nil)
+      (express "constant( ~a )"
+	       (constant/c-value obj)))
 
-      (defrule
-	  #'constant/c-p
-	  (obj nil)
-	(express "constant( ~a )"
-		 (constant/c-value obj)))
+    (defrule
+	#'symbol/c-p
+	(obj nil)
+      (declare (ignore obj))
+      (error "not implemented yet"))
 
-      (defrule
-	  #'symbol/c-p
-	  (obj nil)
-	(declare (ignore obj))
-	(error "not implemented yet"))
+    (defrule
+	#'reference/c-p
+	(obj nil)
+      (express "lookup( \"~a\" )"
+	       (reference/c-symbol obj)))
 
-      (defrule
-	  #'reference/c-p
-	  (obj nil)
-					;(setf *previous-var* (symbol-name (reference/c-symbol obj)))
-	(express "lookup( \"~a\" )"
-		 (reference/c-symbol obj)))
+    (defrule
+	#'abstraction/c-p
+	(obj nil)
+      (new-buffer)
+      (dump "value_t ~a(~{~a~^, ~}) {~%~{~a~}~%}~%~%"
+	    (abstraction/c-name obj)
+	    (mapcar #'(lambda (arg)
+			(format nil
+				"value_t ~a"
+				arg))
+		    (abstraction/c-args obj))
+	    (walk (abstraction/c-body obj)))
+      (pop-buffer)
+      (express "~a"
+	       (abstraction/c-name obj)))
 
-      (defrule
-	  #'abstraction/c-p
-	  (obj nil)
-	(new-buffer)
-	(dump "value_t ~a(~{~a~^, ~}) {~%~{~a~}return ~a;~%}~%~%"
-	      (abstraction/c-name obj)
-	      (mapcar #'(lambda (arg)
-			  (format nil
-				  "value_t ~a"
-				  arg))
-		      (abstraction/c-args obj))
-	      (walk (abstraction/c-body obj))
-	      *previous-assignment*)
+    (defrule
+	#'closure*-p
+	(obj nil)
+      (new-buffer)
+      (let ((procname (next-procedurename))
+	    (walked-body (walk-sequence (abstraction*-body obj))))
 	(pop-buffer)
-	(express "~a"
-		 (abstraction/c-name obj)))
+	`(dump "int ~a(~a) {~%~a}~%"
+	       ,procname
+	       ,(abstraction*-args obj)
+	       ,walked-body)))	; TODO: auto-return last value
 
-      (defrule
-	  #'closure*-p
-	  (obj nil)
-	(new-buffer)
-	(let ((procname (next-procedurename))
-	      (walked-body (walk-sequence (abstraction*-body obj))))
-	  (pop-buffer)
-	  `(dump "int ~a(~a) {~%~a}~%"
-		 ,procname
-		 ,(abstraction*-args obj)
-		 ,walked-body)))	; TODO: auto-return last value
 
-      (defrule
-	  #'application/c-p
-	  (obj nil)
-	(express "~a(~{~a~^, ~});~%"
-		 (application/c-fn obj)
-		 (sequence/c-sequence
-		  (application/c-args obj))))
+    (defrule
+	#'application/c-p
+	(obj nil)
+      (express "~a(~{~a~^, ~});~%"
+	       (application/c-fn obj)
+	       (sequence/c-sequence
+		(application/c-args obj))))
 
-      (defrule
-	  #'sequence/c-p
-	  (obj nil)
-	(walk-sequence (sequence/c-sequence obj)))
+    (defrule
+	#'sequence/c-p
+	(obj nil)
+      (walk-sequence (sequence/c-sequence obj)))
 
-      (defrule
-	  #'(lambda (obj)
-	      (declare (ignore obj))
-	      t)
-	  (obj nil)
-	(error "dumper-walker: unknown object ~a" obj)))))
+    (defrule
+	#'return/c-p
+	(obj nil)
+      (express "return ~a;~%"
+	       (return/c-variable-name obj)))
+
+    (defrule
+	#'(lambda (obj)
+	    (declare (ignore obj))
+	    t)
+	(obj nil)
+      (error "compiler-walker: unknown object ~a" obj))))
 
 
 (defun do-dump (expr)

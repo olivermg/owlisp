@@ -1,4 +1,4 @@
-(in-package :owlisp/compiler/tests)
+(in-package #:owlisp/compiler/tests)
 
 (def-suite owlisp/compiler/tests)
 

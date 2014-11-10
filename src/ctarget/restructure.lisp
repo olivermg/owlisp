@@ -56,7 +56,8 @@
 	  (make-assignment/c :lvalue (next-varname)
 			     :value (make-abstraction/c :name (next-procedurename)
 							:args (abstraction*-args obj)
-							:body body-with-return))))
+							:body (make-sequence/c :sequence
+									       body-with-return)))))
 
       (defrule
 	  #'application*-p
