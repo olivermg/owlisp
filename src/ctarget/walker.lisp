@@ -90,7 +90,7 @@
 	#'abstraction/c-p
 	(obj nil)
       (new-buffer)
-      (dump "value_t ~a(~{~a~^, ~}) {~%~{~a~}~%}~%~%"
+      (dump "value_t ~a(~{~a~^, ~}) {~%~a~%}~%~%"
 	    (abstraction/c-name obj)
 	    (mapcar #'(lambda (arg)
 			(format nil
@@ -120,13 +120,13 @@
 	(obj nil)
       (express "~a(~{~a~^, ~});~%"
 	       (application/c-fn obj)
-	       (sequence/c-sequence
-		(application/c-args obj))))
+	       (application/c-args obj)))
 
     (defrule
 	#'sequence/c-p
 	(obj nil)
-      (walk-sequence (sequence/c-sequence obj)))
+      (express "~{~a~}"
+	       (walk-sequence (sequence/c-sequence obj))))
 
     (defrule
 	#'return/c-p

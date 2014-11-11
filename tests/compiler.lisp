@@ -21,3 +21,7 @@
 (test expr1
   (let ((compiled (compile-form *expr1*)))
     (print compiled)))
+
+(test expr2
+  (let ((compiled (compile-form *expr2*)))
+    (print compiled)))

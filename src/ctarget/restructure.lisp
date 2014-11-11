@@ -65,10 +65,7 @@
 	(let* ((fn-assignment
 		(walk (application*-fn obj)))
 	       (args-assignments
-		(mapcar #'(lambda (arg)
-			    (make-assignment/c :lvalue (next-varname)
-					       :value arg))
-			(walk-sequence (application*-args obj))))
+		(walk-sequence (application*-args obj)))
 	       (result-assignment
 		(make-assignment/c :lvalue (next-varname)
 				   :value (make-application/c :fn (assignment/c-lvalue fn-assignment)
