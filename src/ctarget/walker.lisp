@@ -99,7 +99,7 @@
 		    (abstraction/c-args obj))
 	    (walk (abstraction/c-body obj)))
       (pop-buffer)
-      (express "~a"
+      (express "&~a"
 	       (abstraction/c-name obj)))
 
     (defrule
