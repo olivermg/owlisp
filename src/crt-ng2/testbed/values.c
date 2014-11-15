@@ -3,21 +3,23 @@
 #define box_value(t,v) \
   { t, { .t = v } }
 
-#define unbox_value(t,vx) \
-  vx.v.t
+//#define unbox_value(vx)			\
+//  vx.v.t
 
 
 typedef enum _type_t {
-  UNDEF = 0,
-  INT,
+  INT = 1,
   PROC,
 } type_t;
 
 struct _value_t;
 
+typedef struct _value_t (*function_t)(struct _value_t*);
+
 typedef union _val {
   int INT;
-  struct _value_t (*PROC)(struct _value_t*);
+  //  struct _value_t (*PROC)(struct _value_t*);
+  function_t PROC;
 } val;
 
 typedef struct _value_t {
@@ -28,10 +30,30 @@ typedef struct _value_t {
 typedef value_t value_t_list[8];
 
 
+void* unbox_value(value_t v)
+{
+  void* unboxed = NULL;
+
+  switch (v.t) {
+  case INT:
+    unboxed = &v.v.INT;
+    break;
+  case PROC:
+    unboxed = &v.v.PROC;
+    break;
+  default:
+    printf("unknown type %d!\n", v.t);
+    break;
+  }
+
+  return unboxed;
+}
+
+
 value_t proc1(value_t_list vs)
 {
-  int int1 = unbox_value(INT, vs[0]);
-  int int2 = unbox_value(INT, vs[1]);
+  int int1 = *(int*)unbox_value(vs[0]);
+  int int2 = *(int*)unbox_value(vs[1]);
 
   printf("called proc1 with %d and %d\n", int1, int2);
 
@@ -48,9 +70,9 @@ int main()
 
   value_t vp = box_value( PROC, &proc1 );
 
-  value_t vr = unbox_value(PROC, vp)(vs);
+  value_t vr = (*(function_t*)unbox_value(vp))(vs);
 
-  printf("result: %d\n", unbox_value(INT, vr));
+  printf("result: %d\n", *(int*)unbox_value(vr));
 
-  return unbox_value(INT, vr);
+  return *(int*)unbox_value(vr);
 }
