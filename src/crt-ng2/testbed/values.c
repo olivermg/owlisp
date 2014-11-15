@@ -18,7 +18,6 @@ typedef struct _value_t (*function_t)(struct _value_t*);
 
 typedef union _val {
   int INT;
-  //  struct _value_t (*PROC)(struct _value_t*);
   function_t PROC;
 } val;
 
@@ -36,7 +35,7 @@ void* unbox_value(value_t v)
 
   switch (v.t) {
   case INT:
-    unboxed = &v.v.INT;
+    unboxed = &v.v.INT; // TODO: ain't this always the same address in v.v (=0)? so we should not even have to do the switch/case
     break;
   case PROC:
     unboxed = &v.v.PROC;
@@ -52,7 +51,7 @@ void* unbox_value(value_t v)
 
 value_t proc1(value_t_list vs)
 {
-  int int1 = *(int*)unbox_value(vs[0]);
+  int int1 = *(int*)unbox_value(vs[0]); // TODO: actually, we don't want to use any primitive types in "application level" code
   int int2 = *(int*)unbox_value(vs[1]);
 
   printf("called proc1 with %d and %d\n", int1, int2);
