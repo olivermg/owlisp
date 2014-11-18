@@ -3,8 +3,8 @@
 #define box_value(t,v) \
   { t, { .t = v } }
 
-//#define unbox_value(vx)			\
-//  vx.v.t
+#define unbox_value(vx) \
+  &vx.v
 
 
 typedef enum _type_t {
@@ -27,26 +27,6 @@ typedef struct _value_t {
 } value_t;
 
 typedef value_t value_t_list[8];
-
-
-void* unbox_value(value_t v)
-{
-  void* unboxed = NULL;
-
-  switch (v.t) {
-  case INT:
-    unboxed = &v.v.INT; // TODO: ain't this always the same address in v.v (=0)? so we should not even have to do the switch/case
-    break;
-  case PROC:
-    unboxed = &v.v.PROC;
-    break;
-  default:
-    printf("unknown type %d!\n", v.t);
-    break;
-  }
-
-  return unboxed;
-}
 
 
 value_t proc1(value_t_list vs)
