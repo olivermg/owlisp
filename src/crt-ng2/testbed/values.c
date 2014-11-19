@@ -5,12 +5,38 @@
 #define box_value(t,v) \
   { t, { .t = v } }
 
+#define box_undef() \
+  { UNDEF, { .INT = 0 } }
+
 #define unbox_value(vx) \
   &vx.v
 
+#define types_same(t1,t2,t) \
+  (t1 == t && t2 == t)
+
+#define types_any(t1,t2,tda,tdb) \
+  ((t1 == tda && (t2 == tda || t2 == tdb)) || (t1 == tdb && (t2 == tda || t2 == tdb)))
+
+#define operate_args(last,op,dest) \
+  value_t dest = box_undef();			\
+  va_list args; va_start(args, last);		\
+  for(long i = 0; i < last; i++) {		\
+    value_t value = va_arg(args, value_t);	\
+    switch (value.t) {				\
+    case INT:					\
+      dest.v.INT = dest.v.INT + value.v.INT;	\
+      break;					\
+    default:								\
+      printf("don't know how to apply operator %s to type %d\n", "op", value.t); \
+      break;								\
+    }									\
+  }									\
+  va_end(args);
+
 
 typedef enum _type_t {
-  INT = 1,
+  UNDEF = 0,
+  INT,
   PROC,
 } type_t;
 
@@ -31,20 +57,18 @@ typedef struct _value_t {
 typedef value_t value_t_list[8]; // TODO: why don't we want to use va_arg?
 
 
-value_t add(int numargs, ...)
+value_t add(long numargs, ...)
 {
-  value_t sum = box_value(INT, 0);
-
-  va_list values;
-
-  va_start(values, numargs);
-  for (int i = 0; i < numargs; i++) {
-    value_t value = va_arg(values, value_t);
-    sum.v.INT += value.v.INT;
-  }
-  va_end(values);
+  operate_args(numargs, +, sum);
 
   return sum;
+}
+
+value_t sub(long numargs, ...)
+{
+  operate_args(numargs, -, diff);
+
+  return diff;
 }
 
 
