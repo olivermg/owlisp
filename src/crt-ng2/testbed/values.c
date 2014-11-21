@@ -1,5 +1,7 @@
 #include <stdio.h>
-#include <stdarg.h>
+#include <stdlib.h>
+//#include <stdarg.h>
+#include <assert.h>
 
 
 #define box_value(t,v) \
@@ -65,20 +67,38 @@ struct _value_t {
 };
 
 
+typedef value_t (*map_primitive_t)(value_t);
+
+value_t map_primitive(map_primitive_t fn, value_t args)
+{
+  assert(args.t == LIST);
+
+  long listlen = args.v.LIST.size;
+  value_t* mappedvs = malloc(sizeof(value_t) * listlen);
+  list_t ml = { listlen, mappedvs };
+  value_t mappedlist = box_value(LIST, ml);
+
+  for (long i = 0; i < args.v.LIST.size; i++) {
+    mappedvs[i] = fn(args.v.LIST.vs[i]);
+  }
+
+  return mappedlist;
+}
+
+
+value_t op_inc(value_t v)
+{
+  value_t result = box_value( INT, v.v.INT + 1 ); // FIXME: unsafe!
+
+  return result;
+}
+
+value_t inc(value_t args)
+{
+  return map_primitive(op_inc, args);
+}
+
 /*
-typedef value_t (*map_primitive_t)(value_t, value_t);
-
-value_t* map_primitive(map_primitive_t fn, value_t_list args)
-{
-}
-
-value_t add(long numargs, ...)
-{
-  operate_args(numargs, +, sum);
-
-  return sum;
-}
-
 value_t sub(long numargs, ...)
 {
   operate_args(numargs, -, diff);
@@ -106,9 +126,10 @@ value_t proc1(value_t vs)
   printf("called proc1 with %d and %d\n", int1, int2);
 
   //  value_t vr = add(2, vs[0], vs[1]);
-  value_t vr = box_value(INT, int1 + int2);
+  //  value_t vr = box_value(INT, int1 + int2);
+  value_t vr = inc(vs);
 
-  return vr;	// FIXME: unsafe!
+  return vr.v.LIST.vs[1];	// FIXME: unsafe!
 }
 
 int main()
