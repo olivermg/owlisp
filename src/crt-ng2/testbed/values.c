@@ -11,6 +11,7 @@
 #define unbox_value(vx) \
   &vx.v
 
+/*
 #define types_same(t1,t2,t) \
   (t1 == t && t2 == t)
 
@@ -32,30 +33,44 @@
     }									\
   }									\
   va_end(args);
+*/
+
+/* predeclarations: */
+typedef struct _value_t value_t;
+typedef struct _list_t list_t;
+typedef enum _type_t type_t;
 
 
-typedef enum _type_t {
+typedef value_t (*function_t)(value_t);
+
+struct _list_t {
+  long size;
+  value_t* vs;
+};
+
+enum _type_t {
   UNDEF = 0,
   INT,
   PROC,
-} type_t;
+  LIST
+};
 
-struct _value_t;
-
-typedef struct _value_t (*function_t)(struct _value_t*);
-
-typedef union _val {
-  int INT;
-  function_t PROC;
-} val;
-
-typedef struct _value_t {
+struct _value_t {
   type_t t;
-  val v;
-} value_t;
+  union {
+    int INT;
+    function_t PROC;
+    list_t LIST;
+  } v;
+};
 
-typedef value_t value_t_list[8]; // TODO: why don't we want to use va_arg?
 
+/*
+typedef value_t (*map_primitive_t)(value_t, value_t);
+
+value_t* map_primitive(map_primitive_t fn, value_t_list args)
+{
+}
 
 value_t add(long numargs, ...)
 {
@@ -71,8 +86,13 @@ value_t sub(long numargs, ...)
   return diff;
 }
 
+void print()
+{
+}
+*/
 
-value_t proc1(value_t_list vs)
+
+value_t proc1(value_t vs)
 {
   /* TODO:
    * actually, we don't want to use any primitive types in generated code, i.e. we don't compile code
@@ -80,12 +100,13 @@ value_t proc1(value_t_list vs)
    * that results in the need to have primitive functions - like "add", for we can't use the C native
    * operators on value_t
    */
-  int int1 = *(int*)unbox_value(vs[0]);
-  int int2 = *(int*)unbox_value(vs[1]);
+  int int1 = *(int*)unbox_value(vs.v.LIST.vs[0]);
+  int int2 = *(int*)unbox_value(vs.v.LIST.vs[1]);
 
   printf("called proc1 with %d and %d\n", int1, int2);
 
-  value_t vr = add(2, vs[0], vs[1]);
+  //  value_t vr = add(2, vs[0], vs[1]);
+  value_t vr = box_value(INT, int1 + int2);
 
   return vr;	// FIXME: unsafe!
 }
@@ -94,7 +115,10 @@ int main()
 {
   value_t v1 = box_value( INT, 22 );
   value_t v2 = box_value( INT, 33 );
-  value_t_list vs = { v1, v2 };
+
+  value_t vls[] = { v1, v2 };
+  list_t vl = { 2, vls };
+  value_t vs = box_value( LIST, vl );
 
   value_t vp = box_value( PROC, &proc1 );
 
