@@ -62,24 +62,19 @@ struct _List {
 
 
 /* class instances: */
-/*
-Class object = { NULL };
-Class integer = { &object };
-Class string = { &object };
-*/
-Class object = {};
-Class integer = {};
-Class string = {};
-Class proc = {};
-Class env = {};
-Class closure = {};
-Class list = {};
+Class CObject = {};
+Class CInteger = {};
+Class CString = {};
+Class CProc = {};
+Class CEnv = {};
+Class CClosure = {};
+Class CList = {};
 
 
 Object* newint(int value)
 {
   Integer* o = malloc( sizeof(Integer) );
-  o->object.class = &integer;
+  o->object.class = &CInteger;
   o->value = value;
 
   return (Object*)o;
@@ -88,7 +83,7 @@ Object* newint(int value)
 Object* newstring(char* value)
 {
   String* o = malloc( sizeof(String) );
-  o->object.class = &string;
+  o->object.class = &CString;
   o->value = value;
 
   return (Object*)o;
@@ -97,7 +92,7 @@ Object* newstring(char* value)
 Object* newproc(proc_p value)
 {
   Proc* o = malloc( sizeof(Proc) );
-  o->object.class = &proc;
+  o->object.class = &CProc;
   o->value = value;
 
   return (Object*)o;
@@ -106,7 +101,7 @@ Object* newproc(proc_p value)
 Object* newenv(Object* o1, Object* o2, Env* parent)
 {
   Env* o = malloc( sizeof(Env) );
-  o->object.class = &env;
+  o->object.class = &CEnv;
   o->o1 = o1;
   o->o2 = o2;
   o->parent = parent;
@@ -117,7 +112,7 @@ Object* newenv(Object* o1, Object* o2, Env* parent)
 Object* newclosure(Env* env, Proc* proc)
 {
   Closure* o = malloc( sizeof(Closure) );
-  o->object.class = &closure;
+  o->object.class = &CClosure;
   o->env = env;
   o->proc = proc;
 
@@ -127,7 +122,7 @@ Object* newclosure(Env* env, Proc* proc)
 Object* newlist(Object* value, List* next)
 {
   List* o = malloc( sizeof(List) );
-  o->object.class = &list;
+  o->object.class = &CList;
   o->value = value;
   o->next = next;
 
@@ -145,7 +140,7 @@ Object* add_obj(Object* o1, Object* o2)
   return newint( i1->value + i2->value );
 }
 
-Object* invoke_obj(Object* op, unsigned long numargs, ...)
+Object* invoke_obj(Object* o, unsigned long numargs, ...)
 {
   // TODO: type safety
 
@@ -156,9 +151,19 @@ Object* invoke_obj(Object* op, unsigned long numargs, ...)
   Object* arg2 = va_arg(args, Object*);
   va_end(args);
 
-  Env* env = (Env*)newenv(arg1, arg2, NULL);
+  Proc* proc = NULL;
+  Env* env = NULL;
+  if ( o->class == &CProc ) {
+    printf("...invoking proc...\n");
+    proc = (Proc*)o;
+    env = (Env*)newenv(arg1, arg2, NULL);
+  } else if ( o->class == &CClosure ) {
+    printf("...invoking closure...\n");
+    proc = ((Closure*)o)->proc;
+    env = (Env*)newenv(arg1, arg2, ((Closure*)o)->env);
+  }
 
-  return ((Proc*)op)->value(env);
+  return proc->value(env);
 }
 
 Object* car_obj(Object* list)
@@ -180,24 +185,24 @@ void print_obj(Object* o)
   printf("%p => ", o);
   if ( NULL == o ) {
     printf("NULL\n");
-  } else if ( o->class == &integer ) {
+  } else if ( o->class == &CInteger ) {
     printf("integer: %d\n", ((Integer*)o)->value);
-  } else if ( o->class == &string ) {
+  } else if ( o->class == &CString ) {
     printf("string: %s\n", ((String*)o)->value);
-  } else if ( o->class == &proc) {
+  } else if ( o->class == &CProc) {
     printf("proc: %p\n", ((Proc*)o)->value);
-  } else if ( o->class == &env) {
+  } else if ( o->class == &CEnv) {
     printf("env:\n\t");
     print_obj( ((Env*)o)->o1 );
     printf("\t");
     print_obj( ((Env*)o)->o2 );
     print_obj( (Object*)((Env*)o)->parent );
-  } else if ( o->class == &closure ) {
+  } else if ( o->class == &CClosure ) {
     printf("closure:\n\t");
     print_obj( (Object*)((Closure*)o)->env );
     printf("\t");
     print_obj( (Object*)((Closure*)o)->proc );
-  } else if ( o->class == &list ) {
+  } else if ( o->class == &CList ) {
     printf("list:\n\t");
     print_obj( ((List*)o)->value );
     print_obj( (Object*)((List*)o)->next );
@@ -226,6 +231,7 @@ int main()
   Object* o8 = invoke_obj(o3, 1, o2);
   Object* o9 = newenv( newint(66), newint(77), NULL );
   Object* o10 = newclosure( (Env*)o9, (Proc*)o3 );
+  Object* o11 = invoke_obj( o10, 1, o6 );
 
   print_obj(o1);
   print_obj(o2);
@@ -236,6 +242,7 @@ int main()
   print_obj(o8);
   print_obj(o9);
   print_obj(o10);
+  print_obj(o11);
 
   return 0;
 }
