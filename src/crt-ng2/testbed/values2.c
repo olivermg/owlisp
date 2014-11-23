@@ -268,6 +268,8 @@ void print_obj(Object* o)
     printf("\t");
     print_obj( ((Env*)o)->o2 );
     print_obj( (Object*)((Env*)o)->parent );
+  } else if ( o->class == &CEnvaddress ) {
+    printf("envaddress: %d, %d\n", ((Envaddress*)o)->frameindex, ((Envaddress*)o)->varindex);
   } else if ( o->class == &CClosure ) {
     printf("closure:\n\t");
     print_obj( (Object*)((Closure*)o)->env );
