@@ -146,6 +146,12 @@ Object* newclosure(Env* env, Proc* proc)
   return (Object*)o;
 }
 
+Object* newclosure_i(Env* env, proc_p p)
+{
+  Proc* proc = (Proc*)newproc(p);
+  return newclosure(env, proc);
+}
+
 Object* newlist(Object* value, List* next)
 {
   List* o = malloc( sizeof(List) );
@@ -188,6 +194,12 @@ Object* lookup(Env *env, Envaddress* envaddress)
   return value;
 }
 
+Object* lookup_i(Env* env, unsigned long frameindex, unsigned long varindex)
+{
+  Envaddress* ea = (Envaddress*)newenvaddress( frameindex, varindex );
+  return lookup(env, ea);
+}
+
 void set(Env* env, Envaddress* envaddress, Object* value)
 {
   if ( envaddress->varindex == 0 ) {
@@ -195,6 +207,12 @@ void set(Env* env, Envaddress* envaddress, Object* value)
   } else {
     gotoframe( env, envaddress )->o2 = value;
   }
+}
+
+void set_i(Env* env, unsigned long frameindex, unsigned long varindex, Object* value)
+{
+  Envaddress* ea = (Envaddress*)newenvaddress( frameindex, varindex );
+  set(env, ea, value);
 }
 
 
@@ -293,21 +311,14 @@ Object* identity(Env* env)
 {
   printf("identity called!\n");
 
-  Envaddress* ea = (Envaddress*)newenvaddress( 0, 1 );
-
-  return lookup( env, ea );
+  return lookup_i( env, 0, 1 );
 }
 
 Object* inner(Env* env)
 {
-  Envaddress* eai0 = (Envaddress*)newenvaddress( 0, 0 );
-  Object* innerint0 = lookup(env, eai0);
-
-  Envaddress* eao0 = (Envaddress*)newenvaddress( 1, 0 );
-  Object* outerint0 = lookup(env, eao0);
-
-  Envaddress* eao1 = (Envaddress*)newenvaddress( 1, 1 );
-  Object* outerint1 = lookup(env, eao1);
+  Object* innerint0 = lookup_i(env, 0, 0);
+  Object* outerint0 = lookup_i(env, 1, 0);
+  Object* outerint1 = lookup_i(env, 1, 1);
 
   printf("\n\tinnerint0 from inner: ");
   print_obj(innerint0);
@@ -324,12 +335,9 @@ Object* outer(Env* env)
 {
   Object* outerint = newint( 315 );
 
-  Envaddress* ea = (Envaddress*)newenvaddress( 0, 1 );
-  set( env, ea, outerint );
+  set_i( env, 0, 1, outerint );
 
-  // TODO: simplify handling of creating proc/closure and calling it:
-  Proc* iproc = (Proc*)newproc(&inner);
-  Object* iclosure = newclosure(env, iproc);
+  Object* iclosure = newclosure_i(env, &inner);
   Object* arg1 = newint( 1337 );
   return invoke_obj(iclosure, 1, arg1 );
 }
