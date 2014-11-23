@@ -158,28 +158,49 @@ Object* newlist(Object* value, List* next)
 
 
 /*
- * runtime functionality:
+ * environment handling:
  */
+
+static Env* gotoframe(Env* env, Envaddress* envaddress)
+{
+  Env* newenv = env;
+
+  if ( NULL == env ) {
+    printf("ERROR: can't find frame!\n");
+  } else if ( envaddress->frameindex > 0 ) {
+    Envaddress* newea = (Envaddress*)newenvaddress( envaddress->frameindex - 1, envaddress->varindex );
+    newenv = gotoframe( env->parent, newea );
+  }
+
+  return newenv;
+}
 
 Object* lookup(Env *env, Envaddress* envaddress)
 {
   Object* value = NULL;
 
-  if ( NULL == env ) {
-    printf("ERROR: unknown binding!\n");
-  } else if ( envaddress->frameindex > 0 ) {
-    envaddress->frameindex--;
-    value = lookup( env->parent, envaddress );
+  if ( envaddress->varindex == 0 ) {
+    value = gotoframe( env, envaddress )->o1;
   } else {
-    if ( envaddress->varindex == 0 ) {
-      value = env->o1;
-    } else {
-      value = env->o2;
-    }
+    value = gotoframe( env, envaddress )->o2;
   }
 
   return value;
 }
+
+void set(Env* env, Envaddress* envaddress, Object* value)
+{
+  if ( envaddress->varindex == 0 ) {
+    gotoframe( env, envaddress )->o1 = value;
+  } else {
+    gotoframe( env, envaddress )->o2 = value;
+  }
+}
+
+
+/*
+ * runtime functionality:
+ */
 
 Object* add_obj(Object* o1, Object* o2)
 {
@@ -275,6 +296,42 @@ Object* identity(Env* env)
   return lookup( env, ea );
 }
 
+Object* inner(Env* env)
+{
+  Envaddress* eai0 = (Envaddress*)newenvaddress( 0, 0 );
+  Object* innerint0 = lookup(env, eai0);
+
+  Envaddress* eao0 = (Envaddress*)newenvaddress( 1, 0 );
+  Object* outerint0 = lookup(env, eao0);
+
+  Envaddress* eao1 = (Envaddress*)newenvaddress( 1, 1 );
+  Object* outerint1 = lookup(env, eao1);
+
+  printf("\n\tinnerint0 from inner: ");
+  print_obj(innerint0);
+  printf("\touterint0 from inner: ");
+  print_obj(outerint0);
+  printf("\touterint1 from inner: ");
+  print_obj(outerint1);
+  printf("\n");
+
+  return outerint1;
+}
+
+Object* outer(Env* env)
+{
+  Object* outerint = newint( 315 );
+
+  Envaddress* ea = (Envaddress*)newenvaddress( 0, 1 );
+  set( env, ea, outerint );
+
+  // TODO: simplify handling of creating proc/closure and calling it:
+  Proc* iproc = (Proc*)newproc(&inner);
+  Object* iclosure = newclosure(env, iproc);
+  Object* arg1 = newint( 1337 );
+  return invoke_obj(iclosure, 1, arg1 );
+}
+
 int main()
 {
   Object* o1 = newint(33);
@@ -288,6 +345,8 @@ int main()
   Object* o9 = newenv( newint(66), newint(77), NULL );
   Object* o10 = newclosure( (Env*)o9, (Proc*)o3 );
   Object* o11 = invoke_obj( o10, 2, o6, o7 );
+  Object* o12 = newproc(&outer);
+  Object* o13 = invoke_obj( o12, 1, o6 );
 
   printf("\no1  (int)           : "); print_obj(o1);
   printf("\no2  (string)        : "); print_obj(o2);
@@ -298,6 +357,8 @@ int main()
   printf("\no9  (env)           : "); print_obj(o9);
   printf("\no10 (closure)       : "); print_obj(o10);
   printf("\no11 (call clos res) : "); print_obj(o11);
+  printf("\no12 (closure real)  : "); print_obj(o12);
+  printf("\no13 (call clos res) : "); print_obj(o13);
 
   return 0;
 }
