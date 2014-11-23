@@ -9,6 +9,7 @@ typedef struct _Integer Integer;
 typedef struct _String String;
 typedef struct _Proc Proc;
 typedef struct _Env Env;
+typedef struct _Envaddress Envaddress;
 typedef struct _Closure Closure;
 typedef struct _List List;
 
@@ -50,6 +51,12 @@ struct _Env {
   Env* parent;
 };
 
+struct _Envaddress {
+  Object object;
+  unsigned int frameindex;
+  unsigned int varindex;
+};
+
 struct _Closure {
   Object object;
   Env* env;
@@ -72,6 +79,7 @@ Class CInteger = { &CObject };
 Class CString = { &CObject };
 Class CProc = { &CObject };
 Class CEnv = { &CObject };
+Class CEnvaddress = { &CObject };
 Class CClosure = { &CObject };
 Class CList = { &CObject };
 
@@ -118,6 +126,16 @@ Object* newenv(Object* o1, Object* o2, Env* parent)
   return (Object*)o;
 }
 
+Object* newenvaddress(unsigned int frameindex, unsigned int varindex)
+{
+  Envaddress* o = malloc( sizeof(Envaddress) );
+  o->object.class = &CEnvaddress;
+  o->frameindex = frameindex;
+  o->varindex = varindex;
+
+  return (Object*)o;
+}
+
 Object* newclosure(Env* env, Proc* proc)
 {
   Closure* o = malloc( sizeof(Closure) );
@@ -143,10 +161,29 @@ Object* newlist(Object* value, List* next)
  * runtime functionality:
  */
 
+Object* lookup(Env *env, Envaddress* envaddress)
+{
+  Object* value = NULL;
+
+  if ( NULL == env ) {
+    printf("ERROR: unknown binding!\n");
+  } else if ( envaddress->frameindex > 0 ) {
+    envaddress->frameindex--;
+    value = lookup( env->parent, envaddress );
+  } else {
+    if ( envaddress->varindex == 0 ) {
+      value = env->o1;
+    } else {
+      value = env->o2;
+    }
+  }
+
+  return value;
+}
+
 Object* add_obj(Object* o1, Object* o2)
 {
   // TODO: type safety
-
   Integer* i1 = (Integer*)o1;
   Integer* i2 = (Integer*)o2;
 
@@ -233,7 +270,9 @@ Object* identity(Env* env)
 {
   printf("identity called!\n");
 
-  return env->o1;
+  Envaddress* ea = (Envaddress*)newenvaddress( 0, 1 );
+
+  return lookup( env, ea );
 }
 
 int main()
@@ -245,10 +284,10 @@ int main()
   Object* o5 = newlist(o2, (List*)o4);
   Object* o6 = newint(44);
   Object* o7 = add_obj(o1, o6);
-  Object* o8 = invoke_obj(o3, 1, o2);
+  Object* o8 = invoke_obj(o3, 2, o2, o1);
   Object* o9 = newenv( newint(66), newint(77), NULL );
   Object* o10 = newclosure( (Env*)o9, (Proc*)o3 );
-  Object* o11 = invoke_obj( o10, 1, o6 );
+  Object* o11 = invoke_obj( o10, 2, o6, o7 );
 
   printf("\no1  (int)           : "); print_obj(o1);
   printf("\no2  (string)        : "); print_obj(o2);
