@@ -14,7 +14,9 @@ typedef struct _List List;
 
 
 struct _Class {
-  Class* superclass; // TODO: implement inheritance
+  // NOTE: this struct must not be empty, since some compilers may map the below instances
+  //       of this struct (CObject, CInteger, ...) to the very same memory address.
+  Class* superclass;
 };
 
 struct _Object {
@@ -61,7 +63,10 @@ struct _List {
 };
 
 
-/* class instances: */
+/*
+ * class instances:
+ */
+
 Class CObject = { NULL };
 Class CInteger = { &CObject };
 Class CString = { &CObject };
@@ -70,6 +75,10 @@ Class CEnv = { &CObject };
 Class CClosure = { &CObject };
 Class CList = { &CObject };
 
+
+/*
+ * constructors:
+ */
 
 Object* newint(int value)
 {
@@ -129,6 +138,10 @@ Object* newlist(Object* value, List* next)
   return (Object*)o;
 }
 
+
+/*
+ * runtime functionality:
+ */
 
 Object* add_obj(Object* o1, Object* o2)
 {
@@ -212,6 +225,10 @@ void print_obj(Object* o)
 }
 
 
+/*
+ * test application (probably compiler-generated) code:
+ */
+
 Object* identity(Env* env)
 {
   printf("identity called!\n");
@@ -233,16 +250,15 @@ int main()
   Object* o10 = newclosure( (Env*)o9, (Proc*)o3 );
   Object* o11 = invoke_obj( o10, 1, o6 );
 
-  print_obj(o1);
-  print_obj(o2);
-  print_obj(o3);
-  //  print_obj(o4);
-  print_obj(o5);
-  print_obj(o7);
-  print_obj(o8);
-  print_obj(o9);
-  print_obj(o10);
-  print_obj(o11);
+  printf("\no1  (int)           : "); print_obj(o1);
+  printf("\no2  (string)        : "); print_obj(o2);
+  printf("\no3  (proc)          : "); print_obj(o3);
+  printf("\no5  (list)          : "); print_obj(o5);
+  printf("\no7  (add res)       : "); print_obj(o7);
+  printf("\no8  (call proc res) : "); print_obj(o8);
+  printf("\no9  (env)           : "); print_obj(o9);
+  printf("\no10 (closure)       : "); print_obj(o10);
+  printf("\no11 (call clos res) : "); print_obj(o11);
 
   return 0;
 }
