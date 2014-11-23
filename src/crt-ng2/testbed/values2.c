@@ -169,7 +169,7 @@ static Env* gotoframe(Env* env, Envaddress* envaddress)
     printf("ERROR: can't find frame!\n");
   } else if ( envaddress->frameindex > 0 ) {
     Envaddress* newea = (Envaddress*)newenvaddress( envaddress->frameindex - 1, envaddress->varindex );
-    newenv = gotoframe( env->parent, newea );
+    newenv = gotoframe( env->parent, newea ); // FIXME: recursion may lead to stackoverflow, once we have cps in place
   }
 
   return newenv;
