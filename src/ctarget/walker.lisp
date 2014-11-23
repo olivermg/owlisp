@@ -64,14 +64,14 @@
     (defrule
 	#'assignment/c-p
 	(obj nil)
-      (express "value_t ~a = ~a;~%"
+      (express "CObject* ~a = ~a;~%"
 	       (assignment/c-lvalue obj)
 	       (walk (assignment/c-value obj))))
 
     (defrule
 	#'constant/c-p
 	(obj nil)
-      (express "constant( ~a )"
+      (express "newint( ~a )"
 	       (constant/c-value obj)))
 
     (defrule
@@ -83,23 +83,23 @@
     (defrule
 	#'reference/c-p
 	(obj nil)
-      (express "lookup( \"~a\" )"
+      (express "lookup( \"~a\" )" ; TODO: need to provide environment address instead of symbol name
 	       (reference/c-symbol obj)))
 
     (defrule
 	#'abstraction/c-p
 	(obj nil)
       (new-buffer)
-      (dump "value_t ~a(~{~a~^, ~}) {~%~a~%}~%~%"
+      (dump "CObject* ~a(Env* env) {~%~{~a;~%~}~%~a~%}~%~%"
 	    (abstraction/c-name obj)
 	    (mapcar #'(lambda (arg)
 			(format nil
-				"value_t ~a"
+				"CObject* ~a"
 				arg))
 		    (abstraction/c-args obj))
 	    (walk (abstraction/c-body obj)))
       (pop-buffer)
-      (express "&~a"
+      (express "newproc(&~a)"
 	       (abstraction/c-name obj)))
 
     (defrule
