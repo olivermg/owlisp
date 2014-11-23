@@ -14,7 +14,7 @@ typedef struct _List List;
 
 
 struct _Class {
-  //  Class* superclass; // TODO: implement inheritance
+  Class* superclass; // TODO: implement inheritance
 };
 
 struct _Object {
@@ -62,13 +62,13 @@ struct _List {
 
 
 /* class instances: */
-Class CObject = {};
-Class CInteger = {};
-Class CString = {};
-Class CProc = {};
-Class CEnv = {};
-Class CClosure = {};
-Class CList = {};
+Class CObject = { NULL };
+Class CInteger = { &CObject };
+Class CString = { &CObject };
+Class CProc = { &CObject };
+Class CEnv = { &CObject };
+Class CClosure = { &CObject };
+Class CList = { &CObject };
 
 
 Object* newint(int value)
