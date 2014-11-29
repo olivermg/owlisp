@@ -1,0 +1,7 @@
+#ifndef __CONFIG_H
+#define __CONFIG_H
+
+#define VERSION_MAJOR @owlisprt_VERSION_MAJOR@
+#define VERSION_MINOR @owlisprt_VERSION_MINOR@
+
+#endif

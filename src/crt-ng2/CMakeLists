@@ -1,0 +1,22 @@
+cmake_minimum_required(2.8)
+project(owlisprt)
+
+set(owlisprt_VERSION_MAJOR 0)
+set(owlisprt_VERSION_MINOR 1)
+
+configure_file(
+	"${PROJECT_SOURCE_DIR}/config.h.in"
+	"${PROJECT_BINARY_DIR}/config.h"
+)
+
+include_directories(
+	"${PROJECT_BINARY_DIR}"
+)
+
+add_library(owlisprt
+	classes.c
+	env.c
+	invocation.c
+	math_basic.c
+	print.c
+)
