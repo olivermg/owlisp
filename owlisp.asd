@@ -52,20 +52,24 @@
 		    :components
 		    ((:file "predicates")
 		     (:file "objects")
+		     (:file "symboltable")
 		     #|
 		     (:file "macroexpand-all"
 			    :depends-on ("predicates"))
 		     |#
 		     (:file "transform"
-			    :depends-on ("predicates" "objects"))
+			    :depends-on ("predicates" "objects" "symboltable"))
 		     #|
 		     (:file "cps"
 			    :depends-on ("predicates" "objects"))
 		     |#
 		     (:file "closure"
 			    :depends-on ("predicates" "objects"))
+		     #|
 		     (:file "parameters"
-			    :depends-on ("predicates")))
+			    :depends-on ("predicates"))
+		     |#
+		     )
 
 		    :depends-on ("owlisp"
 				 "helper"))
@@ -73,11 +77,14 @@
 		   (:module
 		    ctarget
 		    :components
-		    ((:file "globals")
+		    (
+		     #|
+		     (:file "globals")
 		     (:file "constant"
 			    :depends-on ("globals"))
 		     (:file "abstraction"
 			    :depends-on ("globals"))
+		     |#
 		     (:file "objects")
 		     (:file "walker")
 		     (:file "restructure"

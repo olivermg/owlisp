@@ -235,6 +235,7 @@ Object* invoke_obj(Object* o, unsigned long numargs, ...)
 
   va_list args;
 
+  // TODO: handle variable number of arguments:
   va_start(args, numargs);
   Object* arg1 = va_arg(args, Object*);
   Object* arg2 = va_arg(args, Object*);
@@ -243,10 +244,12 @@ Object* invoke_obj(Object* o, unsigned long numargs, ...)
   Proc* proc = NULL;
   Env* env = NULL;
   if ( o->class == &CProc ) {
+    // invoke Proc:
     printf("...invoking proc...\n");
     proc = (Proc*)o;
     env = (Env*)newenv(arg1, arg2, NULL);
   } else if ( o->class == &CClosure ) {
+    // invoke Closure:
     printf("...invoking closure...\n");
     proc = ((Closure*)o)->proc;
     env = (Env*)newenv(arg1, arg2, ((Closure*)o)->env);
@@ -307,6 +310,21 @@ void print_obj(Object* o)
  * test application (probably compiler-generated) code:
  */
 
+Object* PROC10( Env* env ) {
+Object* VAR46 = lookup_i( env, 0, 1 );
+return VAR46;
+}
+
+int main() {
+Object* VAR47 = newproc( &PROC10 );
+Object* VAR48 = newint( 11 );
+Object* VAR49 = newint( 22 );
+Object* VAR50 = invoke_obj( VAR47, 2, VAR48, VAR49 );
+;
+return 0;
+}
+
+/*
 Object* identity(Env* env)
 {
   printf("identity called!\n");
@@ -372,6 +390,7 @@ int main()
 
   return 0;
 }
+*/
 
 /*
 Object* PROC1(unsigned long numargs, ...) {

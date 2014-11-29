@@ -64,7 +64,7 @@
     (defrule
 	#'assignment/c-p
 	(obj nil)
-      (express "CObject* ~a = ~a;~%"
+      (express "Object* ~a = ~a;~%"
 	       (assignment/c-lvalue obj)
 	       (walk (assignment/c-value obj))))
 
@@ -83,25 +83,22 @@
     (defrule
 	#'reference/c-p
 	(obj nil)
-      (express "lookup( \"~a\" )" ; TODO: need to provide environment address instead of symbol name
-	       (reference/c-symbol obj)))
+      (express "lookup_i( env, ~a, ~a )"
+	       (reference/c-frameindex obj)
+	       (reference/c-varindex obj)))
 
     (defrule
 	#'abstraction/c-p
 	(obj nil)
       (new-buffer)
-      (dump "CObject* ~a(Env* env) {~%~{~a;~%~}~%~a~%}~%~%"
+      (dump "Object* ~a( Env* env ) {~%~a}~%~%"
 	    (abstraction/c-name obj)
-	    (mapcar #'(lambda (arg)
-			(format nil
-				"CObject* ~a"
-				arg))
-		    (abstraction/c-args obj))
 	    (walk (abstraction/c-body obj)))
       (pop-buffer)
-      (express "newproc(&~a)"
+      (express "newproc( &~a )"
 	       (abstraction/c-name obj)))
 
+    #|
     (defrule
 	#'closure*-p
 	(obj nil)
@@ -113,14 +110,17 @@
 	       ,procname
 	       ,(abstraction*-args obj)
 	       ,walked-body)))	; TODO: auto-return last value
+    |#
 
 
     (defrule
 	#'application/c-p
 	(obj nil)
-      (express "~a(~{~a~^, ~});~%"
-	       (application/c-fn obj)
-	       (application/c-args obj)))
+      (let ((args (application/c-args obj)))
+	(express "invoke_obj( ~a, ~a, ~{~a~^, ~} );~%" ; TODO: fix for no arguments
+		 (application/c-fn obj)
+		 (length args)
+		 args)))
 
     (defrule
 	#'sequence/c-p

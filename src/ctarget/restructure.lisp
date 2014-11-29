@@ -44,7 +44,8 @@
 	  #'reference*-p
 	  (obj nil)
 	(make-assignment/c :lvalue (next-varname)
-			   :value (make-reference/c :symbol (reference*-symbol obj))))
+			   :value (make-reference/c :frameindex (reference*-frameindex obj)
+						    :varindex (reference*-varindex obj))))
 
       (defrule
 	  #'abstraction*-p

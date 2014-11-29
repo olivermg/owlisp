@@ -3,27 +3,36 @@
 (export '(make-sequence/c
 	  sequence/c-p
 	  sequence/c-sequence
+
 	  make-assignment/c
 	  assignment/c-p
 	  assignment/c-lvalue
 	  assignment/c-value
+
 	  make-constant/c
 	  constant/c-p
 	  constant/c-value
+
 	  make-symbol/c
 	  symbol/c-p
 	  symbol/c-name
+
 	  make-reference/c
 	  reference/c-p
-	  reference/c-symbol
+	  reference/c-frameindex
+	  reference/c-varindex
+;	  reference/c-symbol
+
 	  make-abstraction/c
 	  abstraction/c-p
 	  abstraction/c-name
 	  abstraction/c-args
 	  abstraction/c-body
+
 	  make-application/c
 	  application/c-fn
 	  application/c-args
+
 	  make-return/c
 	  return/c-p
 	  return/c-variable-name))
@@ -34,7 +43,8 @@
 (defstruct constant/c value)
 (defstruct symbol/c name)
 ;(defstruct variable/c name)
-(defstruct reference/c symbol)
+;(defstruct reference/c symbol)
+(defstruct reference/c frameindex varindex)
 (defstruct abstraction/c name args body)
 (defstruct application/c fn args)
 (defstruct return/c variable-name)

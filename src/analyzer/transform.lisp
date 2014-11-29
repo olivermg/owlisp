@@ -7,7 +7,8 @@
 
   (make-walker
 
-    (declare (ignore #'walk-sequence-last))
+    (declare (ignore #'walk-sequence-last)
+	     (special *symboltable*))
 
     (defrule
 	#'self-evaluating-p
@@ -22,15 +23,21 @@
     (defrule
 	#'variable-p
 	(expr nil)
-      (make-reference* :symbol expr))
+      (multiple-value-bind (frameindex varindex)
+	  (symbol-address *symboltable* expr)
+	(make-reference* :frameindex frameindex
+			 :varindex varindex)))
 
     (defrule
 	#'lambda-p
 	((lam (&rest arglist) &body body) nil)
       (declare (ignore lam))
-      (let ((transformed-body (walk-sequence body)))
-	(make-abstraction* :args arglist
-			   :body transformed-body)))
+      (let ((*symboltable* (make-symboltable :parent *symboltable*)))
+	(declare (special *symboltable*))
+	(add-symbols *symboltable* arglist)
+	(let ((transformed-body (walk-sequence body)))
+	  (make-abstraction* :args arglist
+			     :body transformed-body))))
 
     (defrule
 	#'application-p
@@ -49,5 +56,7 @@
 
 
 (defun do-transform (expr)
-  (funcall *transform-walker*
-	   expr))
+  (let ((*symboltable* (make-symboltable)))
+    (declare (special *symboltable*))
+    (funcall *transform-walker*
+	     expr)))
