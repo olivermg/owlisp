@@ -310,21 +310,33 @@ void print_obj(Object* o)
  * test application (probably compiler-generated) code:
  */
 
-Object* PROC10( Env* env ) {
-Object* VAR46 = lookup_i( env, 0, 1 );
-return VAR46;
+/*
+Object* PROC26( Env* env ) {
+Object* VAR79 = lookup_i( env, 0, 1 );
+return VAR79;
+}
+
+Object* PROC25( Env* env ) {
+Object* VAR77 = lookup_i( env, 1, 0 );
+return VAR77;
+}
+
+Object* PROC27( Env* env ) {
+Object* VAR78 = newproc( &PROC25 );
+Object* VAR80 = newproc( &PROC26 );
+return VAR80;
 }
 
 int main() {
-Object* VAR47 = newproc( &PROC10 );
-Object* VAR48 = newint( 11 );
-Object* VAR49 = newint( 22 );
-Object* VAR50 = invoke_obj( VAR47, 2, VAR48, VAR49 );
+Object* VAR81 = newproc( &PROC27 );
+Object* VAR82 = newint( 11 );
+Object* VAR83 = newint( 22 );
+Object* VAR84 = invoke_obj( VAR81, 2, VAR82, VAR83 );
 ;
 return 0;
 }
+*/
 
-/*
 Object* identity(Env* env)
 {
   printf("identity called!\n");
@@ -390,7 +402,6 @@ int main()
 
   return 0;
 }
-*/
 
 /*
 Object* PROC1(unsigned long numargs, ...) {
