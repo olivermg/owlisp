@@ -3,6 +3,6 @@
 
 #include "classes.h"
 
-Object* invoke_obj(Object* o, unsigned long numargs, ...)
+Object* invoke_obj(Object* o, unsigned long numargs, ...);
 
 #endif

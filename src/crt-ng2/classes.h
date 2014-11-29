@@ -69,7 +69,10 @@ struct _List {
 };
 
 
-/* constructors: */
+/*
+ * constructors:
+ */
+
 Object* newint(int value);
 Object* newstring(char* value);
 Object* newproc(proc_p value);
@@ -78,5 +81,19 @@ Object* newenvaddress(unsigned int frameindex, unsigned int varindex);
 Object* newclosure(Env* env, Proc* proc);
 Object* newclosure_i(Env* env, proc_p p);
 Object* newlist(Object* value, List* next);
+
+
+/*
+ * class instances:
+ */
+
+Class CObject;
+Class CInteger;
+Class CString;
+Class CProc;
+Class CEnv;
+Class CEnvaddress;
+Class CClosure;
+Class CList;
 
 #endif

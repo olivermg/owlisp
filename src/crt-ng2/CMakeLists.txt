@@ -1,4 +1,4 @@
-cmake_minimum_required(2.8)
+cmake_minimum_required(VERSION 2.8)
 project(owlisprt)
 
 set(owlisprt_VERSION_MAJOR 0)

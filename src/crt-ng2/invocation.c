@@ -1,4 +1,6 @@
 #include <stdarg.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "invocation.h"
 
 Object* invoke_obj(Object* o, unsigned long numargs, ...)
