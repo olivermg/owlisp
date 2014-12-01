@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "print.h"
+#include <owlisp/print.h>
 
 void print_obj(Object* o)
 {

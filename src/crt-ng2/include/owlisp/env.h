@@ -1,7 +1,7 @@
 #ifndef __ENV_H
 #define __ENV_H
 
-#include "classes.h"
+#include <owlisp/classes.h>
 
 Object* lookup(Env *env, Envaddress* envaddress);
 Object* lookup_i(Env* env, unsigned long frameindex, unsigned long varindex);

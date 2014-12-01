@@ -1,4 +1,4 @@
-#include "math_basic.h"
+#include <owlisp/math_basic.h>
 
 Object* add_obj(Object* o1, Object* o2)
 {

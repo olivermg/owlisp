@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "classes.h"
+#include <owlisp/classes.h>
 
 
 /*

@@ -1,7 +1,7 @@
 #ifndef __PRINT_H
 #define __PRINT_H
 
-#include "classes.h"
+#include <owlisp/classes.h>
 
 void print_obj(Object* o);
 

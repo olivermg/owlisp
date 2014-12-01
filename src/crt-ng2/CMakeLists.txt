@@ -5,12 +5,12 @@ set(owlisprt_VERSION_MAJOR 0)
 set(owlisprt_VERSION_MINOR 1)
 
 configure_file(
-	"${PROJECT_SOURCE_DIR}/config.h.in"
-	"${PROJECT_BINARY_DIR}/config.h"
+	"${PROJECT_SOURCE_DIR}/include/owlisp/config.h.in"
+	"${PROJECT_SOURCE_DIR}/include/owlisp/config.h"
 )
 
 include_directories(
-	"${PROJECT_BINARY_DIR}"
+	"${PROJECT_SOURCE_DIR}/include"
 )
 
 add_library(owlisprt
@@ -19,4 +19,15 @@ add_library(owlisprt
 	invocation.c
 	math_basic.c
 	print.c
+)
+
+install(
+	TARGETS owlisprt
+	ARCHIVE DESTINATION lib
+)
+
+install(
+	DIRECTORY include/owlisp
+	DESTINATION include
+	FILES_MATCHING PATTERN "*.h"
 )
