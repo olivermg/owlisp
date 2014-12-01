@@ -12,6 +12,8 @@
      (new-buffer)
      (dump "int main() {~%~areturn 0;~%}~%~%"
 	   (express "~a" (progn ,@body)))
+     (new-buffer)
+     (dump "#include <owlisp/owlisprt.h>~%~%")
      (apply #'concatenate
 	    'string
 	    *buffers*)))
