@@ -98,7 +98,8 @@
 		    :components
 		    ((:file "applier"))
 
-		    :depends-on ("analyzer"
+		    :depends-on ("owlisp"
+				 "analyzer"
 				 "ctarget")))
 
 		  :depends-on ("packages"))))
