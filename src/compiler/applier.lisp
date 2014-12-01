@@ -21,7 +21,9 @@
     (compile-stream stream)))
 
 (defun compile-stdin ()
-  (compile-stream *standard-input*))
+  (mapcar #'(lambda (e)
+	      (format t "~a" e))
+	  (compile-stream *standard-input*)))
 
 (defun compile-stream (stream)
   (compile-forms (read-stream stream)))
