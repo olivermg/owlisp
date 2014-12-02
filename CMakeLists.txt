@@ -138,7 +138,7 @@ if (NOT SBCL)
 endif (NOT SBCL)
 
 # compile owlisp2c:
-set(OWLISP2CBIN ${CMAKE_CURRENT_SOURCE_DIR}/owlisp2c)
+set(OWLISP2CBIN ${PROJECT_BINARY_DIR}/owlisp2c)
 set(COMPILELOG owlisp2c-compile.log)
 
 set(MAKELISPIN ${CMAKE_CURRENT_SOURCE_DIR}/make.lisp.in)
@@ -165,5 +165,10 @@ add_custom_target(
 	owlisp2c ALL
 	#DEPENDS clean_owlisp2c ${OWLISP2CBIN}
 	COMMAND LD_LIBRARY_PATH=${LDLIBPATH} ${SBCL} --load "${MAKELISP}" >${COMPILELOG} 2>&1
+)
+
+install(
+	PROGRAMS ${OWLISP2CBIN}
+	DESTINATION bin
 )
 
