@@ -172,3 +172,9 @@ install(
 	DESTINATION bin
 )
 
+set(OWLISPBIN ${CMAKE_CURRENT_SOURCE_DIR}/bin/owlisp)
+install(
+	PROGRAMS ${OWLISPBIN}
+	DESTINATION bin
+)
+
