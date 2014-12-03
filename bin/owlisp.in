@@ -1,6 +1,6 @@
 #!/bin/sh
 
-INSTALLPREFIX=/home/oliver/opt/owlisp/dev
+INSTALLPREFIX=@CMAKE_INSTALL_PREFIX@
 
 OWLISP2C=${INSTALLPREFIX}/bin/owlisp2c
 CC=clang

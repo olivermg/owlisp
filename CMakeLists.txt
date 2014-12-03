@@ -167,12 +167,19 @@ add_custom_target(
 	COMMAND LD_LIBRARY_PATH=${LDLIBPATH} ${SBCL} --load "${MAKELISP}" >${COMPILELOG} 2>&1
 )
 
+set(OWLISPBININ ${CMAKE_CURRENT_SOURCE_DIR}/bin/owlisp.in)
+set(OWLISPBIN ${CMAKE_CURRENT_SOURCE_DIR}/bin/owlisp)
+configure_file(
+	${OWLISPBININ}
+	${OWLISPBIN}
+	@ONLY
+)
+
 install(
 	PROGRAMS ${OWLISP2CBIN}
 	DESTINATION bin
 )
 
-set(OWLISPBIN ${CMAKE_CURRENT_SOURCE_DIR}/bin/owlisp)
 install(
 	PROGRAMS ${OWLISPBIN}
 	DESTINATION bin
