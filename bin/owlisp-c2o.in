@@ -1,0 +1,25 @@
+#!/bin/sh
+
+INSTALLPREFIX=@CMAKE_INSTALL_PREFIX@
+
+CC=@CMAKE_C_COMPILER@
+CFLAGS=-I${INSTALLPREFIX}/include
+
+while getopts "c:o:" OPT; do
+	case "$OPT" in
+	c)
+		INFILE="${OPTARG}"
+		;;
+	o)
+		OUTFILE="${OPTARG}"
+		;;
+	esac
+done
+
+if [ -z "${INFILE}" -o -z "${OUTFILE}" ]; then
+	echo "Usage: $0 -o <outfile> -c <infile>"
+	exit 1
+fi
+
+${CC} -Wall ${CFLAGS} -o "${OUTFILE}" -c "${INFILE}"
+

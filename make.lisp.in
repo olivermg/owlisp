@@ -1,5 +1,5 @@
 (asdf:load-system :owlisp)
 
-(sb-ext:save-lisp-and-die "@OWLISP2CBIN@"
+(sb-ext:save-lisp-and-die "@OWLISP_L2C_BIN@"
 			  :toplevel #'owlisp/compiler:compile-stdin
 			  :executable t)

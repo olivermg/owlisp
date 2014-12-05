@@ -1,38 +1,37 @@
 #!/bin/sh
 
 INSTALLPREFIX=@CMAKE_INSTALL_PREFIX@
+BINDIR=${INSTALLPREFIX}/bin
 
-OWLISP2C=${INSTALLPREFIX}/bin/owlisp2c
-CC=clang
-CFLAGS=-I${INSTALLPREFIX}/include
-LDFLAGS=-L${INSTALLPREFIX}/lib
-LIBS=-lowlisprt
+OWLISP_L2C=${BINDIR}/@OWLISP_L2C_BIN_FILENAME@
+OWLISP_C2O=${BINDIR}/@OWLISP_C2O_BIN_FILENAME@
+OWLISP_O2X=${BINDIR}/@OWLISP_O2X_BIN_FILENAME@
 
-while getopts "hc:o:" opt; do
-	case "$opt" in
-	h)
-		echo "HELP"
-		exit 0
-		;;
-	c)
-		INFILE="${OPTARG}"
-		;;
+while getopts "o:" OPT; do
+	case "$OPT" in
 	o)
 		OUTFILE="${OPTARG}"
+		shift 2
 		;;
 	esac
 done
 
-if [ -z "${INFILE}" -o -z "${OUTFILE}" ]; then
-	echo "both infile and outfile must be provided"
+INFILES=$*
+
+if [ -z "${INFILES}" -o -z "${OUTFILE}" ]; then
+	echo "Usage: $0 -o <outfile> <infile> ..."
 	exit 1
 fi
 
-COUTFILE="${INFILE}.c"
-OBJOUTFILE="${INFILE}.o"
+OFILES=""
+for INFILE in ${INFILES}; do
+	CFILE="${INFILE}.c"
+	OFILE="${INFILE}.o"
+	OFILES="${OFILES} ${OFILE}"
 
-${OWLISP2C} <"${INFILE}" >"${COUTFILE}"
+	${OWLISP_L2C} <"${INFILE}" >"${CFILE}"
+	${OWLISP_C2O} -o "${OFILE}" -c "${CFILE}"
+done
 
-${CC} -Wall ${CFLAGS} -o "${OBJOUTFILE}" -c "${COUTFILE}"
-${CC} -Wall ${LDFLAGS} -o "${OUTFILE}" ${OBJOUTFILE} ${LIBS}
+${OWLISP_O2X} -o "${OUTFILE}" "${OFILES}"
 

@@ -1,0 +1,26 @@
+#!/bin/sh
+
+INSTALLPREFIX=@CMAKE_INSTALL_PREFIX@
+
+CC=@CMAKE_C_COMPILER@
+LDFLAGS=-L${INSTALLPREFIX}/lib
+LIBS=-lowlisprt
+
+while getopts "o:" OPT; do
+	case "$OPT" in
+	o)
+		OUTFILE="${OPTARG}"
+		shift 2
+		;;
+	esac
+done
+
+INFILES=$*
+
+if [ -z "${INFILES}" -o -z "${OUTFILE}" ]; then
+	echo "Usage: $0 -o <outfile> <infile> ..."
+	exit 1
+fi
+
+${CC} -Wall ${LDFLAGS} -o "${OUTFILE}" ${INFILES} ${LIBS}
+
