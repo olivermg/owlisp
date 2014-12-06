@@ -53,9 +53,13 @@
 	(let* ((walked-body (walk-sequence (abstraction*-body obj)))
 	       (last-var (get-return-var walked-body))
 	       (body-with-return (append walked-body
-					 (list (make-return/c :variable-name last-var)))))
+					 (list (make-return/c :variable-name last-var))))
+	       (name (let ((a-name (abstraction*-name obj)))
+		       (if a-name
+			   a-name
+			   (next-procedurename)))))
 	  (make-assignment/c :lvalue (next-varname)
-			     :value (make-abstraction/c :name (next-procedurename)
+			     :value (make-abstraction/c :name name
 							:args (abstraction*-args obj)
 							:body (make-sequence/c :sequence
 									       body-with-return)))))

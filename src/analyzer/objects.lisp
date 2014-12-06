@@ -24,6 +24,7 @@
 
 	  make-abstraction*
 	  abstraction*-p
+	  abstraction*-name
 	  abstraction*-args
 	  abstraction*-body
 
@@ -44,7 +45,7 @@
 (defstruct reference* frameindex varindex)
 ;(defstruct free-reference* symbol)
 ;(defstruct bound-reference* symbol)
-(defstruct abstraction* args body)
+(defstruct abstraction* name args body)
 ;(defstruct closure* args body env) ; TODO: make passed closure a separate field instead of assuming it's the first arg
 (defstruct application* fn args)
 (defstruct environment* parent symbols)

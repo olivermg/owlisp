@@ -3,10 +3,11 @@
 (export '(compiletime-macro-p
 	  primitive-p
 	  self-evaluating-p
-	  variable-p
+	  reference-p
 	  quote-p
 	  let-p
 	  lambda-p
+	  defun-p
 	  if-p
 	  application-p))
 
@@ -41,7 +42,7 @@
    (stringp expr)
    (null expr)))
 
-(defun variable-p (expr)
+(defun reference-p (expr)
   (symbolp expr))
 
 (defun quote-p (expr)
@@ -52,6 +53,9 @@
 
 (defun lambda-p (expr)
   (is-tagged-list expr :lambda))
+
+(defun defun-p (expr)
+  (is-tagged-list expr :defun))
 
 (defun if-p (expr)
   (is-tagged-list expr :if))
