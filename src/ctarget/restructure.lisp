@@ -56,7 +56,7 @@
 					 (list (make-return/c :variable-name last-var))))
 	       (name (let ((a-name (abstraction*-name obj)))
 		       (if a-name
-			   a-name
+			   (prefix-symbol a-name "_U_")
 			   (next-procedurename)))))
 	  (make-assignment/c :lvalue (next-varname)
 			     :value (make-abstraction/c :name name
