@@ -14,6 +14,10 @@
 	  reference*-varindex
 ;	  reference*-symbol
 
+	  make-function-reference*
+	  function-reference*-p
+	  function-reference*-name
+
 ;	  make-free-reference*
 ;	  free-reference*-p
 ;	  free-reference*-symbol
@@ -43,6 +47,7 @@
 (defstruct constant* value)
 (defstruct symbol* name)
 (defstruct reference* frameindex varindex)
+(defstruct function-reference* name)
 ;(defstruct free-reference* symbol)
 ;(defstruct bound-reference* symbol)
 (defstruct abstraction* name args body)

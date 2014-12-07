@@ -51,7 +51,8 @@
       (defrule
 	  #'application-p
 	  ((fn &rest args) nil)
-	(let ((transformed-fn (walk fn))
+	(let (;(transformed-fn (walk fn))
+	      (transformed-fn (make-function-reference* :name fn))
 	      (transformed-args (walk-sequence args)))
 	  (make-application* :fn transformed-fn
 			     :args transformed-args)))

@@ -23,6 +23,10 @@
 	  reference/c-varindex
 ;	  reference/c-symbol
 
+	  make-function-reference/c
+	  function-reference/c-p
+	  function-reference/c-name
+
 	  make-abstraction/c
 	  abstraction/c-p
 	  abstraction/c-name
@@ -45,6 +49,7 @@
 ;(defstruct variable/c name)
 ;(defstruct reference/c symbol)
 (defstruct reference/c frameindex varindex)
+(defstruct function-reference/c name)
 (defstruct abstraction/c name args body)
 (defstruct application/c fn args)
 (defstruct return/c variable-name)

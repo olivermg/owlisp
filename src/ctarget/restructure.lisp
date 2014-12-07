@@ -48,6 +48,13 @@
 						    :varindex (reference*-varindex obj))))
 
       (defrule
+	  #'function-reference*-p
+	  (obj nil)
+	(make-assignment/c :lvalue (next-varname)
+			   :value (make-function-reference/c :name
+							     (function-reference*-name obj))))
+
+      (defrule
 	  #'abstraction*-p
 	  (obj nil)
 	(let* ((walked-body (walk-sequence (abstraction*-body obj)))
@@ -56,7 +63,7 @@
 					 (list (make-return/c :variable-name last-var))))
 	       (name (let ((a-name (abstraction*-name obj)))
 		       (if a-name
-			   (prefix-symbol a-name "_U_")
+			   a-name
 			   (next-procedurename)))))
 	  (make-assignment/c :lvalue (next-varname)
 			     :value (make-abstraction/c :name name

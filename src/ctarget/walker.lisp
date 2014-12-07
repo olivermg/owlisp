@@ -84,11 +84,19 @@
 	       (reference/c-varindex obj)))
 
     (defrule
+	#'function-reference/c-p
+	(obj nil)
+      (express "newproc( &~a )"
+	       (prefix-symbol (function-reference/c-name obj)
+			      "_U_")))
+
+    (defrule
 	#'abstraction/c-p
 	(obj nil)
       (new-buffer)
       (dump "Object* ~a( Env* env ) {~%~a}~%~%"
-	    (abstraction/c-name obj)
+	    (prefix-symbol (abstraction/c-name obj)
+			   "_U_")
 	    (walk (abstraction/c-body obj)))
       (pop-buffer)
       (express "newproc( &~a )"
@@ -107,7 +115,6 @@
 	       ,(abstraction*-args obj)
 	       ,walked-body)))	; TODO: auto-return last value
     |#
-
 
     (defrule
 	#'application/c-p
