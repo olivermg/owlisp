@@ -24,7 +24,7 @@ owlisp is not even alpha yet ;) :
     * anonymous functions, e.g. ```(lambda () 1)```
     * named functions, e.g. ```(defun myfn () 1)```
     * variable declarations & references (only lexically scoped), e.g. ```(lambda (a) a)```
-    * function application, e.g. ```((lambda (a) a) 42)```
+    * function application, e.g. ```(myfn)```
 * it is still a lisp-1 (meaning, that it does not use separate namespaces
   for variable vs. function bindings
 
@@ -85,8 +85,11 @@ prerequisites 2 from above, as well as the owlisp compiler toolchain of course.
 
 7. Try it, e.g. create a file (e.g. ```test.lisp```) with the following contents:
    ```lisp
+   (defun myfn (a b)
+      b)
+    
    (defun main ()
-      ((lambda (a b) b) 11 22))
+      (myfn 11 22))
    ```
    Note that you must defun a function called ```main```. This will be the
    entry point for your program when you run it.
