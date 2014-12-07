@@ -19,6 +19,7 @@ add_library(owlisprt
 	invocation.c
 	math_basic.c
 	print.c
+	main.c
 )
 
 install(

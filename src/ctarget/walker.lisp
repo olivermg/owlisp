@@ -9,9 +9,8 @@
 	  (*buffers* '())
 	  (*current-buffer* '()))
      (declare (special *varname-index* *procedurename-index* *buffers* *current-buffer*))
-     (new-buffer)
-     (dump "int main() {~%~areturn 0;~%}~%~%"
-	   (express "~a" (progn ,@body)))
+;     (new-buffer)
+     (progn ,@body) ; NOTE: we don't dump the result of this into any buffer, because we don't want global scope expressions to be dumped to C, as this is not allowed in C.
      (new-buffer)
      (dump "#include <owlisp/owlisprt.h>~%~%")
      (apply #'concatenate
@@ -25,11 +24,13 @@
   (declare (special *current-buffer*))
   (apply #'format (car *current-buffer*) formatstr args))
 
+#|
 (defun formal-args (args)
   (format nil "~{int ~a~^, ~}" args))
 
 (defun formal-prototype (args)
   (format nil "~{int~*~^, ~}" args))
+|#
 
 (defun new-buffer ()
   (declare (special *buffers* *current-buffer*))
@@ -46,16 +47,9 @@
   (setf *current-buffer*
 	(cdr *current-buffer*)))
 
-
-(defun next-varname ()
-  (declare (special *varname-index*))
-  (intern
-   (format nil "VAR~d" (incf *varname-index*))))
-
-(defun next-procedurename ()
-  (declare (special *procedurename-index*))
-  (intern
-   (format nil "PROC~d" (incf *procedurename-index*))))
+(defun top-buffer? ()
+  (declare (special *current-buffer*))
+  (= (length *current-buffer*) 1))
 
 
 (defparameter *dumper-walker*
