@@ -40,7 +40,8 @@
 		     (:file "let")
 		     (:file "defun")
 		     (:file "codewalker"
-			    :depends-on ("gensyms"))))
+			    :depends-on ("gensyms"))
+		     (:file "buffer")))
 
 		   (:module
 		    environment-ng

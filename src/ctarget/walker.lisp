@@ -7,15 +7,18 @@
   `(let* ((*varname-index* 0)
 	  (*procedurename-index* 0)
 	  (*buffers* '())
-	  (*current-buffer* '()))
-     (declare (special *varname-index* *procedurename-index* *buffers* *current-buffer*))
+	  (*current-buffer* '())
+	  (*header-buffer* (make-string-buffer)))
+     (declare (special *varname-index* *procedurename-index* *buffers* *current-buffer* *header-buffer*))
+     (dump-header "#include <owlisp/owlisprt.h>~%")
 ;     (new-buffer)
      (progn ,@body) ; NOTE: we don't dump the result of this into any buffer, because we don't want global scope expressions to be dumped to C, as this is not allowed in C.
-     (new-buffer)
-     (dump "#include <owlisp/owlisprt.h>~%~%")
-     (apply #'concatenate
-	    'string
-	    *buffers*)))
+     (concatenate 'string
+		  *header-buffer*
+		  (format nil "~%")
+		  (apply #'concatenate
+			 'string
+			 *buffers*))))
 
 (defun express (formatstr &rest args)
   (apply #'format nil formatstr args))
@@ -23,6 +26,13 @@
 (defun dump (formatstr &rest args)
   (declare (special *current-buffer*))
   (apply #'format (car *current-buffer*) formatstr args))
+
+(defun dump-header (formatstr &rest args)
+  (declare (special *header-buffer*))
+  (apply #'format
+	 *header-buffer*
+	 (format nil "~a~%" formatstr)
+	 args))
 
 #|
 (defun formal-args (args)
@@ -34,7 +44,7 @@
 
 (defun new-buffer ()
   (declare (special *buffers* *current-buffer*))
-  (let ((newbuf (make-array '(0) :element-type 'base-char :fill-pointer 0 :adjustable t)))
+  (let ((newbuf (make-string-buffer)))
     (setf *buffers*
 	  (cons newbuf
 		*buffers*))
@@ -47,9 +57,11 @@
   (setf *current-buffer*
 	(cdr *current-buffer*)))
 
+#|
 (defun top-buffer? ()
   (declare (special *current-buffer*))
   (= (length *current-buffer*) 1))
+|#
 
 
 (defparameter *dumper-walker*
@@ -86,9 +98,10 @@
     (defrule
 	#'function-reference/c-p
 	(obj nil)
-      (express "newproc( &~a )"
-	       (prefix-symbol (function-reference/c-name obj)
-			      "_U_")))
+      (let ((fname (prefix-symbol (function-reference/c-name obj) ; TODO: unify prefix-name creation
+				  "_U_")))
+	(dump-header "Object* ~a( Env* );" fname)
+	(express "newproc( &~a )" fname)))
 
     (defrule
 	#'abstraction/c-p
