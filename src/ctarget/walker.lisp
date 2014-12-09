@@ -8,8 +8,14 @@
 	  (*procedurename-index* 0)
 	  (*buffers* '())
 	  (*current-buffer* '())
-	  (*header-buffer* (make-string-buffer)))
-     (declare (special *varname-index* *procedurename-index* *buffers* *current-buffer* *header-buffer*))
+	  (*header-buffer* (make-string-buffer))
+	  (*declared-functions* (make-hash-table :test #'eql)))
+     (declare (special *varname-index*
+		       *procedurename-index*
+		       *buffers*
+		       *current-buffer*
+		       *header-buffer*
+		       *declared-functions*))
      (dump-header "#include <owlisp/owlisprt.h>~%")
 ;     (new-buffer)
      (progn ,@body) ; NOTE: we don't dump the result of this into any buffer, because we don't want global scope expressions to be dumped to C, as this is not allowed in C.
@@ -33,6 +39,15 @@
 	 *header-buffer*
 	 (format nil "~a~%" formatstr)
 	 args))
+
+(defun function-declared-p (fn-name)
+  (declare (special *declared-functions*))
+  (gethash fn-name *declared-functions*))
+
+(defun add-declared-function (fn-name)
+  (declare (special *declared-functions*))
+  (setf (gethash fn-name *declared-functions*)
+	t))
 
 #|
 (defun formal-args (args)
@@ -100,7 +115,9 @@
 	(obj nil)
       (let ((fname (prefix-symbol (function-reference/c-name obj) ; TODO: unify prefix-name creation
 				  "_U_")))
-	(dump-header "Object* ~a( Env* );" fname)
+	(when (not (function-declared-p fname))
+	  (dump-header "Object* ~a( Env* );" fname)
+	  (add-declared-function fname))
 	(express "newproc( &~a )" fname)))
 
     (defrule
