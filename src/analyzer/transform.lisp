@@ -49,6 +49,14 @@
 	(transform-function arglist body name))
 
       (defrule
+	  #'funcall-p
+	  ((func fn &rest args) nil)
+	(declare (ignore func))
+	(let ((transformed-fn (walk fn))
+	      (transformed-args (walk-sequence args)))
+	  (make-application* :fn transformed-fn
+			     :args transformed-args)))
+      (defrule
 	  #'application-p
 	  ((fn &rest args) nil)
 	(let (;(transformed-fn (walk fn))

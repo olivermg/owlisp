@@ -8,6 +8,7 @@
 	  let-p
 	  lambda-p
 	  defun-p
+	  funcall-p
 	  if-p
 	  application-p))
 
@@ -56,6 +57,9 @@
 
 (defun defun-p (expr)
   (is-tagged-list expr :defun))
+
+(defun funcall-p (expr)
+  (is-tagged-list expr :funcall))
 
 (defun if-p (expr)
   (is-tagged-list expr :if))
