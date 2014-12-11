@@ -4,6 +4,8 @@ project(owlisprt)
 set(owlisprt_VERSION_MAJOR 0)
 set(owlisprt_VERSION_MINOR 1)
 
+find_program(EMCC emcc)
+
 configure_file(
 	"${PROJECT_SOURCE_DIR}/include/owlisp/config.h.in"
 	"${PROJECT_SOURCE_DIR}/include/owlisp/config.h"
@@ -13,14 +15,30 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/include"
 )
 
-add_library(owlisprt
-	classes.c
-	env.c
-	invocation.c
-	math_basic.c
-	print.c
-	main.c
-)
+file(GLOB CNAMES *.c)
+
+add_library(owlisprt ${CNAMES})
+
+if (EMCC)
+	foreach(CNAME ${CNAMES})
+		get_filename_component(CBASENAME ${CNAME} NAME_WE)
+		set(BCNAME ${PROJECT_BINARY_DIR}/${CBASENAME}.bc)
+		set(BCNAMES ${BCNAMES} ${BCNAME})
+		add_custom_command(
+			OUTPUT ${BCNAME}
+			COMMAND ${EMCC} -I${CMAKE_CURRENT_SOURCE_DIR}/include -o ${BCNAME} ${CNAME}
+		)
+	endforeach(CNAME)
+	add_custom_target(
+		libowlisprt_bc ALL
+		DEPENDS ${BCNAMES}
+	)
+
+	install(
+		FILES ${BCNAMES}
+		DESTINATION lib
+	)
+endif (EMCC)
 
 install(
 	TARGETS owlisprt
