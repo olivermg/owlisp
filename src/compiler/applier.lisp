@@ -21,17 +21,20 @@
     (compile-stream stream)))
 
 (defun compile-stdin ()
-  (mapcar #'(lambda (e)
-	      (format t "~a" e))
-	  (compile-stream *standard-input*)))
+  (compile-stream *standard-input*))
 
 (defun compile-stream (stream)
-  (compile-forms (read-stream stream)))
+  (concatenate 'string
+	       (format nil "#include <owlisp/owlisprt.h>~%")
+	       (compile-forms (read-stream stream))))
 
 (defun compile-forms (forms)
-  (mapcar #'(lambda (form)
-	      (compile-form form))
-	  forms))
+  (reduce #'(lambda (str form)
+	      (concatenate 'string
+			   str
+			   (compile-form form)))
+	  forms
+	  :initial-value ""))
 
 (defun compile-form (expr)
   (funcall *transformation-chain*

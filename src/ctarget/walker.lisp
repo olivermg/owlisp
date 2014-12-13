@@ -4,19 +4,19 @@
 
 
 (defmacro with-dumper (&body body)
-  `(let* ((*varname-index* 0)
-	  (*procedurename-index* 0)
-	  (*buffers* '())
-	  (*current-buffer* '())
-	  (*header-buffer* (make-string-buffer))
-	  (*declared-functions* (make-hash-table :test #'eql)))
+  `(let ((*varname-index* 0)
+	 (*procedurename-index* 0)
+	 (*buffers* '())
+	 (*current-buffer* '())
+	 (*header-buffer* (make-string-buffer))
+	 (*declared-functions* (make-hash-table :test #'eql)))
      (declare (special *varname-index*
 		       *procedurename-index*
 		       *buffers*
 		       *current-buffer*
 		       *header-buffer*
 		       *declared-functions*))
-     (dump-header "#include <owlisp/owlisprt.h>~%")
+;     (dump-header "#include <owlisp/owlisprt.h>~%")
 ;     (new-buffer)
      (progn ,@body) ; NOTE: we don't dump the result of this into any buffer, because we don't want global scope expressions to be dumped to C, as this is not allowed in C.
      (concatenate 'string
@@ -150,7 +150,7 @@
 	#'application/c-p
 	(obj nil)
       (let ((args (application/c-args obj)))
-	(express "invoke_obj( ~a, ~a, ~{~a~^, ~} );~%" ; TODO: fix for no arguments
+	(express "invoke_obj( ~a, ~a~{, ~a~} );~%" ; TODO: fix for no arguments
 		 (application/c-fn obj)
 		 (length args)
 		 args)))
