@@ -3,6 +3,7 @@
 INSTALLPREFIX=@CMAKE_INSTALL_PREFIX@
 
 CC=@EMCC@
+EMCCFLAGS=-Wno-warn-absolute-paths
 CFLAGS=-I${INSTALLPREFIX}/include
 
 while getopts "c:o:" OPT; do
@@ -21,5 +22,5 @@ if [ -z "${INFILE}" -o -z "${OUTFILE}" ]; then
 	exit 1
 fi
 
-${CC} -Wall ${CFLAGS} -o "${OUTFILE}" -c "${INFILE}"
+${CC} -Wall ${EMCCFLAGS} ${CFLAGS} -o "${OUTFILE}" -c "${INFILE}"
 

@@ -3,6 +3,7 @@
 INSTALLPREFIX=@CMAKE_INSTALL_PREFIX@
 
 CC=@EMCC@
+EMCCFLAGS=-Wno-warn-absolute-paths
 LDFLAGS=-L${INSTALLPREFIX}/lib/owlisp
 RUNTIMEBCFILES="${INSTALLPREFIX}/lib/owlisp/*.bc"
 
@@ -22,5 +23,5 @@ if [ -z "${INFILES}" -o -z "${OUTFILE}" ]; then
 	exit 1
 fi
 
-${CC} -Wall ${LDFLAGS} -o "${OUTFILE}" ${RUNTIMEBCFILES} ${INFILES}
+${CC} -Wall ${EMCCFLAGS} ${LDFLAGS} -o "${OUTFILE}" ${RUNTIMEBCFILES} ${INFILES}
 

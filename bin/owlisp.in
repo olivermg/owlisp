@@ -26,7 +26,7 @@ if [ -z "${INFILES}" -o -z "${OUTFILE}" ]; then
 fi
 
 OFILES=""
-if [[ "${OUTFILE}x" =~ ".jsx" ]]; then
+if [[ -x "@EMCC@" && "${OUTFILE}x" =~ ".jsx" ]]; then
 	for INFILE in ${INFILES}; do
 		CFILE="${INFILE}.c"
 		BCFILE="${INFILE}.bc"

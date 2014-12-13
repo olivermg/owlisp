@@ -4,7 +4,9 @@ project(owlisprt)
 set(owlisprt_VERSION_MAJOR 0)
 set(owlisprt_VERSION_MINOR 1)
 
-find_program(EMCC emcc)
+set(EMCCFLAGS -Wno-warn-absolute-paths)
+
+#find_program(EMCC emcc)
 
 configure_file(
 	"${PROJECT_SOURCE_DIR}/include/owlisp/config.h.in"
@@ -37,7 +39,7 @@ if (EMCC)
 		set(BCNAMES ${BCNAMES} ${BCNAME})
 		add_custom_command(
 			OUTPUT ${BCNAME}
-			COMMAND ${EMCC} -I${CMAKE_CURRENT_SOURCE_DIR}/include -o ${BCNAME} ${CNAME}
+			COMMAND ${EMCC} ${EMCCFLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/include -o ${BCNAME} ${CNAME}
 		)
 	endforeach(CNAME)
 	add_custom_target(
