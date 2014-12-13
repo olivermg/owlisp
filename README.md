@@ -37,7 +37,7 @@ me to write even the client side code of web applications in Lisp.
 Why compile to C then? Well, once this can be done, one can use LLVM to
 compile from C to JavaScript.
 Actually, this can already be done. When building owlisp, it will search for
-[emscripten](http://kripken.github.io/emscripten-site/). If it is found,
+[emscripten](http://emscripten.org). If it is found,
 you will be able to compile from Common Lisp to JavaScript.
 
 I can only work in my spare time on this project, so don't expect a quick
@@ -58,7 +58,7 @@ For building owlisp, you need:
 3. A working common lisp (currently, only SBCL will work) with the packages
    **ASDF**, **CFFI** & **APPLY-ARGV** available.
 
-4. (optional) [emscripten](http://kripken.github.io/emscripten-site/) in
+4. (optional) [emscripten](http://emscripten.org) in
     order to be able to compile to JavaScript.
 
 ### For running it
@@ -111,7 +111,7 @@ toolchain of course.
    This example probably won't print much output, but it should at least run
    successfully :) .
 
-8. If you have built owlisp with [emscripten](http://kripken.github.io/emscripten-site/)
+8. If you have built owlisp with [emscripten](http://emscripten.org)
    support, you can try compiling to JavaScript. Do the same as in step 7, but as
    compile command, issue a
    ```shell
