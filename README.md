@@ -1,8 +1,8 @@
 ## Introduction
 
-owlisp is a compiler that compiles Common Lisp to native binaries. To do that, it
-generates C code from Lisp and then compiles that C code to native binaries, using
-your C compiler.
+owlisp is a compiler that compiles Common Lisp to native binaries or JavaScript.
+To do that, it generates C code from Lisp and then compiles that C code to
+native binaries, using your C compiler, or emscripten to compile to JavaScript.
 
 ## News
 
@@ -36,6 +36,9 @@ me to write even the client side code of web applications in Lisp.
 
 Why compile to C then? Well, once this can be done, one can use LLVM to
 compile from C to JavaScript.
+Actually, this can already be done. When building owlisp, it will search for
+[emscripten](http://kripken.github.io/emscripten-site/). If it is found,
+you will be able to compile from Common Lisp to JavaScript.
 
 I can only work in my spare time on this project, so don't expect a quick
 progression on this project.
@@ -55,10 +58,14 @@ For building owlisp, you need:
 3. A working common lisp (currently, only SBCL will work) with the packages
    **ASDF**, **CFFI** & **APPLY-ARGV** available.
 
+4. (optional) [emscripten](http://kripken.github.io/emscripten-site/) in
+    order to be able to compile to JavaScript.
+
 ### For running it
 
 For running owlisp (i.e. compile Common Lisp source code to binaries), you need
-prerequisites 2 from above, as well as the owlisp compiler toolchain of course.
+prerequisites 2 and optionally 4 from above, as well as the owlisp compiler
+toolchain of course.
 
 ## Usage
 
@@ -103,3 +110,17 @@ prerequisites 2 from above, as well as the owlisp compiler toolchain of course.
    ```
    This example probably won't print much output, but it should at least run
    successfully :) .
+
+8. If you have built owlisp with [emscripten](http://kripken.github.io/emscripten-site/)
+   support, you can try compiling to JavaScript. Do the same as in step 7, but as
+   compile command, issue a
+   ```shell
+   $ /path/to/owlisp/bin/owlisp -o test.js test.lisp
+   ```
+   I.e. suffixing the name of the output file with ```.js``` will cause owlisp to
+   target JavaScript instead of C.
+   You can run it for example with NodeJS:
+   ```shell
+   $ node test.js
+   ```
+
