@@ -2,9 +2,9 @@
 
 INSTALLPREFIX=@CMAKE_INSTALL_PREFIX@
 
-CC=@CMAKE_C_COMPILER@
+CC=@EMCC@
 LDFLAGS=-L${INSTALLPREFIX}/lib/owlisp
-LIBS=-lowlisprt
+RUNTIMEBCFILES="${INSTALLPREFIX}/lib/owlisp/*.bc"
 
 while getopts "o:" OPT; do
 	case "$OPT" in
@@ -22,5 +22,5 @@ if [ -z "${INFILES}" -o -z "${OUTFILE}" ]; then
 	exit 1
 fi
 
-${CC} -Wall ${LDFLAGS} -o "${OUTFILE}" ${INFILES} ${LIBS}
+${CC} -Wall ${LDFLAGS} -o "${OUTFILE}" ${RUNTIMEBCFILES} ${INFILES}
 

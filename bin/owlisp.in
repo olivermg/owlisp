@@ -5,7 +5,9 @@ BINDIR=${INSTALLPREFIX}/bin
 
 OWLISP_L2C=${BINDIR}/@OWLISP_L2C_BIN_FILENAME@
 OWLISP_C2O=${BINDIR}/@OWLISP_C2O_BIN_FILENAME@
+OWLISP_C2BC=${BINDIR}/@OWLISP_C2BC_BIN_FILENAME@
 OWLISP_O2X=${BINDIR}/@OWLISP_O2X_BIN_FILENAME@
+OWLISP_BC2JS=${BINDIR}/@OWLISP_BC2JS_BIN_FILENAME@
 
 while getopts "o:" OPT; do
 	case "$OPT" in
@@ -24,14 +26,26 @@ if [ -z "${INFILES}" -o -z "${OUTFILE}" ]; then
 fi
 
 OFILES=""
-for INFILE in ${INFILES}; do
-	CFILE="${INFILE}.c"
-	OFILE="${INFILE}.o"
-	OFILES="${OFILES} ${OFILE}"
+if [[ "${OUTFILE}x" =~ ".jsx" ]]; then
+	for INFILE in ${INFILES}; do
+		CFILE="${INFILE}.c"
+		BCFILE="${INFILE}.bc"
+		BCFILES="${BCFILES} ${BCFILE}"
 
-	${OWLISP_L2C} <"${INFILE}" >"${CFILE}"
-	${OWLISP_C2O} -o "${OFILE}" -c "${CFILE}"
-done
+		${OWLISP_L2C} <"${INFILE}" >"${CFILE}"
+		${OWLISP_C2BC} -o "${BCFILE}" -c "${CFILE}"
+	done
+	${OWLISP_BC2JS} -o "${OUTFILE}" "${BCFILES}"
+else
+	for INFILE in ${INFILES}; do
+		CFILE="${INFILE}.c"
+		OFILE="${INFILE}.o"
+		OFILES="${OFILES} ${OFILE}"
 
-${OWLISP_O2X} -o "${OUTFILE}" "${OFILES}"
+		${OWLISP_L2C} <"${INFILE}" >"${CFILE}"
+		${OWLISP_C2O} -o "${OFILE}" -c "${CFILE}"
+	done
+	${OWLISP_O2X} -o "${OUTFILE}" "${OFILES}"
+fi
+
 

@@ -19,6 +19,17 @@ file(GLOB CNAMES *.c)
 
 add_library(owlisprt ${CNAMES})
 
+install(
+	TARGETS owlisprt
+	ARCHIVE DESTINATION lib/owlisp
+)
+
+install(
+	DIRECTORY include/owlisp
+	DESTINATION include
+	FILES_MATCHING PATTERN "*.h"
+)
+
 if (EMCC)
 	foreach(CNAME ${CNAMES})
 		get_filename_component(CBASENAME ${CNAME} NAME_WE)
@@ -36,18 +47,7 @@ if (EMCC)
 
 	install(
 		FILES ${BCNAMES}
-		DESTINATION lib
+		DESTINATION lib/owlisp
 	)
 endif (EMCC)
-
-install(
-	TARGETS owlisprt
-	ARCHIVE DESTINATION lib
-)
-
-install(
-	DIRECTORY include/owlisp
-	DESTINATION include
-	FILES_MATCHING PATTERN "*.h"
-)
 
