@@ -229,6 +229,6 @@ if (EMCC)
 	install(
 		PROGRAMS ${OWLISP_C2BC_BIN} ${OWLISP_BC2JS_BIN}
 		DESTINATION bin
-)
+	)
 endif (EMCC)
 
