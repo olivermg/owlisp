@@ -1,6 +1,7 @@
 #ifndef __CLASSES_H
 #define __CLASSES_H
 
+#include <stdarg.h>
 
 typedef struct _Class Class;
 typedef struct _Object Object;
@@ -45,9 +46,9 @@ struct _Proc {
 
 struct _Env {
   Object object;
-  Object* o1;
-  Object* o2;
   Env* parent;
+  unsigned long numobjects;
+  Object** objects;
 };
 
 struct _Envaddress {
@@ -76,7 +77,8 @@ struct _List {
 Object* newint(int value);
 Object* newstring(char* value);
 Object* newproc(proc_p value);
-Object* newenv(Object* o1, Object* o2, Env* parent);
+Object* newenv_v(Env* parent, unsigned long numobjects, va_list objects);
+Object* newenv(Env* parent, unsigned long numobjects, ...);
 Object* newenvaddress(unsigned int frameindex, unsigned int varindex);
 Object* newclosure(Env* env, Proc* proc);
 Object* newclosure_i(Env* env, proc_p p);

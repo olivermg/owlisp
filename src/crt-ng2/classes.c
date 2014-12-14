@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdlib.h>
 #include <owlisp/classes.h>
 
@@ -47,15 +48,32 @@ Object* newproc(proc_p value)
   return (Object*)o;
 }
 
-Object* newenv(Object* o1, Object* o2, Env* parent)
+Object* newenv_v(Env* parent, unsigned long numobjects, va_list objects)
 {
   Env* o = malloc( sizeof(Env) );
   o->object.class = &CEnv;
-  o->o1 = o1;
-  o->o2 = o2;
   o->parent = parent;
+  o->numobjects = numobjects;
+  o->objects = malloc( sizeof(Object*) * numobjects );
+
+  unsigned long i;
+  for ( i = 0; i < numobjects; i++ ) {
+    Object* obj = va_arg(objects, Object*);
+    o->objects[i] = obj;
+  }
 
   return (Object*)o;
+}
+
+Object* newenv(Env* parent, unsigned long numobjects, ...)
+{
+  va_list objects;
+
+  va_start(objects, numobjects);
+  Object* env = newenv_v(parent, numobjects, objects);
+  va_end(objects);
+
+  return env;
 }
 
 Object* newenvaddress(unsigned int frameindex, unsigned int varindex)

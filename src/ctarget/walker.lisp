@@ -130,7 +130,8 @@
 	    (walk (abstraction/c-body obj)))
       (pop-buffer)
       (express "newproc( &~a )"
-	       (abstraction/c-name obj)))
+	       (prefix-symbol (abstraction/c-name obj)
+			      "_U_")))
 
     #|
     (defrule

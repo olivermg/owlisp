@@ -14,10 +14,13 @@ void print_obj(Object* o)
     printf("proc: %p\n", ((Proc*)o)->value);
   } else if ( o->class == &CEnv) {
     printf("env:\n\t");
-    print_obj( ((Env*)o)->o1 );
-    printf("\t");
-    print_obj( ((Env*)o)->o2 );
     print_obj( (Object*)((Env*)o)->parent );
+    printf("\tnumobjects: %ld\n", ((Env*)o)->numobjects);
+    unsigned long i;
+    for (i = 0; i < ((Env*)o)->numobjects; i++) {
+      printf("\t");
+      print_obj(((Env*)o)->objects[i]);
+    }
   } else if ( o->class == &CEnvaddress ) {
     printf("envaddress: %d, %d\n", ((Envaddress*)o)->frameindex, ((Envaddress*)o)->varindex);
   } else if ( o->class == &CClosure ) {

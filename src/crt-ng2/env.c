@@ -12,7 +12,7 @@ static Env* gotoframe(Env* env, Envaddress* envaddress)
   Env* newenv = env;
 
   if ( NULL == env ) {
-    printf("ERROR: can't find frame!\n");
+    printf("ERROR: can't find frame!\n"); // TODO: throw exception or such
   } else if ( envaddress->frameindex > 0 ) {
     Envaddress* newea = (Envaddress*)newenvaddress( envaddress->frameindex - 1, envaddress->varindex );
     newenv = gotoframe( env->parent, newea ); // FIXME: recursion may lead to stackoverflow, once we have cps in place
@@ -25,10 +25,12 @@ Object* lookup(Env *env, Envaddress* envaddress)
 {
   Object* value = NULL;
 
-  if ( envaddress->varindex == 0 ) {
-    value = gotoframe( env, envaddress )->o1;
+  Env* actualframe = gotoframe( env, envaddress );
+  if ( NULL != actualframe && envaddress->varindex < actualframe->numobjects ) {
+    value = actualframe->objects[envaddress->varindex];
   } else {
-    value = gotoframe( env, envaddress )->o2;
+    // TODO: throw exception or such:
+    printf("ERROR: invalid variable reference!\n");
   }
 
   return value;
@@ -42,10 +44,12 @@ Object* lookup_i(Env* env, unsigned long frameindex, unsigned long varindex)
 
 void set(Env* env, Envaddress* envaddress, Object* value)
 {
-  if ( envaddress->varindex == 0 ) {
-    gotoframe( env, envaddress )->o1 = value;
+  Env* actualframe = gotoframe( env, envaddress );
+  if ( NULL != actualframe && envaddress->varindex < actualframe->numobjects ) {
+    actualframe->objects[envaddress->varindex] = value;
   } else {
-    gotoframe( env, envaddress )->o2 = value;
+    // TODO: throw exception or such:
+    printf("ERROR: invalid variable reference!\n");
   }
 }
 

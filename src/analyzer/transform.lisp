@@ -9,6 +9,7 @@
 
     (declare (ignore #'walk-sequence-last)
 	     (special *symboltable*))
+
     (labels ((transform-function (args body &optional (name nil))
 	       (let ((*symboltable* (make-symboltable :parent *symboltable*)))
 		 (declare (special *symboltable*))
