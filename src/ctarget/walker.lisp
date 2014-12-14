@@ -118,7 +118,7 @@
 	(when (not (function-declared-p fname))
 	  (dump-header "Object* ~a( Env* );" fname)
 	  (add-declared-function fname))
-	(express "newproc( &~a )" fname)))
+	(express "newclosure_i( env, &~a )" fname)))
 
     (defrule
 	#'abstraction/c-p
@@ -129,7 +129,7 @@
 			   "_U_")
 	    (walk (abstraction/c-body obj)))
       (pop-buffer)
-      (express "newproc( &~a )"
+      (express "newclosure_i( env, &~a )"
 	       (prefix-symbol (abstraction/c-name obj)
 			      "_U_")))
 
