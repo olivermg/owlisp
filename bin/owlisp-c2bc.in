@@ -1,8 +1,9 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 INSTALLPREFIX=@CMAKE_INSTALL_PREFIX@
 
-CC=@EMCC@
+. ${INSTALLPREFIX}/etc/owlisp.cfg
+
 EMCCFLAGS=-Wno-warn-absolute-paths
 CFLAGS=-I${INSTALLPREFIX}/include
 
@@ -22,5 +23,5 @@ if [ -z "${INFILE}" -o -z "${OUTFILE}" ]; then
 	exit 1
 fi
 
-${CC} -Wall ${EMCCFLAGS} ${CFLAGS} -o "${OUTFILE}" -c "${INFILE}"
+${EMCC} -Wall ${EMCCFLAGS} ${CFLAGS} -o "${OUTFILE}" -c "${INFILE}"
 

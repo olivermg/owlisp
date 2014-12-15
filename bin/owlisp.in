@@ -1,13 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 INSTALLPREFIX=@CMAKE_INSTALL_PREFIX@
-BINDIR=${INSTALLPREFIX}/bin
 
-OWLISP_L2C=${BINDIR}/@OWLISP_L2C_BIN_FILENAME@
-OWLISP_C2O=${BINDIR}/@OWLISP_C2O_BIN_FILENAME@
-OWLISP_C2BC=${BINDIR}/@OWLISP_C2BC_BIN_FILENAME@
-OWLISP_O2X=${BINDIR}/@OWLISP_O2X_BIN_FILENAME@
-OWLISP_BC2JS=${BINDIR}/@OWLISP_BC2JS_BIN_FILENAME@
+. ${INSTALLPREFIX}/etc/owlisp.cfg
 
 while getopts "o:" OPT; do
 	case "$OPT" in
@@ -26,7 +21,7 @@ if [ -z "${INFILES}" -o -z "${OUTFILE}" ]; then
 fi
 
 OFILES=""
-if [[ -x "@EMCC@" && "${OUTFILE}x" =~ ".jsx" ]]; then
+if [ -x ${EMCC} -a -n "$(echo -n ${OUTFILE} | egrep '.*.js$')" ]; then
 	for INFILE in ${INFILES}; do
 		CFILE="${INFILE}.c"
 		BCFILE="${INFILE}.bc"
@@ -47,5 +42,4 @@ else
 	done
 	${OWLISP_O2X} -o "${OUTFILE}" "${OFILES}"
 fi
-
 
