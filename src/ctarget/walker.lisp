@@ -92,10 +92,22 @@
 	       (walk (assignment/c-value obj))))
 
     (defrule
-	#'constant/c-p
+	#'null/c-p
+	(obj nil)
+      (declare (ignore obj))
+      (express "NULL"))
+
+    (defrule
+	#'constant-int/c-p
 	(obj nil)
       (express "newint( ~a )"
-	       (constant/c-value obj)))
+	       (constant-int/c-value obj)))
+
+    (defrule
+	#'constant-string/c-p
+	(obj nil)
+      (express "newstring( \"~a\" )"
+	       (constant-string/c-value obj)))
 
     (defrule
 	#'symbol/c-p

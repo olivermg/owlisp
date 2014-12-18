@@ -25,6 +25,7 @@
 
 (defun compile-stream (stream)
   (concatenate 'string
+	       (format nil "#include <stdlib.h>~%")
 	       (format nil "#include <owlisp/owlisprt.h>~%")
 	       (compile-forms (read-stream stream))))
 

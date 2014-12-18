@@ -1,8 +1,15 @@
 (in-package #:owlisp/analyzer)
 
-(export '(make-constant*
-	  constant*-p
-	  constant*-value
+(export '(make-null*
+	  null*-p
+
+	  make-constant-int*
+	  constant-int*-p
+	  constant-int*-value
+
+	  make-constant-string*
+	  constant-string*-p
+	  constant-string*-value
 
 	  make-symbol*
 	  symbol*-p
@@ -44,7 +51,9 @@
 	  application*-args))
 
 
-(defstruct constant* value)
+(defstruct null*)
+(defstruct constant-int* value)
+(defstruct constant-string* value)
 (defstruct symbol* name)
 (defstruct reference* frameindex varindex)
 (defstruct function-reference* name)

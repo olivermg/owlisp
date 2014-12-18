@@ -2,7 +2,10 @@
 
 (export '(compiletime-macro-p
 	  primitive-p
-	  self-evaluating-p
+	  null-p
+	  constant-int-p
+	  constant-string-p
+;	  self-evaluating-p
 	  reference-p
 	  quote-p
 	  let-p
@@ -37,11 +40,22 @@
 	t
 	nil)))
 
+#|
 (defun self-evaluating-p (expr)
   (or
    (numberp expr)
    (stringp expr)
    (null expr)))
+|#
+
+(defun null-p (expr)
+  (null expr))
+
+(defun constant-int-p (expr)
+  (numberp expr))
+
+(defun constant-string-p (expr)
+  (stringp expr))
 
 (defun reference-p (expr)
   (symbolp expr))

@@ -20,9 +20,20 @@
 				      :body transformed-body)))))
 
       (defrule
-	  #'self-evaluating-p
+	  #'null-p
 	  (expr nil)
-	(make-constant* :value expr))
+	(declare (ignore expr))
+	(make-null*))
+
+      (defrule
+	  #'constant-int-p
+	  (expr nil)
+	(make-constant-int* :value expr))
+
+      (defrule
+	  #'constant-string-p
+	  (expr nil)
+	(make-constant-string* :value expr))
 
       (defrule
 	  #'quote-p

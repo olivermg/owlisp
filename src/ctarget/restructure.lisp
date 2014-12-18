@@ -29,10 +29,23 @@
       (declare (ignore #'walk-sequence #'walk-sequence-last))
 
       (defrule
-	  #'constant*-p
+	  #'null*-p
+	  (obj nil)
+	(declare (ignore obj))
+	(make-assignment/c :lvalue (next-varname)
+			   :value (make-null/c)))
+
+      (defrule
+	  #'constant-int*-p
 	  (obj nil)
 	(make-assignment/c :lvalue (next-varname)
-			   :value (make-constant/c :value (constant*-value obj))))
+			   :value (make-constant-int/c :value (constant-int*-value obj))))
+
+      (defrule
+	  #'constant-string*-p
+	  (obj nil)
+	(make-assignment/c :lvalue (next-varname)
+			   :value (make-constant-string/c :value (constant-string*-value obj))))
 
       (defrule
 	  #'symbol*-p

@@ -9,9 +9,16 @@
 	  assignment/c-lvalue
 	  assignment/c-value
 
-	  make-constant/c
-	  constant/c-p
-	  constant/c-value
+	  make-null/c
+	  null/c-p
+
+	  make-constant-int/c
+	  constant-int/c-p
+	  constant-int/c-value
+
+	  make-constant-string/c
+	  constant-string/c-p
+	  constant-string/c-value
 
 	  make-symbol/c
 	  symbol/c-p
@@ -44,7 +51,9 @@
 
 (defstruct sequence/c sequence)
 (defstruct assignment/c lvalue value)
-(defstruct constant/c value)
+(defstruct null/c)
+(defstruct constant-int/c value)
+(defstruct constant-string/c value)
 (defstruct symbol/c name)
 ;(defstruct variable/c name)
 ;(defstruct reference/c symbol)
