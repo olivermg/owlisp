@@ -3,6 +3,8 @@
 (export '(do-transform))
 
 
+(defparameter *global-fn-symboltable* (make-symboltable))
+
 (defparameter *transform-walker*
 
   (make-walker
@@ -13,11 +15,18 @@
     (labels ((transform-function (args body &optional (name nil))
 	       (let ((*symboltable* (make-symboltable :parent *symboltable*)))
 		 (declare (special *symboltable*))
+		 (when name
+		   (add-symbols *global-fn-symboltable* (list name)))
 		 (add-symbols *symboltable* args)
 		 (let ((transformed-body (walk-sequence body)))
 		   (make-abstraction* :name name
 				      :args args
-				      :body transformed-body)))))
+				      :body transformed-body))))
+
+	     (transform-function-reference (fn)
+	       (if (symbol-address *global-fn-symboltable* fn)
+		   (make-function-reference* :name fn)
+		   (error "unknown function ~a" fn))))
 
       (defrule
 	  #'null-p
@@ -68,11 +77,19 @@
 	      (transformed-args (walk-sequence args)))
 	  (make-application* :fn transformed-fn
 			     :args transformed-args)))
+
+      (defrule
+	  #'function-p
+	  ((func fn) nil)
+	(declare (ignore func))
+	(if (consp fn)
+	    (walk fn)
+	    (transform-function-reference fn)))
+
       (defrule
 	  #'application-p
 	  ((fn &rest args) nil)
-	(let (;(transformed-fn (walk fn))
-	      (transformed-fn (make-function-reference* :name fn))
+	(let ((transformed-fn (transform-function-reference fn))
 	      (transformed-args (walk-sequence args)))
 	  (make-application* :fn transformed-fn
 			     :args transformed-args)))
