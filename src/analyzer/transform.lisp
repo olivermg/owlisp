@@ -4,17 +4,16 @@
 
 
 (defparameter *global-fn-symboltable* (make-symboltable))
+(defparameter *symboltable* (make-symboltable))
 
 (defparameter *transform-walker*
 
   (make-walker
 
-    (declare (ignore #'walk-sequence-last)
-	     (special *symboltable*))
+    (declare (ignore #'walk-sequence-last))
 
     (labels ((transform-function (args body &optional (name nil))
 	       (let ((*symboltable* (make-symboltable :parent *symboltable*)))
-		 (declare (special *symboltable*))
 		 (when name
 		   (add-symbols *global-fn-symboltable* (list name)))
 		 (add-symbols *symboltable* args)
@@ -103,7 +102,5 @@
 
 
 (defun do-transform (expr)
-  (let ((*symboltable* (make-symboltable)))
-    (declare (special *symboltable*))
-    (funcall *transform-walker*
-	     expr)))
+  (funcall *transform-walker*
+	   expr))
