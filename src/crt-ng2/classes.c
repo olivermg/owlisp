@@ -48,13 +48,20 @@ Object* newproc(proc_p value)
   return (Object*)o;
 }
 
-Object* newenv_v(Env* parent, unsigned long numobjects, va_list objects)
+static Object* newenv_alloc(Env* parent, unsigned long numobjects)
 {
   Env* o = malloc( sizeof(Env) );
   o->object.class = &CEnv;
   o->parent = parent;
   o->numobjects = numobjects;
-  o->objects = malloc( sizeof(Object*) * numobjects );
+  o->objects = calloc( numobjects, sizeof(Object*) );
+
+  return (Object*)o;
+}
+
+Object* newenv_v(Env* parent, unsigned long numobjects, va_list objects)
+{
+  Env* o = (Env*)newenv_alloc(parent, numobjects);
 
   unsigned long i;
   for ( i = 0; i < numobjects; i++ ) {
@@ -74,6 +81,11 @@ Object* newenv(Env* parent, unsigned long numobjects, ...)
   va_end(objects);
 
   return env;
+}
+
+Object* newenv_e(Env* parent, unsigned long numobjects)
+{
+  return newenv_alloc(parent, numobjects);
 }
 
 Object* newenvaddress(unsigned int frameindex, unsigned int varindex)

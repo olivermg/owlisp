@@ -9,6 +9,16 @@
 	  assignment/c-lvalue
 	  assignment/c-value
 
+	  make-extend-bindings/c
+	  extend-bindings/c-p
+	  extend-bindings/c-size
+
+	  make-set-binding/c
+	  set-binding/c-p
+	  set-binding/c-frameindex
+	  set-binding/c-varindex
+	  set-binding/c-value
+
 	  make-null/c
 	  null/c-p
 
@@ -51,6 +61,8 @@
 
 (defstruct sequence/c sequence)
 (defstruct assignment/c lvalue value)
+(defstruct extend-bindings/c size)
+(defstruct set-binding/c frameindex varindex value)
 (defstruct null/c)
 (defstruct constant-int/c value)
 (defstruct constant-string/c value)

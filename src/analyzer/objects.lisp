@@ -39,11 +39,18 @@
 	  abstraction*-args
 	  abstraction*-body
 
+	  make-bindings*
+	  bindings*-p
+	  bindings*-bindings
+	  bindings*-body
+
+#|
 	  make-closure*
 	  closure*-p
 	  closure*-args
 	  closure*-body
 	  closure*-env
+|#
 
 	  make-application*
 	  application*-p
@@ -60,6 +67,7 @@
 ;(defstruct free-reference* symbol)
 ;(defstruct bound-reference* symbol)
 (defstruct abstraction* name args body)
+(defstruct bindings* bindings body)
 ;(defstruct closure* args body env) ; TODO: make passed closure a separate field instead of assuming it's the first arg
 (defstruct application* fn args)
 (defstruct environment* parent symbols)

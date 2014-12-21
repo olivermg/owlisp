@@ -26,7 +26,7 @@
   (with-index-counters
 
     (make-walker
-      (declare (ignore #'walk-sequence #'walk-sequence-last))
+      (declare (ignore #'walk-sequence-last))
 
       (defrule
 	  #'null*-p
@@ -59,6 +59,26 @@
 	(make-assignment/c :lvalue (next-varname)
 			   :value (make-reference/c :frameindex (reference*-frameindex obj)
 						    :varindex (reference*-varindex obj))))
+
+      (defrule
+	  #'bindings*-p
+	  (obj nil)
+	(let ((set-bindings
+	       (loop
+		  for ((frameindex varindex) expr) in (bindings*-bindings obj)
+		  collect
+		    (make-sequence/c
+		     :sequence
+		     (let ((walked-expr (walk expr)))
+		       (list walked-expr
+			     (make-set-binding/c :frameindex frameindex
+						 :varindex varindex
+						 :value (get-return-var walked-expr))))))))
+	  (make-sequence/c :sequence (append
+				      (list (make-extend-bindings/c :size
+								    (length set-bindings)))
+				      set-bindings
+				      (walk-sequence (bindings*-body obj))))))
 
       (defrule
 	  #'function-reference*-p

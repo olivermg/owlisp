@@ -92,6 +92,19 @@
 	       (walk (assignment/c-value obj))))
 
     (defrule
+	#'set-binding/c-p
+	(obj nil)
+      (let ((frameindex (set-binding/c-frameindex obj))
+	    (varindex (set-binding/c-varindex obj))
+	    (value (set-binding/c-value obj)))
+	(express "set_i( env, ~a, ~a, ~a );~%" frameindex varindex value)))
+
+    (defrule
+	#'extend-bindings/c-p
+	(obj nil)
+      (express "env = (Env*)newenv_e( env, ~a );~%" (extend-bindings/c-size obj)))
+
+    (defrule
 	#'null/c-p
 	(obj nil)
       (declare (ignore obj))

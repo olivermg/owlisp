@@ -79,6 +79,7 @@ Object* newstring(char* value);
 Object* newproc(proc_p value);
 Object* newenv_v(Env* parent, unsigned long numobjects, va_list objects);
 Object* newenv(Env* parent, unsigned long numobjects, ...);
+Object* newenv_e(Env* parent, unsigned long numobjects);
 Object* newenvaddress(unsigned int frameindex, unsigned int varindex);
 Object* newclosure(Env* env, Proc* proc);
 Object* newclosure_i(Env* env, proc_p p);
