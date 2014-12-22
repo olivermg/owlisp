@@ -65,14 +65,14 @@
 	  (obj nil)
 	(let ((set-bindings
 	       (loop
-		  for ((frameindex varindex) expr) in (bindings*-bindings obj)
+		  for (symboladdress expr) in (bindings*-bindings obj)
 		  collect
 		    (make-sequence/c
 		     :sequence
 		     (let ((walked-expr (walk expr)))
 		       (list walked-expr
-			     (make-set-binding/c :frameindex frameindex
-						 :varindex varindex
+			     (make-set-binding/c :frameindex (symbol-address-frameindex symboladdress)
+						 :varindex (symbol-address-symbolindex symboladdress)
 						 :value (get-return-var walked-expr))))))))
 	  (make-sequence/c :sequence (append
 				      (list (make-extend-bindings/c :size

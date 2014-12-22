@@ -176,7 +176,7 @@
 	#'application/c-p
 	(obj nil)
       (let ((args (application/c-args obj)))
-	(express "invoke_obj( ~a, ~a~{, ~a~} );~%" ; TODO: fix for no arguments
+	(express "invoke_obj( ~a, ~a~{, ~a~} )"
 		 (application/c-fn obj)
 		 (length args)
 		 args)))

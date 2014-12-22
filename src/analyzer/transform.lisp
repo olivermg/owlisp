@@ -27,7 +27,7 @@
 					:body transformed-body))))
 
 	       (transform-function-reference (fn)
-		 (if (symbol-address *global-fn-symboltable* fn)
+		 (if (find-symbol-address *global-fn-symboltable* fn)
 		     (make-function-reference* :name fn)
 		     (error "unknown function ~a" fn))))
 
@@ -55,10 +55,10 @@
 	(defrule
 	    #'reference-p
 	    (expr nil)
-	  (multiple-value-bind (frameindex varindex)
-	      (symbol-address *symboltable* expr)
-	    (make-reference* :frameindex frameindex
-			     :varindex varindex)))
+	  (let ((symboladdress (find-symbol-address *symboltable* expr)))
+	   (make-reference* :frameindex (symbol-address-frameindex symboladdress)
+			    :varindex (symbol-address-symbolindex symboladdress))))
+
 	(defrule
 	    #'let-p
 	    ((lt (&rest bindings) &body body) nil)
@@ -69,7 +69,7 @@
 		     (loop
 			for (symbol expr) in bindings
 			collect
-			  (list (multiple-value-list (symbol-address *symboltable* symbol)) ; TODO: make this less complicated, e.g. introduce struct for symboladdress etc.
+			  (list (find-symbol-address *symboltable* symbol)
 				(walk expr))))
 		    (transformed-body (walk-sequence body)))
 		(make-bindings* :bindings transformed-bindings
