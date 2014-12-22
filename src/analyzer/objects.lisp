@@ -67,7 +67,7 @@
 ;(defstruct free-reference* symbol)
 ;(defstruct bound-reference* symbol)
 (defstruct abstraction* name args body)
-(defstruct bindings* bindings body)
+(defstruct bindings* bindings body) ; TODO: include type of binding (e.g. function, var)?
 ;(defstruct closure* args body env) ; TODO: make passed closure a separate field instead of assuming it's the first arg
 (defstruct application* fn args)
 (defstruct environment* parent symbols)

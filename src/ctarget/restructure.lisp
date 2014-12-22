@@ -67,9 +67,9 @@
 	       (loop
 		  for (symboladdress expr) in (bindings*-bindings obj)
 		  collect
-		    (make-sequence/c
-		     :sequence
-		     (let ((walked-expr (walk expr)))
+		    (let ((walked-expr (walk expr)))
+		      (make-sequence/c
+		       :sequence
 		       (list walked-expr
 			     (make-set-binding/c :frameindex (symbol-address-frameindex symboladdress)
 						 :varindex (symbol-address-symbolindex symboladdress)

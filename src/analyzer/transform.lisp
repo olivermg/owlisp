@@ -56,24 +56,21 @@
 	    #'reference-p
 	    (expr nil)
 	  (let ((symboladdress (find-symbol-address *symboltable* expr)))
-	   (make-reference* :frameindex (symbol-address-frameindex symboladdress)
-			    :varindex (symbol-address-symbolindex symboladdress))))
+	    (make-reference* :frameindex (symbol-address-frameindex symboladdress)
+			     :varindex (symbol-address-symbolindex symboladdress))))
 
 	(defrule
 	    #'let-p
 	    ((lt (&rest bindings) &body body) nil)
 	  (declare (ignore lt))
-	  (let ((symbols (mapcar #'car bindings)))
-	    (with-extended-symboltable (symbols)
-	      (let ((transformed-bindings
-		     (loop
-			for (symbol expr) in bindings
-			collect
-			  (list (find-symbol-address *symboltable* symbol)
-				(walk expr))))
-		    (transformed-body (walk-sequence body)))
-		(make-bindings* :bindings transformed-bindings
-				:body transformed-body)))))
+	  (with-extended-symboltable ((mapcar #'car bindings))
+	    (let ((transformed-body (walk-sequence body)))
+	      (loop
+		 for (symbol expr) in bindings
+		 collect (list (find-symbol-address *symboltable* symbol)
+			       (walk expr)) into transformed-bindings
+		 finally (return (make-bindings* :bindings transformed-bindings
+						 :body transformed-body))))))
 
 	(defrule
 	    #'lambda-p
