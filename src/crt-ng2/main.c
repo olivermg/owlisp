@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <owlisp/owlisprt.h>
 
-Object* _U_MAIN( Env* ); // NOTE: this procedure is assumed to be defined in user code
+// TODO: can we hide trampoline_return_t? :
+trampoline_return_t _U_MAIN( Env* ); // NOTE: this procedure is assumed to be defined in user code
 
 int main( int argc, char* argv[] )
 {

@@ -38,7 +38,9 @@ struct _String {
   char* value;
 };
 
-typedef Object* (*proc_p)(Env* env); // TODO: what is the best representation for args? va_arg, List*, env?
+typedef struct _trampoline_return_t trampoline_return_t;
+typedef trampoline_return_t (*proc_p)(Env*);
+//typedef Object* (*proc_p)(Env* env); // TODO: what is the best representation for args? va_arg, List*, env?
 struct _Proc {
   Object object;
   proc_p value;

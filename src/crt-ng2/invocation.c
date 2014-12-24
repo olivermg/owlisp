@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <owlisp/invocation.h>
+#include <owlisp/owlisprt.h>
 
 Object* invoke_obj(Object* o, unsigned long numargs, ...)
 {
@@ -26,5 +26,6 @@ Object* invoke_obj(Object* o, unsigned long numargs, ...)
 
   va_end(args);
 
-  return proc->value(env);
+  trampoline_return_t tr = proc->value(env); // TODO: optimize handling
+  return tr.retval;
 }
