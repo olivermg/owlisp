@@ -1,4 +1,4 @@
-#include <owlisp/trampoline.h>
+#include <owlisp/owlisprt.h>
 
 Object* run_trampoline( trampoline_return_t tr )
 {

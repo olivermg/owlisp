@@ -1,6 +1,7 @@
 #ifndef __OWLISPRT_H
 #define __OWLISPRT_H
 
+// order is important!
 #include <owlisp/classes.h>
 #include <owlisp/trampoline.h>
 #include <owlisp/env.h>
