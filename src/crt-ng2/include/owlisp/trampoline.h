@@ -14,10 +14,12 @@ typedef enum {
 struct _trampoline_return_t {
   trampoline_action_t action;
   union {
-    proc_p fn;
-    Env* env;
-  } call;
-  Object* retval;
+    struct {
+      proc_p fn;
+      Env* env;
+    } call;
+    Object* retval;
+  };
 };
 
 #endif
