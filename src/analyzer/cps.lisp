@@ -1,301 +1,89 @@
 (in-package :owlisp/analyzer)
 
-(export '(walk-cps))
+(export '(do-cps))
 
 
-(defparameter *cps-transformation-definitions* '())
+;;;
+;;; NOTE:
+;;; here we have basically two distinct lambda constructs that we create and are dealing with:
+;;;  1. continuation (denoted by 'k')
+;;;     this is a lambda expression that expects a result value
+;;;  2. continuation expression (denoted by 'kexpr')
+;;;     this is a lambda expression that expects a contination to call after a result value has
+;;;     been computed
+;;;
+
+(defparameter *cps-walker* ; NOTE: always returns a single(!) kexpr
+
+  (make-walker
+
+    (declare (ignore #'walk-sequence-last))
+
+    (defrule
+	#'constant-int-p
+	(expr nil)
+      (with-gensyms (k)
+	`(lambda (,k)
+	   (funcall ,k ,expr))))
+
+    (defrule
+	#'constant-string-p
+	(expr nil)
+      (with-gensyms (k)
+	`(lambda (,k)
+	   (funcall ,k ,expr))))
+
+    (defrule
+	#'reference-p
+	(expr nil)
+      (with-gensyms (k)
+	`(lambda (,k)
+	   (funcall ,k ,expr))))
+
+    (defrule
+	#'lambda-p
+	((lam (&rest arglist) &body body) nil)
+      (declare (ignore lam))
+      (let ((walked-body (walk-sequence body)))
+	(assert (= 1 (length walked-body)))
+	(with-gensyms (k dynk)
+	  `(lambda (,k)
+	     (funcall ,k
+		      (lambda (,@arglist ,dynk)
+			(funcall ,@walked-body ,dynk)))))))
+
+    (defrule
+	#'funcall-p
+	((fnc fn arg1) nil)
+      (declare (ignore fnc))
+      (let ((walked-fn (walk fn))
+	    (walked-arg1 (walk arg1)))
+	(with-gensyms (k fnv arg1v)
+	  `(lambda (,k)
+	     (funcall ,walked-fn
+		      (lambda (,fnv)
+			(funcall ,walked-arg1
+				 (lambda (,arg1v)
+				   (funcall ,fnv ,arg1v ,k)))))))))
+
+    (defrule
+	#'application-p
+	((fn arg1) nil)
+      (let ((walked-arg1 (walk arg1)))
+	(with-gensyms (k arg1v)
+	  `(lambda (,k)
+	     (funcall ,walked-arg1
+		      (lambda (,arg1v)
+			(,fn ,arg1v ,k)))))))
+
+    (defrule
+	#'(lambda (expr)
+	    (declare (ignore expr))
+	    t)
+	(expr nil)
+      (error "don't know how to cps transform expression ~a" expr))))
 
 
-(defun walk-cps (expr)
-  (walk *cps-transformation-definitions*
-	expr))
-
-
-#|
-(defparameter *primitive-functions*
-  '(funcall apply + * - / car cdr mapcar print format))
-|#
-
-
-#|
-(defmacro cps-transform (expr)
-  (format t "~%cps-transform processing on ~a~%" expr)
-  (cond ((self-evaluating-p expr)
-	 `(cps-transform-self-evaluating ,expr))
-
-	((quote-p expr)
-	 `(cps-transform-quote ,expr))
-
-	((variable-p expr)
-	 `(cps-transform-variable ,expr))
-
-	((lambda-p expr)
-	 `(cps-transform-lambda ,expr))
-
-	((application-p expr)
-	 `(cps-transform-application ,expr))
-
-	(t (error "don't know how to cps transform ~a" expr))))
-
-(defmacro cps-transform-self-evaluating (expr)
-  (format t "cps-transform-self-evaluating ~a~%" expr)
-  (let ((result `(lambda (k)
-		   (funcall k ,expr))))
-    (format t "  result: ~a~%" result)
-    result))
-
-(defmacro cps-transform-quote (expr)
-  (format t "cps-transform-quote ~a~%" expr)
-  (let ((result `(lambda (k)
-		   (funcall k ,expr))))
-    (format t "  result: ~a~%" result)
-    result))
-
-(defmacro cps-transform-variable (expr)
-  (format t "cps-transform-variable ~a~%" expr)
-  (let ((result `(lambda (k)
-		   (funcall k ,expr))))
-    (format t "  result: ~a~%" result)
-    result))
-
-(defmacro cps-transform-lambda ((lam (&rest arglist) &rest body))
-  (format t "cps-transform-lambda lam:~a arglist:~a body:~a~%" lam arglist body)
-  (let ((result (let* ((dyn-k (gensym)) ; TODO: this is not 100% collision safe as argument name
-		       (arglist-k (cons dyn-k arglist)))
-		  `(lambda (k)
-		     (funcall k
-			      (,lam ,arglist-k
-				    (funcall (cps-transform-sequence ,@body)
-					     ,dyn-k)))))))
-    (format t "  result: ~a~%" result)
-    result))
-
-(defmacro cps-transform-application ((fn &rest params))
-  (format t "cps-transform-application fn:~a params:~a~%" fn params)
-  (let ((result (if (primitive-p fn)
-		    `(lambda (k)
-		       (funcall k (,fn ,@params)))
-		    (labels ((tp (fn k paramsv &rest params)
-			       (if (consp params)
-				   (let ((newparamv (gensym)))
-				     `(funcall (cps-transform ,(car params))
-					       (lambda (,newparamv)
-						 ,(cl:apply #'tp
-							    fn
-							    k
-							    (append paramsv (list newparamv))
-							    (cdr params)))))
-				   `(funcall ,fn
-					     ,k
-					     ,@paramsv))))
-		      `(lambda (k)
-			 (funcall (cps-transform ,fn)
-				  (lambda (fn-result)
-				    ,(cl:apply #'tp
-					       'fn-result
-					       'k
-					       '()
-					       params))))))))
-    (format t "  result: ~a~%" result)
-    result))
-
-(defmacro cps-transform-params (head . rest)
-  (format t "cps-transform-params head:~a rest:~a~%" head rest)
-  (let ((result (if (consp rest)
-		    `(lambda (k)
-		       (funcall (cps-transform ,head)
-				(lambda ()))))))
-    (format t "  result: ~a~%" result)
-    result))
-
-(defmacro cps-transform-sequence (head . rest)
-  (format t "cps-transform-sequence head:~a rest:~a~%" head rest)
-  (let ((result (if (consp rest)
-		    `(lambda (k)
-		       (funcall (walk *cps-transformation-definitions*
-				      ,head)
-				(lambda (discard-k)
-				  (declare (ignore discard-k))
-				  (funcall (cps-transform-sequence ,@rest)
-					   k))))
-		    `(lambda (k)
-		       (funcall (walk *cps-transformation-definitions*
-				      ,head)
-				k)))))
-    (format t "  result: ~a~%" result)
-    result))
-|#
-
-(defun cps-transform-sequence (seq)
-  (let ((k-var (gensym))
-	(head (car seq))
-	(rest (cdr seq)))
-    (format t "cps-transform-sequence head:~a rest:~a~%" head rest)
-    (let ((result (if (consp rest)
-		      (let ((k-discard-var (gensym)))
-			`(lambda (,k-var)
-			   (funcall ,(walk-cps head)
-				    (lambda (,k-discard-var)
-				      (declare (ignore ,k-discard-var))
-				      (funcall ,(cps-transform-sequence rest)
-					       ,k-var)))))
-		      `(lambda (,k-var)
-			 (funcall ,(walk-cps head)
-				  ,k-var)))))
-      (format t "cps-transform-sequence result: ~a~%" result)
-      result)))
-
-
-
-;; self evaluating
-(defwalker-rule *cps-transformation-definitions*
-
-    #'(lambda (expr)
-	(self-evaluating-p expr))
-
-    (expr nil)
-
-  (format t "-> self-evaluating: ~a~%" expr)
-  (let ((result (kexp `(() (funcall-kont ,expr)))))
-    (format t "<- self-evaluating: ~a~%" result)
-    result))
-
-
-;; quoted expression
-(defwalker-rule *cps-transformation-definitions*
-
-    #'(lambda (expr)
-	(quote-p expr))
-
-    (expr nil)
-
-  (format t "-> quoted: ~a~%" expr)
-  (let ((result (kexp `(() (funcall-kont ,expr)))))
-    (format t "<- quoted: ~a~%" result)
-    result))
-
-
-;; variable
-(defwalker-rule *cps-transformation-definitions*
-
-    #'(lambda (expr)
-	(variable-p expr))
-
-    (expr nil)
-
-  (format t "-> variable: ~a~%" expr)
-  (let ((result (kexp `(() (funcall-kont ,expr)))))
-    (format t "<- variable: ~a~%" result)
-    result))
-
-
-;; lambda expression
-(defwalker-rule *cps-transformation-definitions*
-
-    #'(lambda (expr)
-	(lambda-p expr))
-
-    ((lam (&rest arglist) &body body) nil)
-
-  (format t "-> lambda: ~a ~a ~a~%" lam arglist body)
-  (let ((result (kexp `(()
-			(funcall-kont
-			 ,(kexp `(,arglist
-				  (funcall ,(cps-transform-sequence body)
-					   (get-kont)))))))))
-    (format t "<- lambda: ~a~%" result)
-    result))
-
-
-#|
-;; invocations of codewalker macro
-(defwalker-rule *cps-transformation-definitions*
-
-    #'(lambda (expr)
-	(and (consp expr)
-	     (eql 'owlisp/helper:walk
-		  (car expr))))
-
-    ((mcr ruleset mcr-expr &optional userdata) nil)
-
-  `(,mcr ,ruleset
-	 (walk *cps-transformation-definitions*
-	       ,mcr-expr)
-	 ,userdata))
-|#
-
-;; application expression
-(defwalker-rule *cps-transformation-definitions*
-
-    #'(lambda (expr)
-	(application-p expr))
-
-    ((fn &rest params) nil)
-
-  (format t "application-p: ~a ~a~%" fn params)
-  (let* ((k-var (gensym))
-	 (result (if (primitive-p fn)
-		     `(lambda (,k-var)
-			(funcall ,k-var (,fn ,@params)))
-		     (labels ((tp (fn k paramsv &rest params)
-				(if (consp params)
-				    (let ((newparamv (gensym)))
-				      `(funcall ,(walk-cps (car params))
-						(lambda (,newparamv)
-						  ,(cl:apply #'tp
-							     fn
-							     k
-							     (append paramsv (list newparamv))
-							     (cdr params)))))
-				    `(funcall ,fn
-					      ,k
-					      ,@paramsv))))
-		       (let ((fn-result (gensym)))
-			 `(lambda (,k-var)
-			    (funcall ,(walk-cps fn)
-				     (lambda (,fn-result)
-				       ,(cl:apply #'tp
-						  fn-result
-						  k-var
-						  '()
-						  params)))))))))
-    (format t "application-p result: ~a~%" result)
-    result))
-
-
-(defun/destructure kont ((&rest args) &body body)
-  `(lambda (,@args)
-     ,@body))
-
-(defun/destructure kexp ((&rest args) &body body)
-  (with-gensyms (kont-var fn-args-var)
-    `(lambda (,kont-var ,@args)
-       (labels ((get-kont ()
-		  ,kont-var)
-		(funcall-kont (&rest ,fn-args-var)
-		  (cl:apply ,kont-var ,fn-args-var)))
-	 ,@body))))
-
-#|
-(defmacro funcall-kont (&rest args)
-  (declare (special kont-var))
-  `(funcall ,kont-var ,@args))
-
-(defmacro funcall-kexp (kexp kont)
-  `(funcall ,kexp ,kont))
-|#
-
-
-#|
-(defwalker-transformation
-
-    #'(lambda (expr)
-	(declare (ignore expr))
-	t)
-
-    (lambda (&rest args) &body body)
-
-  (declare (ignore lambda))
-  (let ((k-arg (gensym)))
-    `#'(lambda (,k-arg ,@args) ,@body)))
-|#
+(defun do-cps (expr)
+  (funcall *cps-walker*
+	   expr))

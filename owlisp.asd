@@ -60,12 +60,12 @@
 		     |#
 		     (:file "transform"
 			    :depends-on ("predicates" "objects" "symboltable"))
-		     #|
 		     (:file "cps"
 			    :depends-on ("predicates" "objects"))
-		     |#
+		     #|
 		     (:file "closure"
 			    :depends-on ("predicates" "objects"))
+		     |#
 		     #|
 		     (:file "parameters"
 			    :depends-on ("predicates"))
