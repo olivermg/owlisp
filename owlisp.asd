@@ -17,7 +17,7 @@
     :licence "BSD"
     :description "owlisp"
 
-    :depends-on (:cffi
+    :depends-on (;:cffi
 		 :apply-argv)
 
     :components ((:file "packages")
