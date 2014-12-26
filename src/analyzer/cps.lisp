@@ -1,6 +1,6 @@
 (in-package :owlisp/analyzer)
 
-(export '(do-cps))
+(export '(do-cps-conversion))
 
 
 ;;;
@@ -84,6 +84,6 @@
       (error "don't know how to cps transform expression ~a" expr))))
 
 
-(defun do-cps (expr)
+(defun do-cps-conversion (expr)
   (funcall *cps-walker*
 	   expr))
