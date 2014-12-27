@@ -7,13 +7,13 @@
 ;;; NOTE:
 ;;; here we have basically two distinct lambda constructs that we create and are dealing with:
 ;;;  1. continuation (denoted by 'k')
-;;;     this is a lambda expression that expects a result value
+;;;     this is a lambda expression that expects a result value of the preceding expression
 ;;;  2. continuation expression (denoted by 'kexpr')
 ;;;     this is a lambda expression that expects a contination to call after a result value has
-;;;     been computed
+;;;     been computed for the expression that this kexpr represents
 ;;;
 
-(defparameter *cps-walker* ; NOTE: always returns a single(!) kexpr
+(defparameter *cps-walker* ; FIXME: always returns a single(!) kexpr
 
   (make-walker
 
@@ -45,7 +45,7 @@
 	((lam (&rest arglist) &body body) nil)
       (declare (ignore lam))
       (let ((walked-body (walk-sequence body)))
-	(assert (= 1 (length walked-body)))
+	(assert (= 1 (length walked-body))) ; FIXME: this does not always hold yet
 	(with-gensyms (k dynk)
 	  `(lambda (,k)
 	     (funcall ,k
