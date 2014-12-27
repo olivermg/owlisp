@@ -9,7 +9,8 @@
 
 (defparameter *transformation-chain*
   #'(lambda (expr)
-      (let* ((transformed-expr (do-transform expr))
+      (let* ((cps-converted-expr (do-cps-conversion expr))
+	     (transformed-expr (do-transform cps-converted-expr))
 	     (restructured-expr (do-restructure transformed-expr))
 ;	     (closured-expr (do-closure-conversion transformed-expr))
 	     (dumped-expr (do-dump restructured-expr)))
