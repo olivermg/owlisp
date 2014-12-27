@@ -53,6 +53,13 @@
 			(funcall ,@walked-body ,dynk)))))))
 
     (defrule
+	#'defun-p ; TODO: implement defun-conversion?
+	((defn name (&rest arglist) &body body) nil)
+      (declare (ignore defn))
+      `(defun ,name (,@arglist)
+	 ,@(walk-sequence body)))
+
+    (defrule
 	#'funcall-p
 	((fnc fn arg1) nil)
       (declare (ignore fnc))
