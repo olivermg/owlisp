@@ -41,6 +41,23 @@
 	   (funcall ,k ,expr))))
 
     (defrule
+	#'if-p
+	((if cond then &optional else) nil)
+      (declare (ignore if))
+      (let ((walked-cond (walk cond))
+	    (walked-then (walk then))
+	    (walked-else (walk else)))
+	(with-gensyms (k condv)
+	  `(lambda (,k)
+	     (funcall ,walked-cond
+		      (lambda (,condv)
+			(if ,condv
+			    (funcall ,walked-then
+				     ,k)
+			    (funcall ,walked-else
+				     ,k))))))))
+
+    (defrule
 	#'lambda-p
 	((lam (&rest arglist) &body body) nil)
       (declare (ignore lam))

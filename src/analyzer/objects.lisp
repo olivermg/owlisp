@@ -15,6 +15,12 @@
 	  symbol*-p
 	  symbol*-name
 
+	  make-if*
+	  if*-p
+	  if*-cond
+	  if*-then
+	  if*-else
+
 	  make-reference*
 	  reference*-p
 	  reference*-frameindex
@@ -62,6 +68,7 @@
 (defstruct constant-int* value)
 (defstruct constant-string* value)
 (defstruct symbol* name)
+(defstruct if* cond then else)
 (defstruct reference* frameindex varindex)
 (defstruct function-reference* name)
 ;(defstruct free-reference* symbol)

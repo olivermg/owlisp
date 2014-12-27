@@ -48,6 +48,14 @@
 	  (make-constant-string* :value expr))
 
 	(defrule
+	    #'if-p
+	    ((if cond then &optional else) nil)
+	  (declare (ignore if))
+	  (make-if* :cond (walk cond)
+		    :then (walk then)
+		    :else (walk else)))
+
+	(defrule
 	    #'quote-p
 	    (expr nil)
 	  (make-symbol* :name expr))
