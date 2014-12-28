@@ -13,6 +13,17 @@
 ;;;     been computed for the expression that this kexpr represents
 ;;;
 
+
+(defun cps-convert-sequence (walked-seq &optional oldk)
+  (if walked-seq
+      (with-gensyms (x)
+	`(lambda (,x)
+	   (funcall ,(car walked-seq)
+		    ,(cps-convert-sequence (cdr walked-seq)
+					   (if oldk oldk x)))))
+      oldk))
+
+
 (defparameter *cps-walker* ; FIXME: always returns a single(!) kexpr
 
   (make-walker
@@ -62,12 +73,11 @@
 	((lam (&rest arglist) &body body) nil)
       (declare (ignore lam))
       (let ((walked-body (walk-sequence body)))
-	(assert (= 1 (length walked-body))) ; FIXME: this does not always hold yet
 	(with-gensyms (k dynk)
 	  `(lambda (,k)
 	     (funcall ,k
 		      (lambda (,@arglist ,dynk)
-			(funcall ,@walked-body ,dynk)))))))
+			(funcall ,(cps-convert-sequence walked-body) ,dynk)))))))
 
     (defrule
 	#'defun-p ; TODO: implement defun-conversion?
