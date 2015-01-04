@@ -14,108 +14,107 @@
 ;;;
 
 
-(defun cps-convert-sequence (walked-seq &optional oldk)
-  (if walked-seq
-      (with-gensyms (x)
-	`(lambda (,x)
-	   (funcall ,(car walked-seq)
-		    ,(cps-convert-sequence (cdr walked-seq)
-					   (if oldk oldk x)))))
-      oldk))
-
-
 (defparameter *cps-walker* ; FIXME: always returns a single(!) kexpr
 
   (make-walker
 
     (declare (ignore #'walk-sequence-last))
 
-    (defrule
-	#'constant-int-p
-	(expr nil)
-      (with-gensyms (k)
-	`(lambda (,k)
-	   (funcall ,k ,expr))))
+    (labels ((cps-convert-sequence (walked-seq &optional oldk)
+	       (if walked-seq
+		   (with-gensyms (x)
+		     `(lambda (,x)
+			(funcall ,(car walked-seq)
+				 ,(cps-convert-sequence (cdr walked-seq)
+							(if oldk oldk x)))))
+		   oldk)))
 
-    (defrule
-	#'constant-string-p
-	(expr nil)
-      (with-gensyms (k)
-	`(lambda (,k)
-	   (funcall ,k ,expr))))
-
-    (defrule
-	#'reference-p
-	(expr nil)
-      (with-gensyms (k)
-	`(lambda (,k)
-	   (funcall ,k ,expr))))
-
-    (defrule
-	#'if-p
-	((if cond then &optional else) nil)
-      (declare (ignore if))
-      (let ((walked-cond (walk cond))
-	    (walked-then (walk then))
-	    (walked-else (walk else)))
-	(with-gensyms (k condv)
+      (defrule
+	  #'constant-int-p
+	  (expr nil)
+	(with-gensyms (k)
 	  `(lambda (,k)
-	     (funcall ,walked-cond
-		      (lambda (,condv)
-			(if ,condv
-			    (funcall ,walked-then
-				     ,k)
-			    (funcall ,walked-else
-				     ,k))))))))
+	     (funcall ,k ,expr))))
 
-    (defrule
-	#'lambda-p
-	((lam (&rest arglist) &body body) nil)
-      (declare (ignore lam))
-      (let ((walked-body (walk-sequence body)))
-	(with-gensyms (k dynk)
+      (defrule
+	  #'constant-string-p
+	  (expr nil)
+	(with-gensyms (k)
 	  `(lambda (,k)
-	     (funcall ,k
-		      (lambda (,@arglist ,dynk)
-			(funcall ,(cps-convert-sequence walked-body) ,dynk)))))))
+	     (funcall ,k ,expr))))
 
-    (defrule
-	#'defun-p ; TODO: implement defun-conversion?
-	((defn name (&rest arglist) &body body) nil)
-      (declare (ignore defn))
-      `(defun ,name (,@arglist)
-	 ,@(walk-sequence body)))
-
-    (defrule
-	#'funcall-p
-	((fnc fn arg1) nil)
-      (declare (ignore fnc))
-      (let ((walked-fn (walk fn))
-	    (walked-arg1 (walk arg1)))
-	(with-gensyms (k fnv arg1v)
+      (defrule
+	  #'reference-p
+	  (expr nil)
+	(with-gensyms (k)
 	  `(lambda (,k)
-	     (funcall ,walked-fn
-		      (lambda (,fnv)
-			(funcall ,walked-arg1
-				 (lambda (,arg1v)
-				   (funcall ,fnv ,arg1v ,k)))))))))
+	     (funcall ,k ,expr))))
 
-    (defrule
-	#'application-p
-	((fn arg1) nil)
-      (let ((walked-arg1 (walk arg1)))
-	(with-gensyms (k arg1v)
-	  `(lambda (,k)
-	     (funcall ,walked-arg1
-		      (lambda (,arg1v)
-			(,fn ,arg1v ,k)))))))
+      (defrule
+	  #'if-p
+	  ((if cond then &optional else) nil)
+	(declare (ignore if))
+	(let ((walked-cond (walk cond))
+	      (walked-then (walk then))
+	      (walked-else (walk else)))
+	  (with-gensyms (k condv)
+	    `(lambda (,k)
+	       (funcall ,walked-cond
+			(lambda (,condv)
+			  (if ,condv
+			      (funcall ,walked-then
+				       ,k)
+			      (funcall ,walked-else
+				       ,k))))))))
 
-    (defrule
-	#'(lambda (expr)
-	    (declare (ignore expr))
-	    t)
-	(expr nil)
-      (error "don't know how to cps transform expression ~a" expr))))
+      (defrule
+	  #'lambda-p
+	  ((lam (&rest arglist) &body body) nil)
+	(declare (ignore lam))
+	(let ((walked-body (walk-sequence body)))
+	  (with-gensyms (k dynk)
+	    `(lambda (,k)
+	       (funcall ,k
+			(lambda (,@arglist ,dynk)
+			  (funcall ,(cps-convert-sequence walked-body) ,dynk)))))))
+
+      (defrule
+	  #'defun-p		   ; TODO: implement defun-conversion?
+	  ((defn name (&rest arglist) &body body) nil)
+	(declare (ignore defn))
+	`(defun ,name (,@arglist)
+	   ,@(walk-sequence body)))
+
+      (defrule
+	  #'funcall-p
+	  ((fnc fn arg1) nil)
+	(declare (ignore fnc))
+	(let ((walked-fn (walk fn))
+	      (walked-arg1 (walk arg1)))
+	  (with-gensyms (k fnv arg1v)
+	    `(lambda (,k)
+	       (funcall ,walked-fn
+			(lambda (,fnv)
+			  (funcall ,walked-arg1
+				   (lambda (,arg1v)
+				     (funcall ,fnv ,arg1v ,k)))))))))
+
+      (defrule
+	  #'application-p
+	  ((fn arg1) nil)
+	(let ((walked-arg1 (walk arg1)))
+	  (with-gensyms (k arg1v)
+	    `(lambda (,k)
+	       (funcall ,walked-arg1
+			(lambda (,arg1v)
+			  (,fn ,arg1v ,k)))))))
+
+      (defrule
+	  #'(lambda (expr)
+	      (declare (ignore expr))
+	      t)
+	  (expr nil)
+	(error "don't know how to cps transform expression ~a" expr)))))
 
 
 (defun do-cps-conversion (expr)
