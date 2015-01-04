@@ -20,14 +20,16 @@
 
     (declare (ignore #'walk-sequence-last))
 
-    (labels ((cps-convert-sequence (walked-seq &optional oldk)
+    (labels ((cps-convert-sequence (walked-seq inner-body-provide-fn &optional (argseq '()))
 	       (if walked-seq
 		   (with-gensyms (x)
 		     `(lambda (,x)
 			(funcall ,(car walked-seq)
 				 ,(cps-convert-sequence (cdr walked-seq)
-							(if oldk oldk x)))))
-		   oldk)))
+							inner-body-provide-fn
+							(append argseq
+								(list x))))))
+		   (funcall inner-body-provide-fn argseq))))
 
       (defrule
 	  #'constant-int-p
@@ -76,7 +78,10 @@
 	    `(lambda (,k)
 	       (funcall ,k
 			(lambda (,@arglist ,dynk)
-			  (funcall ,(cps-convert-sequence walked-body) ,dynk)))))))
+			  (funcall ,(cps-convert-sequence walked-body
+							  (lambda (args)
+							    (first args)))
+				   ,dynk)))))))
 
       (defrule
 	  #'defun-p		   ; TODO: implement defun-conversion?
@@ -87,17 +92,18 @@
 
       (defrule
 	  #'funcall-p
-	  ((fnc fn arg1) nil)
+	  ((fnc fn &rest args) nil)
 	(declare (ignore fnc))
 	(let ((walked-fn (walk fn))
-	      (walked-arg1 (walk arg1)))
-	  (with-gensyms (k fnv arg1v)
+	      (walked-args (walk-sequence args)))
+	  (with-gensyms (k fnv)
 	    `(lambda (,k)
 	       (funcall ,walked-fn
 			(lambda (,fnv)
-			  (funcall ,walked-arg1
-				   (lambda (,arg1v)
-				     (funcall ,fnv ,arg1v ,k)))))))))
+			  (funcall ,(cps-convert-sequence walked-args
+							  (lambda (args)
+							    `(funcall ,fnv ,@args ,k)))
+				   ,k)))))))
 
       (defrule
 	  #'application-p
