@@ -14,7 +14,7 @@
 ;;;
 
 
-(defparameter *cps-walker* ; FIXME: always returns a single(!) kexpr
+(defparameter *cps-walker* ; FIXME: always return a single(!) kexpr
 
   (make-walker
 
@@ -22,14 +22,14 @@
 
     (labels ((cps-convert-sequence (walked-seq inner-body-provide-fn &optional (argseq '()))
 	       (if walked-seq
-		   (with-gensyms (x)
-		     `(lambda (,x)
+		   (with-gensyms (v)
+		     `(lambda (,v)
 			(funcall ,(car walked-seq)
 				 ,(cps-convert-sequence (cdr walked-seq)
 							inner-body-provide-fn
 							(append argseq
-								(list x))))))
-		   (funcall inner-body-provide-fn argseq))))
+								(list v))))))
+		   (funcall inner-body-provide-fn argseq)))) ; NOTE: inner-body-provide-fn needs to evaluate to a continuation
 
       (defrule
 	  #'constant-int-p
@@ -102,7 +102,9 @@
 			(lambda (,fnv)
 			  (funcall ,(cps-convert-sequence walked-args
 							  (lambda (args)
-							    `(funcall ,fnv ,@args ,k)))
+							    (with-gensyms (v)
+							      `(lambda (,v)
+								 (funcall ,fnv ,@args ,k)))))
 				   ,k)))))))
 
       (defrule
