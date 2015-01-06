@@ -104,7 +104,7 @@
 							  (lambda (args)
 							    (with-gensyms (v)
 							      `(lambda (,v)
-								 (funcall ,fnv ,@args ,k)))))
+								 (funcall ,fnv ,@(cdr args) ,v ,k)))))
 				   ,k)))))))
 
       (defrule
