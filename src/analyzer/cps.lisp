@@ -23,13 +23,13 @@
     (labels ((cps-convert-sequence (walked-seq inner-body-provide-fn &optional (argseq '()))
 	       (if walked-seq
 		   (with-gensyms (v)
-		     `(lambda (,v)
-			(funcall ,(car walked-seq)
+		     `(funcall ,(car walked-seq)
+			       (lambda (,v)
 				 ,(cps-convert-sequence (cdr walked-seq)
 							inner-body-provide-fn
 							(append argseq
 								(list v))))))
-		   (funcall inner-body-provide-fn argseq)))) ; NOTE: inner-body-provide-fn needs to evaluate to a continuation
+		   (funcall inner-body-provide-fn argseq))))
 
       (defrule
 	  #'constant-int-p
@@ -78,10 +78,10 @@
 	    `(lambda (,k)
 	       (funcall ,k
 			(lambda (,@arglist ,dynk)
-			  (funcall ,(cps-convert-sequence walked-body
-							  (lambda (args)
-							    (first args)))
-				   ,dynk)))))))
+			  ,(cps-convert-sequence walked-body
+						 (lambda (args)
+						   `(funcall ,dynk
+							     ,(first (last args)))))))))))
 
       (defrule
 	  #'defun-p		   ; TODO: implement defun-conversion?
@@ -94,28 +94,24 @@
 	  #'funcall-p
 	  ((fnc fn &rest args) nil)
 	(declare (ignore fnc))
-	(let ((walked-fn (walk fn))
-	      (walked-args (walk-sequence args)))
-	  (with-gensyms (k fnv)
+	(let* ((walked-fn (walk fn))
+	       (walked-args (walk-sequence args))
+	       (walked-all (cons walked-fn walked-args)))
+	  (with-gensyms (k)
 	    `(lambda (,k)
-	       (funcall ,walked-fn
-			(lambda (,fnv)
-			  (funcall ,(cps-convert-sequence walked-args
-							  (lambda (args)
-							    (with-gensyms (v)
-							      `(lambda (,v)
-								 (funcall ,fnv ,@(cdr args) ,v ,k)))))
-				   ,k)))))))
+	       ,(cps-convert-sequence walked-all
+				      (lambda (args)
+					`(funcall ,(car args) ,@(cdr args) ,k)))))))
 
       (defrule
 	  #'application-p
-	  ((fn arg1) nil)
-	(let ((walked-arg1 (walk arg1)))
-	  (with-gensyms (k arg1v)
+	  ((fn &rest args) nil)
+	(let ((walked-args (walk-sequence args)))
+	  (with-gensyms (k)
 	    `(lambda (,k)
-	       (funcall ,walked-arg1
-			(lambda (,arg1v)
-			  (,fn ,arg1v ,k)))))))
+	       ,(cps-convert-sequence walked-args
+				      (lambda (args)
+					`(,fn ,@args ,k)))))))
 
       (defrule
 	  #'(lambda (expr)
