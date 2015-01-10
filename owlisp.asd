@@ -58,12 +58,15 @@
 		     (:file "macroexpand-all"
 			    :depends-on ("predicates"))
 		     |#
+		     (:file "macroexpansion"
+			    :depends-on ("predicates"))
 		     (:file "simplify"
-			    :depends-on ("predicates" "objects"))
+			    :depends-on ("predicates"))
+		     (:file "cps"
+			    :depends-on ("predicates"))
 		     (:file "transform"
 			    :depends-on ("predicates" "objects" "symboltable"))
-		     (:file "cps"
-			    :depends-on ("predicates" "objects"))
+
 		     #|
 		     (:file "closure"
 			    :depends-on ("predicates" "objects"))

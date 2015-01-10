@@ -11,10 +11,12 @@
 	  let-p
 	  lambda-p
 	  defun-p
+	  defmacro-p
 	  funcall-p
 	  function-p
 	  if-p
-	  application-p))
+	  application-p
+	  true-p))
 
 
 (defun symbol-name-equals (symbol name)
@@ -73,6 +75,9 @@
 (defun defun-p (expr)
   (is-tagged-list expr :defun))
 
+(defun defmacro-p (expr)
+  (is-tagged-list expr :defmacro))
+
 (defun funcall-p (expr)
   (is-tagged-list expr :funcall))
 
@@ -84,3 +89,7 @@
 
 (defun application-p (expr)
   (consp expr))
+
+(defun true-p (expr)
+  (declare (ignore expr))
+  t)
