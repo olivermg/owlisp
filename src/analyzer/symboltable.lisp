@@ -6,7 +6,8 @@
 	  make-symbol-address
 	  symbol-address-p
 	  symbol-address-frameindex
-	  symbol-address-symbolindex))
+	  symbol-address-symbolindex
+	  with-extended-symboltable))
 
 
 (defstruct symboltable
@@ -33,3 +34,8 @@
 				 symbol
 				 (1+ frameindex))))
       (error "unknown symbol ~a" symbol)))
+
+(defmacro with-extended-symboltable (symboltable (symbols) &body body)
+  `(let ((,symboltable (make-symboltable :parent ,symboltable)))
+     (add-symbols ,symboltable ,symbols)
+     (progn ,@body)))

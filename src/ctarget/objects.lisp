@@ -34,6 +34,13 @@
 	  symbol/c-p
 	  symbol/c-name
 
+	  make-if/c
+	  if/c-p
+	  if/c-cond
+	  if/c-then
+	  if/c-else
+	  if/c-lvalue
+
 	  make-reference/c
 	  reference/c-p
 	  reference/c-frameindex
@@ -67,6 +74,7 @@
 (defstruct constant-int/c value)
 (defstruct constant-string/c value)
 (defstruct symbol/c name)
+(defstruct if/c cond then else lvalue)
 ;(defstruct variable/c name)
 ;(defstruct reference/c symbol)
 (defstruct reference/c frameindex varindex)
@@ -74,6 +82,7 @@
 (defstruct abstraction/c name args body)
 (defstruct application/c fn args)
 (defstruct return/c variable-name)
+
 
 (defgeneric get-return-var (obj))
 
@@ -85,3 +94,6 @@
 
 (defmethod get-return-var ((obj assignment/c))
   (assignment/c-lvalue obj))
+
+(defmethod get-return-var ((obj if/c))
+  (if/c-lvalue obj))

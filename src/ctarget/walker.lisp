@@ -129,6 +129,18 @@
       (error "not implemented yet"))
 
     (defrule
+	#'if/c-p
+	(obj nil)
+      (let ((lvalue (if/c-lvalue obj)))
+	(express "Object* ~a;~%if (~a) {~%~a = ~a;~%} else {~%~a = ~a;~%}~%"
+		 lvalue
+		 (if/c-cond obj)
+		 lvalue
+		 (if/c-then obj)
+		 lvalue
+		 (if/c-else obj))))
+
+    (defrule
 	#'reference/c-p
 	(obj nil)
       (express "lookup_i( env, ~a, ~a )"

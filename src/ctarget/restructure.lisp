@@ -54,6 +54,21 @@
 	(error "not yet implemented"))
 
       (defrule
+	  #'if*-p
+	  (obj nil)
+	(let ((walked-cond (walk (if*-cond obj)))
+	      (walked-then (walk (if*-then obj)))
+	      (walked-else (walk (if*-else obj))))
+	 (make-sequence/c :sequence ; FIXME: don't evaluate then/else depending on cond
+			  (list walked-cond
+				walked-then
+				walked-else
+				(make-if/c :cond (get-return-var walked-cond)
+					   :then (get-return-var walked-then)
+					   :else (get-return-var walked-else)
+					   :lvalue (next-varname))))))
+
+      (defrule
 	  #'reference*-p
 	  (obj nil)
 	(make-assignment/c :lvalue (next-varname)
