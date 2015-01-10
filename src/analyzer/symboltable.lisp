@@ -3,6 +3,7 @@
 (export '(make-symboltable
 	  add-symbols
 	  find-symbol-address
+	  symbol-exists-p
 	  make-symbol-address
 	  symbol-address-p
 	  symbol-address-frameindex
@@ -23,6 +24,15 @@
   (setf (symboltable-symbols table)
 	(append (symboltable-symbols table)
 		symbols)))
+
+(defun symbol-exists-p (table symbol)
+  (handler-case
+      (progn
+	(find-symbol-address table symbol)
+	t)
+    (error (e)
+      (declare (ignore e))
+      nil)))
 
 (defun find-symbol-address (table symbol &optional (frameindex 0))
   (if (not (null table))
