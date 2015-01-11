@@ -10,6 +10,9 @@
 (defpackage #:owlisp/helper
   (:use cl))
 
+(defpackage #:owlisp/builtin/macros
+  (:nicknames owl/m))
+
 (defpackage #:owlisp/analyzer
   (:use cl owlisp owlisp/environment owlisp/llvm owlisp/helper)
   (:shadow apply compile))

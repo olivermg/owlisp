@@ -1,9 +1,9 @@
-(in-package :owlisp/analyzer)
+(in-package #:owlisp/analyzer)
 
 (export '(do-macroexpansion))
 
 
-(defparameter *global-macro-symboltable* (make-symboltable))
+(defparameter *global-macro-symboltable* (make-symboltable :symbols owl/m:*builtin-macro-symbols*))
 ;(defparameter *backtick-level* 0)
 ;(defparameter *unquote-count* 0)
 

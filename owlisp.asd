@@ -58,8 +58,9 @@
 		     (:file "macroexpand-all"
 			    :depends-on ("predicates"))
 		     |#
+		     (:file "builtin-macros")
 		     (:file "macroexpansion"
-			    :depends-on ("predicates"))
+			    :depends-on ("predicates" "builtin-macros"))
 		     (:file "simplify"
 			    :depends-on ("predicates"))
 		     (:file "cps"
