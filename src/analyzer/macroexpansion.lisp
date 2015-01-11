@@ -7,6 +7,27 @@
 ;(defparameter *backtick-level* 0)
 ;(defparameter *unquote-count* 0)
 
+
+(defparameter *convert-builtin-macros-walker*
+
+  (make-walker
+
+    (declare (ignore #'walk-sequence-last))
+
+    (defrule
+	#'defun-p
+	((defn name (&rest arglist) &body body) nil)
+      (declare (ignore defn))
+      (let ((walked-body (walk-sequence body)))
+	`(owl/m:defun ,name (,@arglist)
+	   ,@walked-body)))
+
+    (defrule
+	#'true-p
+	(expr nil)
+      expr)))
+
+
 (defparameter *macroexpansion-walker*
 
   (make-walker
@@ -40,4 +61,5 @@
 
 (defun do-macroexpansion (expr)
   (funcall *macroexpansion-walker*
-	   expr))
+	   (funcall *convert-builtin-macros-walker*
+		    expr)))

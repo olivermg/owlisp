@@ -1,12 +1,12 @@
 (cl:in-package #:owlisp/builtin/macros)
 
 (cl:export '(*builtin-macro-symbols*
-	     owl/defun))
+	     defun))
 
 (cl:defparameter *builtin-macro-symbols*
-  '(owl/defun))
+  '(defun))
 
-(cl:defmacro owl/defun (name (cl:&rest arglist) cl:&body body)
+(cl:defmacro defun (name (cl:&rest arglist) cl:&body body)
   `(setf (symbol-function (quote ,name))
 	 (lambda (,@arglist)
 	   ,@body)))
