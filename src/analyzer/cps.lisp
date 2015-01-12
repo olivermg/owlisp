@@ -33,28 +33,28 @@
 
       (defrule
 	  #'constant-int-p
-	  (expr nil)
+	  expr
 	(with-gensyms (k)
 	  `(lambda (,k)
 	     (funcall ,k ,expr))))
 
       (defrule
 	  #'constant-string-p
-	  (expr nil)
+	  expr
 	(with-gensyms (k)
 	  `(lambda (,k)
 	     (funcall ,k ,expr))))
 
       (defrule
 	  #'reference-p
-	  (expr nil)
+	  expr
 	(with-gensyms (k)
 	  `(lambda (,k)
 	     (funcall ,k ,expr))))
 
       (defrule
 	  #'if-p
-	  ((if cond then &optional else) nil)
+	  (if cond then &optional else)
 	(declare (ignore if))
 	(let ((walked-cond (walk cond))
 	      (walked-then (walk then))
@@ -71,7 +71,7 @@
 
       (defrule
 	  #'lambda-p
-	  ((lam (&rest arglist) &body body) nil)
+	  (lam (&rest arglist) &body body)
 	(declare (ignore lam))
 	(let ((walked-body (walk-sequence body)))
 	  (with-gensyms (k dynk)
@@ -85,14 +85,14 @@
 
       (defrule
 	  #'defun-p		   ; TODO: implement defun-conversion?
-	  ((defn name (&rest arglist) &body body) nil)
+	  (defn name (&rest arglist) &body body)
 	(declare (ignore defn))
 	`(defun ,name (,@arglist)
 	   ,@(walk-sequence body)))
 
       (defrule
 	  #'funcall-p
-	  ((fnc fn &rest args) nil)
+	  (fnc fn &rest args)
 	(declare (ignore fnc))
 	(let* ((walked-fn (walk fn))
 	       (walked-args (walk-sequence args))
@@ -105,7 +105,7 @@
 
       (defrule
 	  #'application-p
-	  ((fn &rest args) nil)
+	  (fn &rest args)
 	(let ((walked-args (walk-sequence args)))
 	  (with-gensyms (k)
 	    `(lambda (,k)
@@ -117,7 +117,7 @@
 	  #'(lambda (expr)
 	      (declare (ignore expr))
 	      t)
-	  (expr nil)
+	  expr
 	(error "don't know how to cps transform expression ~a" expr)))))
 
 

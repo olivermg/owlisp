@@ -86,14 +86,14 @@
 
     (defrule
 	#'assignment/c-p
-	(obj nil)
+	obj
       (express "Object* ~a = ~a;~%"
 	       (assignment/c-lvalue obj)
 	       (walk (assignment/c-value obj))))
 
     (defrule
 	#'set-binding/c-p
-	(obj nil)
+	obj
       (let ((frameindex (set-binding/c-frameindex obj))
 	    (varindex (set-binding/c-varindex obj))
 	    (value (set-binding/c-value obj)))
@@ -101,36 +101,36 @@
 
     (defrule
 	#'extend-bindings/c-p
-	(obj nil)
+	obj
       (express "env = (Env*)newenv_e( env, ~a );~%" (extend-bindings/c-size obj)))
 
     (defrule
 	#'null/c-p
-	(obj nil)
+	obj
       (declare (ignore obj))
       (express "NULL"))
 
     (defrule
 	#'constant-int/c-p
-	(obj nil)
+	obj
       (express "newint( ~a )"
 	       (constant-int/c-value obj)))
 
     (defrule
 	#'constant-string/c-p
-	(obj nil)
+	obj
       (express "newstring( \"~a\" )"
 	       (constant-string/c-value obj)))
 
     (defrule
 	#'symbol/c-p
-	(obj nil)
+	obj
       (declare (ignore obj))
       (error "not implemented yet"))
 
     (defrule
 	#'if/c-p
-	(obj nil)
+	obj
       (let ((lvalue (if/c-lvalue obj)))
 	(express "Object* ~a;~%if (~a) {~%~a = ~a;~%} else {~%~a = ~a;~%}~%"
 		 lvalue
@@ -142,14 +142,14 @@
 
     (defrule
 	#'reference/c-p
-	(obj nil)
+	obj
       (express "lookup_i( env, ~a, ~a )"
 	       (reference/c-frameindex obj)
 	       (reference/c-varindex obj)))
 
     (defrule
 	#'function-reference/c-p
-	(obj nil)
+	obj
       (let ((fname (prefix-symbol (function-reference/c-name obj) ; TODO: unify prefix-name creation
 				  "_U_")))
 	(when (not (function-declared-p fname))
@@ -159,7 +159,7 @@
 
     (defrule
 	#'abstraction/c-p
-	(obj nil)
+	obj
       (new-buffer)
       (dump "Object* ~a( Env* env ) {~%~a}~%~%"
 	    (prefix-symbol (abstraction/c-name obj)
@@ -186,7 +186,7 @@
 
     (defrule
 	#'application/c-p
-	(obj nil)
+	obj
       (let ((args (application/c-args obj)))
 	(express "invoke_obj( ~a, ~a~{, ~a~} )"
 		 (application/c-fn obj)
@@ -195,13 +195,13 @@
 
     (defrule
 	#'sequence/c-p
-	(obj nil)
+	obj
       (express "~{~a~}"
 	       (walk-sequence (sequence/c-sequence obj))))
 
     (defrule
 	#'return/c-p
-	(obj nil)
+	obj
       (express "return ~a;~%"
 	       (return/c-variable-name obj)))
 
@@ -209,7 +209,7 @@
 	#'(lambda (obj)
 	    (declare (ignore obj))
 	    t)
-	(obj nil)
+	obj
       (error "compiler-walker: unknown object ~a" obj))))
 
 

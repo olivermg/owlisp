@@ -28,23 +28,23 @@
 
       (defrule
 	  #'null-p
-	  (expr nil)
+	  expr
 	(declare (ignore expr))
 	(make-null*))
 
       (defrule
 	  #'constant-int-p
-	  (expr nil)
+	  expr
 	(make-constant-int* :value expr))
 
       (defrule
 	  #'constant-string-p
-	  (expr nil)
+	  expr
 	(make-constant-string* :value expr))
 
       (defrule
 	  #'if-p
-	  ((if cond then &optional else) nil)
+	  (if cond then &optional else)
 	(declare (ignore if))
 	(make-if* :cond (walk cond)
 		  :then (walk then)
@@ -52,19 +52,19 @@
 
       (defrule
 	  #'quote-p
-	  (expr nil)
+	  expr
 	(make-symbol* :name expr))
 
       (defrule
 	  #'reference-p
-	  (expr nil)
+	  expr
 	(let ((symboladdress (find-symbol-address *symboltable* expr)))
 	  (make-reference* :frameindex (symbol-address-frameindex symboladdress)
 			   :varindex (symbol-address-symbolindex symboladdress))))
 
       (defrule
 	  #'let-p
-	  ((lt (&rest bindings) &body body) nil)
+	  (lt (&rest bindings) &body body)
 	(declare (ignore lt))
 	(with-extended-symboltable *symboltable* ((mapcar #'car bindings))
 	  (let ((transformed-body (walk-sequence body)))
@@ -77,19 +77,19 @@
 
       (defrule
 	  #'lambda-p
-	  ((lam (&rest arglist) &body body) nil)
+	  (lam (&rest arglist) &body body)
 	(declare (ignore lam))
 	(transform-function arglist body))
 
       (defrule
 	  #'defun-p
-	  ((defn name (&rest arglist) &body body) nil)
+	  (defn name (&rest arglist) &body body)
 	(declare (ignore defn))
 	(transform-function arglist body name))
 
       (defrule
 	  #'funcall-p
-	  ((func fn &rest args) nil)
+	  (func fn &rest args)
 	(declare (ignore func))
 	(let ((transformed-fn (walk fn))
 	      (transformed-args (walk-sequence args)))
@@ -98,7 +98,7 @@
 
       (defrule
 	  #'function-p
-	  ((func fn) nil)
+	  (func fn)
 	(declare (ignore func))
 	(if (consp fn)
 	    (walk fn)
@@ -106,17 +106,15 @@
 
       (defrule
 	  #'application-p
-	  ((fn &rest args) nil)
+	  (fn &rest args)
 	(let ((transformed-fn (transform-function-reference fn))
 	      (transformed-args (walk-sequence args)))
 	  (make-application* :fn transformed-fn
 			     :args transformed-args)))
 
       (defrule
-	  #'(lambda (expr)
-	      (declare (ignore expr))
-	      t)
-	  (expr nil)
+	  #'true-p
+	  expr
 	(error "unknown expression: ~a" expr)))))
 
 

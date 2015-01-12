@@ -16,16 +16,11 @@
 
     (defrule
 	#'defun-p
-	((defn name (&rest arglist) &body body) nil)
+	(defn name (&rest arglist) &body body)
       (declare (ignore defn))
       (let ((walked-body (walk-sequence body)))
 	`(owl/m:defun ,name (,@arglist)
-	   ,@walked-body)))
-
-    (defrule
-	#'true-p
-	(expr nil)
-      expr)))
+	   ,@walked-body)))))
 
 
 (defparameter *macroexpansion-walker*
@@ -36,7 +31,7 @@
 
     (defrule
 	#'defmacro-p
-	((defm name (&rest arglist) &body body) nil)
+	(defm name (&rest arglist) &body body)
       (declare (ignore defm))
       (add-symbols *global-macro-symboltable*
 		   (list name))
@@ -46,17 +41,12 @@
 
     (defrule
 	#'application-p
-	((fn &rest args) nil)
+	(fn &rest args)
       (let* ((walked-args (walk-sequence args))
 	     (expr `(,fn ,@walked-args)))
 	(if (symbol-exists-p *global-macro-symboltable* fn)
-	    (macroexpand expr)   ; TODO: see hint in 'defmacro' rule
-	    expr)))
-
-    (defrule
-	#'true-p
-	(expr nil)
-      expr)))
+	    (macroexpand-1 expr)   ; TODO: see hint in 'defmacro' rule
+	    expr)))))
 
 
 (defun do-macroexpansion (expr)
