@@ -76,6 +76,19 @@
 					       :body transformed-body))))))
 
       (defrule
+	  #'setf-p
+	  (stf location value)
+	(declare (ignore stf))
+	(make-setf* :location (walk location)
+		    :value (walk value)))
+
+      (defrule
+	  #'symbol-function-p
+	  (smbfn symbol)
+	(declare (ignore smbfn))
+	(make-symbol-function* :symbol (walk symbol)))
+
+      (defrule
 	  #'lambda-p
 	  (lam (&rest arglist) &body body)
 	(declare (ignore lam))

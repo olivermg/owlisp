@@ -46,6 +46,19 @@
 	     (funcall ,k ,expr))))
 
       (defrule
+	  #'setf-p
+	  (stf location value)
+	(declare (ignore stf))
+	(let ((walked-value (walk value)))
+	  (with-gensyms (k vv)
+	    `(lambda (,k)
+	       (funcall ,walked-value
+			(lambda (,vv)
+			  (funcall ,k
+				   (setf ,location
+					 ,vv))))))))
+
+      (defrule
 	  #'reference-p
 	  expr
 	(with-gensyms (k)

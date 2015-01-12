@@ -37,7 +37,7 @@
 		   (list name))
       (eval `(defmacro ,name (,@arglist) ; TODO: implement our own macro logic instead of relying on our host CL implementation
 	       ,@body))
-      nil) ; FIXME: introduce process to ignore expression in subsequent passes
+      nil) ; FIXME: introduce process to ignore expression in subsequent passes / to abort further processing
 
     (defrule
 	#'application-p
@@ -45,7 +45,7 @@
       (let* ((walked-args (walk-sequence args))
 	     (expr `(,fn ,@walked-args)))
 	(if (symbol-exists-p *global-macro-symboltable* fn)
-	    (macroexpand-1 expr)   ; TODO: see hint in 'defmacro' rule
+	    (walk (macroexpand-1 expr)) ; TODO: see hint in 'defmacro' rule
 	    expr)))))
 
 

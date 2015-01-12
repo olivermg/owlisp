@@ -9,6 +9,8 @@
 	  reference-p
 	  quote-p
 	  let-p
+	  setf-p
+	  symbol-function-p
 	  lambda-p
 	  defun-p
 	  defmacro-p
@@ -68,6 +70,12 @@
 
 (defun let-p (expr)
   (is-tagged-list expr :let))
+
+(defun setf-p (expr)
+  (is-tagged-list expr :setf))
+
+(defun symbol-function-p (expr)
+  (is-tagged-list expr :symbol-function))
 
 (defun lambda-p (expr)
   (is-tagged-list expr :lambda))
