@@ -103,6 +103,20 @@
 							     (function-reference*-name obj))))
 
       (defrule
+	  #'setf*-p
+	  obj
+	(let ((frameindex (reference*-frameindex (setf*-location obj))) ; TODO: check location type
+	      (varindex (reference*-varindex (setf*-location obj)))
+	      (walked-value (walk (setf*-value obj))))
+	  (make-sequence/c :sequence ; TODO: implement macro that simplifies syntax for creating sequences
+			   (cons
+			    walked-value
+			    (list (make-assignment/c :lvalue (next-varname)
+						     :value (make-set-binding/c :frameindex frameindex
+										:varindex varindex
+										:value (get-return-var walked-value))))))))
+
+      (defrule
 	  #'abstraction*-p
 	  obj
 	(let* ((walked-body (walk-sequence (abstraction*-body obj)))
