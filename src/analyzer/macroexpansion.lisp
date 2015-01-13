@@ -45,7 +45,7 @@
       (let* ((walked-args (walk-sequence args))
 	     (expr `(,fn ,@walked-args)))
 	(if (symbol-exists-p *global-macro-symboltable* fn)
-	    (walk (macroexpand-1 expr)) ; TODO: see hint in 'defmacro' rule
+	    (walk (macroexpand-1 expr)) ; TODO: see hint in 'defmacro' rule | don't to recursive macroexpand, since we don't want to expand macros that are part of our host CL implementation
 	    expr)))))
 
 

@@ -147,7 +147,7 @@
 	       (reference/c-frameindex obj)
 	       (reference/c-varindex obj)))
 
-    (defrule
+    (defrule ; TODO: insert abstraction layer here, since we need to be able to (setf (symbol-function fn) ...)
 	#'function-reference/c-p
 	obj
       (let ((fname (prefix-symbol (function-reference/c-name obj) ; TODO: unify prefix-name creation

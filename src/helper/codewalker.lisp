@@ -26,6 +26,8 @@
 
 ;; TODO: implement recursive walking (e.g. for macroexpansion)
 ;; TODO: implement matching objects & their slots
+;; TODO: implement processing several expressions (=sequences)?
+;; TODO: implement aliases of rules (is specifying several predicates enough?)
 
 (defmacro make-walker (&body body)
 

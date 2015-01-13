@@ -79,7 +79,7 @@
 	  #'setf-p
 	  (stf location value)
 	(declare (ignore stf))
-	(make-setf* :location (walk location)
+	(make-setf* :location (walk location) ; TODO: insert asserts in places like this, i.e. check that we have a setf-able location
 		    :value (walk value)))
 
       (defrule
