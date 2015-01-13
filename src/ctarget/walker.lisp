@@ -150,12 +150,9 @@
     (defrule ; TODO: insert abstraction layer here, since we need to be able to (setf (symbol-function fn) ...)
 	#'function-reference/c-p
 	obj
-      (let ((fname (prefix-symbol (function-reference/c-name obj) ; TODO: unify prefix-name creation
-				  "_U_")))
-	(when (not (function-declared-p fname))
-	  (dump-header "Object* ~a( Env* );" fname)
-	  (add-declared-function fname))
-	(express "newclosure_i( env, &~a )" fname)))
+      (express "lookup_i( fn_env, ~a, ~a )"
+	       (function-reference/c-frameindex obj)
+	       (function-reference/c-varindex obj)))
 
     (defrule
 	#'abstraction/c-p

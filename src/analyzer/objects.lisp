@@ -29,7 +29,8 @@
 
 	  make-function-reference*
 	  function-reference*-p
-	  function-reference*-name
+	  function-reference*-frameindex
+	  function-reference*-varindex
 
 ;	  make-free-reference*
 ;	  free-reference*-p
@@ -79,7 +80,7 @@
 (defstruct symbol* name)
 (defstruct if* cond then else)
 (defstruct reference* frameindex varindex)
-(defstruct function-reference* name)
+(defstruct function-reference* frameindex varindex)
 ;(defstruct free-reference* symbol)
 ;(defstruct bound-reference* symbol)
 (defstruct abstraction* name args body)

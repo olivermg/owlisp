@@ -22,9 +22,9 @@
 				      :body transformed-body))))
 
 	     (transform-function-reference (fn)
-	       (if (find-symbol-address *global-fn-symboltable* fn)
-		   (make-function-reference* :name fn)
-		   (error "unknown function ~a" fn))))
+	       (let ((fn-symboladdress (find-symbol-address *global-fn-symboltable* fn)))
+		 (make-function-reference* :frameindex (symbol-address-frameindex fn-symboladdress)
+					   :varindex (symbol-address-symbolindex fn-symboladdress)))))
 
       (defrule
 	  #'null-p

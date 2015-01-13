@@ -99,8 +99,9 @@
 	  #'function-reference*-p
 	  obj
 	(make-assignment/c :lvalue (next-varname)
-			   :value (make-function-reference/c :name
-							     (function-reference*-name obj))))
+			   :value (make-function-reference/c
+				   :frameindex (function-reference*-frameindex obj)
+				   :varindex (function-reference*-varindex obj))))
 
       (defrule
 	  #'setf*-p
