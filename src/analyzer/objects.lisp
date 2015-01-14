@@ -69,9 +69,12 @@
 	  setf*-location
 	  setf*-value
 
+#|
 	  make-symbol-function*
 	  symbol-function*-p
-	  symbol-function*-symbol))
+	  symbol-function*-symbol
+|#
+	  ))
 
 
 (defstruct null*)
@@ -88,7 +91,7 @@
 ;(defstruct closure* args body env) ; TODO: make passed closure a separate field instead of assuming it's the first arg
 (defstruct application* fn args)
 (defstruct setf* location value)
-(defstruct symbol-function* symbol)
+;(defstruct symbol-function* symbol)
 ;(defstruct environment* parent symbols)
 
 

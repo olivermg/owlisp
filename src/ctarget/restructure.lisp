@@ -106,8 +106,8 @@
       (defrule
 	  #'setf*-p
 	  obj
-	(let ((frameindex (reference*-frameindex (setf*-location obj))) ; TODO: check location type
-	      (varindex (reference*-varindex (setf*-location obj)))
+	(let ((frameindex (function-reference*-frameindex (setf*-location obj))) ; TODO: check location type | combine function-reference & reference types to both work
+	      (varindex (function-reference*-varindex (setf*-location obj)))
 	      (walked-value (walk (setf*-value obj))))
 	  (make-sequence/c :sequence ; TODO: implement macro that simplifies syntax for creating sequences
 			   (cons

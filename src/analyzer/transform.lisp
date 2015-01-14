@@ -52,8 +52,9 @@
 
       (defrule
 	  #'quote-p
-	  expr
-	(make-symbol* :name expr))
+	  (qt symbol)
+	(declare (ignore qt))
+	(make-symbol* :name symbol))
 
       (defrule
 	  #'reference-p
@@ -86,7 +87,15 @@
 	  #'symbol-function-p
 	  (smbfn symbol)
 	(declare (ignore smbfn))
-	(make-symbol-function* :symbol (walk symbol)))
+	(make-symbol-function* :symbol (walk symbol))
+	(let* ((walked-symbol (walk symbol)) ; TODO: assert walked-symbol is symbol-struct
+	       (symbol-name (symbol*-name walked-symbol))
+	       (fn-address (progn
+			     (when (not (symbol-exists-p *global-fn-symboltable* symbol-name))
+			       (add-symbols *global-fn-symboltable* (list symbol-name)))
+			     (find-symbol-address *global-fn-symboltable* symbol-name))))
+	  (make-function-reference* :frameindex (symbol-address-frameindex fn-address)
+				    :varindex (symbol-address-symbolindex fn-address))))
 
       (defrule
 	  #'lambda-p
