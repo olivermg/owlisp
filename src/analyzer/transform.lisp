@@ -14,7 +14,8 @@
 
     (labels ((transform-function (args body &optional (name nil))
 	       (with-extended-symboltable *symboltable* (args)
-		 (when name
+		 (when (and name
+			    (not (symbol-exists-p *global-fn-symboltable* name)))
 		   (add-symbols *global-fn-symboltable* (list name)))
 		 (let ((transformed-body (walk-sequence body)))
 		   (make-abstraction* :name name
@@ -87,12 +88,11 @@
 	  #'symbol-function-p
 	  (smbfn symbol)
 	(declare (ignore smbfn))
-	(make-symbol-function* :symbol (walk symbol))
 	(let* ((walked-symbol (walk symbol)) ; TODO: assert walked-symbol is symbol-struct
 	       (symbol-name (symbol*-name walked-symbol))
 	       (fn-address (progn
 			     (when (not (symbol-exists-p *global-fn-symboltable* symbol-name))
-			       (add-symbols *global-fn-symboltable* (list symbol-name)))
+			       (add-symbols *global-fn-symboltable* (list symbol-name))) ; FIXME: need to do this in setf context instead and otherwise signal error
 			     (find-symbol-address *global-fn-symboltable* symbol-name))))
 	  (make-function-reference* :frameindex (symbol-address-frameindex fn-address)
 				    :varindex (symbol-address-symbolindex fn-address))))

@@ -15,6 +15,12 @@
     (declare (ignore #'walk-sequence-last))
 
     (defrule
+	#'setf-p
+	(stf location value)
+      (declare (ignore stf))
+      `(owl/m:setf ,location ,value))
+
+    (defrule
 	#'defun-p
 	(defn name (&rest arglist) &body body)
       (declare (ignore defn))
