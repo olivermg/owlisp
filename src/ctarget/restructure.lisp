@@ -104,6 +104,21 @@
 				   :varindex (function-reference*-varindex obj))))
 
       (defrule
+	  #'set*-p
+	  obj
+	(let ((reference (if (symbol*-p (set*-variable obj))
+			     (make-refer (set*-variable obj))
+			     ()))
+	      (walked-value (walk (set*-value obj))))
+	  (make-sequence/c :sequence
+			   (cons
+			    walked-value
+			    (list (make-assignment/c :lvalue (next-varname)
+						     :value (make-set-binding/c :frameindex frameindex
+										:varindex varindex
+										:value (get-return-var walked-value))))))))
+
+      (defrule
 	  #'setf*-p
 	  obj
 	(let ((frameindex (function-reference*-frameindex (setf*-location obj))) ; TODO: check location type | combine function-reference & reference types to both work

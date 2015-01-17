@@ -64,6 +64,11 @@
 	  application*-fn
 	  application*-args
 
+	  make-set*
+	  set*-p
+	  set*-variable
+	  set*-value
+
 	  make-setf*
 	  setf*-p
 	  setf*-location
@@ -90,6 +95,7 @@
 (defstruct bindings* bindings body) ; TODO: include type of binding (e.g. function, var)?
 ;(defstruct closure* args body env) ; TODO: make passed closure a separate field instead of assuming it's the first arg
 (defstruct application* fn args)
+(defstruct set* variable value)
 (defstruct setf* location value)
 ;(defstruct symbol-function* symbol)
 ;(defstruct environment* parent symbols)

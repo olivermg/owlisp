@@ -15,6 +15,12 @@
     (declare (ignore #'walk-sequence-last))
 
     (defrule
+	#'setq-p
+	(stq symbolname value)
+      (declare (ignore stq))
+      `(owl/m:setq ,symbolname ,value))
+
+    (defrule
 	#'setf-p
 	(stf location value)
       (declare (ignore stf))

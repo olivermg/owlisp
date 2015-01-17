@@ -78,6 +78,13 @@
 					       :body transformed-body))))))
 
       (defrule
+	  #'set-p
+	  (st symbol value)
+	(declare (ignore st))
+	(make-set* :variable (walk symbol)
+		   :value (walk value)))
+
+      (defrule
 	  #'setf-p
 	  (stf location value)
 	(declare (ignore stf))
