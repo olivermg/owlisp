@@ -2,10 +2,18 @@
 #include <stdlib.h>
 //#include <ctype.h>
 #include <string.h>
+#include <stdarg.h>
 
 #define STREAMCHUNKSIZE 1024
 #define TOKENCHUNKSIZE 16
 #define TOKENLISTCHUNKSIZE 16
+
+/*
+ *
+ * implement the following lisp special forms natively:
+ * car, cdr, quote, cond, cons, atom, eq, lambda
+ *
+ */
 
 /*
 enum tokentype {
@@ -43,6 +51,16 @@ typedef struct _tokenlist_t {
   token_t* tokens;
 } tokenlist_t;
 
+
+typedef enum _type_t {
+  ATOM,
+  CONS
+} type_t;
+
+typedef struct _obj_t {
+  type_t type;
+  struct _obj_t* objs[1];
+} obj_t;
 
 /*
 expr_t* new_expr(char* tokencontent, expr_t* next)
@@ -146,6 +164,7 @@ tokenlist_t* tokenize(char* content)
   token_t* curtoken = NULL;
   for (size_t i = 0; i < contentlen; i++) {
     //char c = toupper(content[i]);
+    char c = content[i];
     if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
       if (!curtoken) {
 	curtoken = new_token();
@@ -182,12 +201,65 @@ tokenlist_t* tokenize(char* content)
   return tokenlist;
 }
 
+
+#define quote(x) new_obj(ATOM, 1, (x))
+#define nil quote("nil")
+#define cons(x,y) new_obj(CONS, 2, (x), (y))
+#define car(x) ((x)->objs[0])
+#define cdr(x) ((x)->objs[1])
+
+obj_t* new_obj(type_t type, unsigned long numargs, ...)
+{
+  va_list va;
+
+  obj_t* newobj = malloc(sizeof(obj_t) + (numargs - 1)*sizeof(obj_t*));
+  newobj->type = type;
+  va_start(va, numargs);
+  for (unsigned long i = 0; i < numargs; i++) {
+    newobj->objs[i] = va_arg(va, obj_t*);
+  }
+  va_end(va);
+
+  return newobj;
+}
+
+obj_t* objectify(tokenlist_t* tokens)
+{
+  return NULL;
+}
+
+void print_obj(obj_t* obj)
+{
+  switch (obj->type) {
+  case ATOM:
+    printf("ATOM(%s)", obj->objs[0]);
+    break;
+  case CONS:
+    printf("CONS(");
+    print_obj(obj->objs[0]);
+    printf(", ");
+    print_obj(obj->objs[1]);
+    printf(")");
+    break;
+  default:
+    printf("unknown object of type %d!\n", obj->type);
+    break;
+  }
+}
+
+
 int main(int argc, char* argv[])
 {
   char* expr = read_stream(stdin);
   printf("\nREAD:\n%s\n", expr);
   tokenlist_t* tokenlist = tokenize(expr);
   print_tokenlist(tokenlist);
+
+  obj_t* o1 = quote("xxx");
+  obj_t* o2 = quote("yyy");
+  obj_t* o3 = cons(o1, cons(o2, nil));
+  print_obj(o3);
+  printf("\n");
 
   return 0;
 }
