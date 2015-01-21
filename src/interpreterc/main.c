@@ -202,11 +202,13 @@ tokenlist_t* tokenize(char* content)
   return tokenlist;
 }
 
-
+obj_t* interned_syms;
 obj_t* global_env;
 
+obj_t* nil;
+
 #define mksym(x) new_obj(ATOM, 1, (x))
-#define nil mksym("nil")
+#define symname(x) (char*)((x)->objs[0])
 #define mkproc(args,code,env) new_obj(PROC, 3, (args), (code), (env))
 #define eq(x,y) ((x) == (y))
 #define null(x) eq(x, nil)
@@ -231,9 +233,34 @@ obj_t* new_obj(type_t type, unsigned long numargs, ...)
   return newobj;
 }
 
+obj_t* find_symbol(char* name)
+{
+  obj_t* symlist;
+  for (symlist = interned_syms; !null(symlist); symlist = cdr(symlist)) {
+    obj_t* sym = car(symlist);
+    if (!strcmp(name, symname(sym)))
+      break;
+  }
+  if (!null(symlist)) {
+    return car(symlist);
+  } else {
+    return nil;
+  }
+}
+
+obj_t* intern(char* name)
+{
+  obj_t* sym = find_symbol(name);
+  if (!null(sym))
+    return sym;
+  sym = mksym(name);
+  interned_syms = cons(sym, interned_syms);
+  return sym;
+}
+
 obj_t* assoc(obj_t* key, obj_t* alist)
 {
-  for (obj_t* l = alist; null(l); l = cdr(l)) {
+  for (obj_t* l = alist; !null(l); l = cdr(l)) {
     if (eq(car(car(l)), key))
       return car(l);
   }
@@ -282,7 +309,10 @@ void print_obj(obj_t* obj)
 
 void init()
 {
-  global_env = cons(nil, nil);
+  nil = mksym("nil");
+
+  interned_syms = cons(nil, nil);
+  global_env = cons(cons(nil, nil), nil);
 }
 
 
@@ -295,8 +325,8 @@ int main(int argc, char* argv[])
   tokenlist_t* tokenlist = tokenize(expr);
   print_tokenlist(tokenlist);
 
-  obj_t* o1 = mksym("xxx");
-  obj_t* o2 = mksym("yyy");
+  obj_t* o1 = intern("xxx");
+  obj_t* o2 = intern("yyy");
   obj_t* o3 = cons(o1, cons(o2, nil));
   print_obj(o3);
   printf("\n\n");
@@ -310,7 +340,15 @@ int main(int argc, char* argv[])
     printf("yes!\n");
   }
 
-  print_obj(eval(nil, global_env));
+  obj_t* o4 = intern("ttt");
+  obj_t* o5 = intern("ttt");
+  if (eq(o4, o5)) {
+    printf("yes2!\n");
+  }
+
+  obj_t* evaluated_nil = eval(nil, global_env);
+  print_obj(evaluated_nil);
+  printf("\n");
 
   return 0;
 }
