@@ -54,7 +54,8 @@ typedef struct _tokenlist_t {
 
 typedef enum _type_t {
   ATOM,
-  CONS
+  CONS,
+  PROC
 } type_t;
 
 typedef struct _obj_t {
@@ -202,11 +203,18 @@ tokenlist_t* tokenize(char* content)
 }
 
 
-#define quote(x) new_obj(ATOM, 1, (x))
-#define nil quote("nil")
+obj_t* global_env;
+
+#define mksym(x) new_obj(ATOM, 1, (x))
+#define nil mksym("nil")
+#define mkproc(args,code,env) new_obj(PROC, 3, (args), (code), (env))
+#define eq(x,y) ((x) == (y))
+#define null(x) eq(x, nil)
 #define cons(x,y) new_obj(CONS, 2, (x), (y))
 #define car(x) ((x)->objs[0])
 #define cdr(x) ((x)->objs[1])
+#define extend(env,sym,val) cons(cons((sym), (val)), (env))
+#define error(x) do { fprintf(stderr, "ERROR: %s\n", x); exit(1); } while (0)
 
 obj_t* new_obj(type_t type, unsigned long numargs, ...)
 {
@@ -223,16 +231,41 @@ obj_t* new_obj(type_t type, unsigned long numargs, ...)
   return newobj;
 }
 
+obj_t* assoc(obj_t* key, obj_t* alist)
+{
+  for (obj_t* l = alist; null(l); l = cdr(l)) {
+    if (eq(car(car(l)), key))
+      return car(l);
+  }
+  return nil;
+}
+
 obj_t* objectify(tokenlist_t* tokens)
 {
   return NULL;
+}
+
+obj_t* eval(obj_t* expr, obj_t* env)
+{
+  obj_t* tmp;
+  switch (expr->type) {
+  case ATOM:
+    tmp = assoc(expr, env);
+    if (null(tmp)) error("unbound symbol");
+    return cdr(tmp);
+  case CONS:
+    break;
+  case PROC:
+    break;
+  }
+  return nil;
 }
 
 void print_obj(obj_t* obj)
 {
   switch (obj->type) {
   case ATOM:
-    printf("ATOM(%s)", obj->objs[0]);
+    printf("ATOM(%s)", (char*)obj->objs[0]);
     break;
   case CONS:
     printf("CONS(");
@@ -247,19 +280,37 @@ void print_obj(obj_t* obj)
   }
 }
 
+void init()
+{
+  global_env = cons(nil, nil);
+}
+
 
 int main(int argc, char* argv[])
 {
+  init();
+
   char* expr = read_stream(stdin);
   printf("\nREAD:\n%s\n", expr);
   tokenlist_t* tokenlist = tokenize(expr);
   print_tokenlist(tokenlist);
 
-  obj_t* o1 = quote("xxx");
-  obj_t* o2 = quote("yyy");
+  obj_t* o1 = mksym("xxx");
+  obj_t* o2 = mksym("yyy");
   obj_t* o3 = cons(o1, cons(o2, nil));
   print_obj(o3);
+  printf("\n\n");
+  print_obj(car(o3));
+  printf("\n\n");
+  print_obj(cdr(o3));
   printf("\n");
+
+  obj_t* n = nil;
+  if (null(n)) {
+    printf("yes!\n");
+  }
+
+  print_obj(eval(nil, global_env));
 
   return 0;
 }
