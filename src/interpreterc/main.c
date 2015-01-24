@@ -209,15 +209,20 @@ obj_t* global_env;
 obj_t* nil;
 
 #define mksym(x) new_obj(SYM, 1, (x))
-#define symname(x) (char*)((x)->objs[0])
-#define selfeval(x) new_obj(SELFEVAL, 1, (x))
+#define symname(x) (null(x) ? "nil" : (char*)((x)->objs[0]))
+#define mkselfeval(x) new_obj(SELFEVAL, 1, (x)) // TODO: don't put value in ptr memory location
 #define value(x) (int)((x)->objs[0])
 #define mkproc(args,code,env) new_obj(PROC, 3, (args), (code), (env))
+#define procargs(p) ((p)->objs[0])
+#define proccode(p) ((p)->objs[1])
+#define procenv(p) ((p)->objs[2])
 #define eq(x,y) ((x) == (y))
 #define null(x) eq(x, nil)
 #define cons(x,y) new_obj(CONS, 2, (x), (y))
 #define car(x) ((x)->objs[0])
 #define cdr(x) ((x)->objs[1])
+#define setcar(x,v) ((x)->objs[0] = (v))
+#define setcdr(x,v) ((x)->objs[1] = (v))
 #define extend(env,sym,val) cons(cons((sym), (val)), (env))
 #define error(x) do { fprintf(stderr, "ERROR: %s\n", x); exit(1); } while (0)
 
@@ -238,6 +243,8 @@ obj_t* new_obj(type_t type, unsigned long numargs, ...)
 
 obj_t* find_symbol(char* name)
 {
+  if (strcmp(name, "nil"))
+    return nil;
   obj_t* symlist;
   for (symlist = interned_syms; !null(symlist); symlist = cdr(symlist)) {
     obj_t* sym = car(symlist);
@@ -275,6 +282,40 @@ obj_t* objectify(tokenlist_t* tokens)
   return NULL;
 }
 
+obj_t* eval(obj_t* expr, obj_t* env);
+
+obj_t* progn(obj_t* exprs, obj_t* env)
+{
+  obj_t* ret = nil;
+  for (obj_t* restexprs = exprs; !null(restexprs); restexprs = cdr(restexprs)) {
+    ret = eval(car(restexprs), env);
+  }
+  return ret;
+}
+
+obj_t* apply(obj_t* proc, obj_t* args, obj_t* env)
+{
+  switch (proc->type) {
+  case SYM:
+    break;
+  case PROC:
+    
+    break;
+  default:
+    error("unknown type for apply");
+    break;
+  }
+  return nil;
+}
+
+obj_t* evlis(obj_t* exprs, obj_t* env)
+{
+  if (null(exprs))
+    return nil;
+  return cons(eval(car(exprs), env),
+	      evlis(cdr(exprs), env));
+}
+
 obj_t* eval(obj_t* expr, obj_t* env)
 {
   obj_t* tmp;
@@ -287,8 +328,10 @@ obj_t* eval(obj_t* expr, obj_t* env)
   case SELFEVAL:
     return expr;
   case CONS:
+    return apply(car(expr), evlis(cdr(expr), env), env);
     break;
   case PROC:
+    return expr;
     break;
   }
   return nil;
@@ -305,9 +348,18 @@ void print_obj(obj_t* obj)
     break;
   case CONS:
     printf("CONS(");
-    print_obj(obj->objs[0]);
+    print_obj(car(obj));
     printf(", ");
-    print_obj(obj->objs[1]);
+    print_obj(cdr(obj));
+    printf(")");
+    break;
+  case PROC:
+    printf("PROC(");
+    print_obj(procargs(obj));
+    printf(", ");
+    print_obj(proccode(obj));
+    printf(", ");
+    print_obj(procenv(obj));
     printf(")");
     break;
   default:
@@ -318,7 +370,8 @@ void print_obj(obj_t* obj)
 
 void init()
 {
-  nil = mksym("nil");
+  nil = new_obj(SYM, 1, 0);
+  setcar(nil, nil);
 
   interned_syms = cons(nil, nil);
   global_env = cons(cons(nil, nil), nil);
@@ -359,8 +412,12 @@ int main(int argc, char* argv[])
   print_obj(evaluated_nil);
   printf("\n");
 
-  obj_t* evaluated_123 = eval(selfeval(123), global_env);
+  obj_t* evaluated_123 = eval(mkselfeval(123), global_env);
   print_obj(evaluated_123);
+  printf("\n");
+
+  obj_t* evaluated_proc = eval(mkproc(nil, nil, nil), global_env);
+  print_obj(evaluated_proc);
   printf("\n");
 
   return 0;
