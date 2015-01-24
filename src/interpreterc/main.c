@@ -210,20 +210,26 @@ obj_t* nil;
 
 #define mksym(x) new_obj(SYM, 1, (x))
 #define symname(x) (null(x) ? "nil" : (char*)((x)->objs[0]))
+
 #define mkselfeval(x) new_obj(SELFEVAL, 1, (x)) // TODO: don't put value in ptr memory location
 #define value(x) (int)((x)->objs[0])
+
 #define mkproc(args,code,env) new_obj(PROC, 3, (args), (code), (env))
 #define procargs(p) ((p)->objs[0])
 #define proccode(p) ((p)->objs[1])
 #define procenv(p) ((p)->objs[2])
+
 #define eq(x,y) ((x) == (y))
 #define null(x) eq(x, nil)
+
 #define cons(x,y) new_obj(CONS, 2, (x), (y))
 #define car(x) ((x)->objs[0])
 #define cdr(x) ((x)->objs[1])
 #define setcar(x,v) ((x)->objs[0] = (v))
 #define setcdr(x,v) ((x)->objs[1] = (v))
+
 #define extend(env,sym,val) cons(cons((sym), (val)), (env))
+
 #define error(x) do { fprintf(stderr, "ERROR: %s\n", x); exit(1); } while (0)
 
 obj_t* new_obj(type_t type, unsigned long numargs, ...)
