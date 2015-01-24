@@ -53,7 +53,8 @@ typedef struct _tokenlist_t {
 
 
 typedef enum _type_t {
-  ATOM,
+  SYM,
+  SELFEVAL,
   CONS,
   PROC
 } type_t;
@@ -207,8 +208,10 @@ obj_t* global_env;
 
 obj_t* nil;
 
-#define mksym(x) new_obj(ATOM, 1, (x))
+#define mksym(x) new_obj(SYM, 1, (x))
 #define symname(x) (char*)((x)->objs[0])
+#define selfeval(x) new_obj(SELFEVAL, 1, (x))
+#define value(x) (int)((x)->objs[0])
 #define mkproc(args,code,env) new_obj(PROC, 3, (args), (code), (env))
 #define eq(x,y) ((x) == (y))
 #define null(x) eq(x, nil)
@@ -276,10 +279,13 @@ obj_t* eval(obj_t* expr, obj_t* env)
 {
   obj_t* tmp;
   switch (expr->type) {
-  case ATOM:
+  case SYM:
     tmp = assoc(expr, env);
-    if (null(tmp)) error("unbound symbol");
+    if (null(tmp))
+      error("unbound symbol");
     return cdr(tmp);
+  case SELFEVAL:
+    return expr;
   case CONS:
     break;
   case PROC:
@@ -291,8 +297,11 @@ obj_t* eval(obj_t* expr, obj_t* env)
 void print_obj(obj_t* obj)
 {
   switch (obj->type) {
-  case ATOM:
-    printf("ATOM(%s)", (char*)obj->objs[0]);
+  case SYM:
+    printf("SYM(%s)", symname(obj));
+    break;
+  case SELFEVAL:
+    printf("SELFEVAL(%d)", value(obj));
     break;
   case CONS:
     printf("CONS(");
@@ -348,6 +357,10 @@ int main(int argc, char* argv[])
 
   obj_t* evaluated_nil = eval(nil, global_env);
   print_obj(evaluated_nil);
+  printf("\n");
+
+  obj_t* evaluated_123 = eval(selfeval(123), global_env);
+  print_obj(evaluated_123);
   printf("\n");
 
   return 0;
