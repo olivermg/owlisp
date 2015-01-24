@@ -247,6 +247,14 @@ obj_t* new_obj(type_t type, unsigned long numargs, ...)
   return newobj;
 }
 
+obj_t* multiple_extend(obj_t* env, obj_t* syms, obj_t* vals)
+{
+  return null(syms)
+    ? env
+    : multiple_extend(extend(env, car(syms), car(vals)),
+		      cdr(syms), cdr(vals));
+}
+
 obj_t* find_symbol(char* name)
 {
   if (strcmp(name, "nil"))
@@ -299,13 +307,13 @@ obj_t* progn(obj_t* exprs, obj_t* env)
   return ret;
 }
 
-obj_t* apply(obj_t* proc, obj_t* args, obj_t* env)
+obj_t* apply(obj_t* proc, obj_t* vals, obj_t* env)
 {
   switch (proc->type) {
   case SYM:
     break;
   case PROC:
-    
+    return progn(proccode(proc), multiple_extend(procenv(proc), procargs(proc), vals));
     break;
   default:
     error("unknown type for apply");
@@ -422,8 +430,12 @@ int main(int argc, char* argv[])
   print_obj(evaluated_123);
   printf("\n");
 
-  obj_t* evaluated_proc = eval(mkproc(nil, nil, nil), global_env);
+  obj_t* evaluated_proc = eval(mkproc(mksym("a"), mkselfeval(123), global_env), global_env);
   print_obj(evaluated_proc);
+  printf("\n");
+
+  obj_t* evaluated_apply = eval(cons(evaluated_proc, mkselfeval(555)), global_env);
+  print_obj(evaluated_apply);
   printf("\n");
 
   return 0;
