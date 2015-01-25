@@ -430,11 +430,16 @@ int main(int argc, char* argv[])
   print_obj(evaluated_123);
   printf("\n");
 
-  obj_t* evaluated_proc = eval(mkproc(mksym("a"), mkselfeval(123), global_env), global_env);
+  obj_t* evaluated_proc = eval(mkproc(cons(mksym("a"), nil),
+				      cons(mkselfeval(123), nil),
+				      global_env),
+			       global_env);
   print_obj(evaluated_proc);
   printf("\n");
 
-  obj_t* evaluated_apply = eval(cons(evaluated_proc, mkselfeval(555)), global_env);
+  obj_t* evaluated_apply = eval(cons(evaluated_proc,
+				     cons(mkselfeval(555), nil)),
+				global_env);
   print_obj(evaluated_apply);
   printf("\n");
 
