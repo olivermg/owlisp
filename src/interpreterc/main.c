@@ -8,6 +8,31 @@
 #define TOKENCHUNKSIZE 16
 #define TOKENLISTCHUNKSIZE 16
 
+
+#define mksym(x) new_obj(SYM, 1, (x))
+#define symname(x) (null(x) ? "nil" : (char*)((x)->objs[0]))
+
+#define mkselfeval(x) new_obj(SELFEVAL, 1, (x)) // TODO: don't put value in ptr memory location
+#define value(x) (int)((x)->objs[0])
+
+#define mkproc(args,code,env) new_obj(PROC, 3, (args), (code), (env))
+#define procargs(p) ((p)->objs[0])
+#define proccode(p) ((p)->objs[1])
+#define procenv(p) ((p)->objs[2])
+
+#define eq(x,y) ((x) == (y))
+#define null(x) eq(x, nil)
+
+#define cons(x,y) new_obj(CONS, 2, (x), (y))
+#define car(x) ((x)->objs[0])
+#define cdr(x) ((x)->objs[1])
+#define setcar(x,v) ((x)->objs[0] = (v))
+#define setcdr(x,v) ((x)->objs[1] = (v))
+
+#define extend(env,sym,val) cons(cons((sym), (val)), (env))
+
+#define error(x) do { fprintf(stderr, "ERROR: %s\n", x); exit(1); } while (0)
+
 /*
  *
  * implement the following lisp special forms natively:
@@ -71,6 +96,8 @@ expr_t* new_expr(char* tokencontent, expr_t* next)
 }
 */
 
+obj_t* new_obj(type_t type, unsigned long numargs, ...);
+
 char* read_stream(FILE* stream)
 {
   char* buf = NULL;
@@ -111,9 +138,11 @@ char* readtoken(FILE* stream)
   return strdup(tokenbuf);
 }
 
+obj_t* readobj(FILE* stream);
+
 obj_t* readlist(FILE* stream)
 {
-  return NULL;
+  return cons(readobj(stream), readlist(stream));
 }
 
 obj_t* readobj(FILE* stream)
@@ -242,30 +271,6 @@ obj_t* interned_syms;
 obj_t* global_env;
 
 obj_t* nil;
-
-#define mksym(x) new_obj(SYM, 1, (x))
-#define symname(x) (null(x) ? "nil" : (char*)((x)->objs[0]))
-
-#define mkselfeval(x) new_obj(SELFEVAL, 1, (x)) // TODO: don't put value in ptr memory location
-#define value(x) (int)((x)->objs[0])
-
-#define mkproc(args,code,env) new_obj(PROC, 3, (args), (code), (env))
-#define procargs(p) ((p)->objs[0])
-#define proccode(p) ((p)->objs[1])
-#define procenv(p) ((p)->objs[2])
-
-#define eq(x,y) ((x) == (y))
-#define null(x) eq(x, nil)
-
-#define cons(x,y) new_obj(CONS, 2, (x), (y))
-#define car(x) ((x)->objs[0])
-#define cdr(x) ((x)->objs[1])
-#define setcar(x,v) ((x)->objs[0] = (v))
-#define setcdr(x,v) ((x)->objs[1] = (v))
-
-#define extend(env,sym,val) cons(cons((sym), (val)), (env))
-
-#define error(x) do { fprintf(stderr, "ERROR: %s\n", x); exit(1); } while (0)
 
 obj_t* new_obj(type_t type, unsigned long numargs, ...)
 {
@@ -431,6 +436,7 @@ int main(int argc, char* argv[])
 {
   init();
 
+  /*
   char* token = readtoken(stdin);
   printf("read token: %s\n", token);
   token = readtoken(stdin);
@@ -440,6 +446,10 @@ int main(int argc, char* argv[])
   printf("\nREAD:\n%s\n", expr);
   token_t* tokens = tokenize(expr);
   print_token(tokens);
+  */
+  obj_t* or = readobj(stdin);
+  print_obj(or);
+  printf("\n===\n");
 
   obj_t* o1 = intern("xxx");
   obj_t* o2 = intern("yyy");
