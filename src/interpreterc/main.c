@@ -86,6 +86,32 @@ char* read_stream(FILE* stream)
   return buf;
 }
 
+char tokenbuf[100];
+
+char* readtoken(FILE* stream)
+{
+  size_t idx = 0;
+  while (!feof(stream)) {
+    char c = fgetc(stream);
+    if (c == ' ' || c == '\t' || c == '\n') {
+      if (idx == 0)
+	continue;
+      else
+	break;
+    }
+    tokenbuf[idx++] = c;
+    if (c == '(' || c == ')')
+      break;
+  }
+  tokenbuf[idx] = '\0';
+  return strdup(tokenbuf);
+}
+
+obj_t* readobj(FILE* stream)
+{
+  return NULL;
+}
+
 unsigned char token_empty(token_t* token)
 {
   return NULL == token || 0 == token->used;
@@ -388,6 +414,9 @@ void init()
 int main(int argc, char* argv[])
 {
   init();
+
+  char* token = readtoken(stdin);
+  printf("read token: %s\n", token);
 
   char* expr = read_stream(stdin);
   printf("\nREAD:\n%s\n", expr);
