@@ -86,6 +86,8 @@ char* read_stream(FILE* stream)
   return buf;
 }
 
+obj_t* intern(char* name);
+
 char tokenbuf[100];
 
 char* readtoken(FILE* stream)
@@ -93,6 +95,8 @@ char* readtoken(FILE* stream)
   size_t idx = 0;
   while (!feof(stream)) {
     char c = fgetc(stream);
+    if (c == EOF)
+      break;
     if (c == ' ' || c == '\t' || c == '\n') {
       if (idx == 0)
 	continue;
@@ -107,9 +111,21 @@ char* readtoken(FILE* stream)
   return strdup(tokenbuf);
 }
 
-obj_t* readobj(FILE* stream)
+obj_t* readlist(FILE* stream)
 {
   return NULL;
+}
+
+obj_t* readobj(FILE* stream)
+{
+  obj_t* obj = NULL;
+  char* token = readtoken(stream);
+  if (strlen(token) > 0) {
+    if (!strcmp(token, "("))
+      return readlist(stream);
+    return intern(token);
+  }
+  return obj;
 }
 
 unsigned char token_empty(token_t* token)
@@ -416,6 +432,8 @@ int main(int argc, char* argv[])
   init();
 
   char* token = readtoken(stdin);
+  printf("read token: %s\n", token);
+  token = readtoken(stdin);
   printf("read token: %s\n", token);
 
   char* expr = read_stream(stdin);
