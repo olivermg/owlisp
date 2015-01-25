@@ -43,13 +43,9 @@ typedef struct _token_t {
   size_t size;
   size_t used;
   char* value;
+  struct _token_t* next;
+  struct _token_t* prev;
 } token_t;
-
-typedef struct _tokenlist_t {
-  size_t size;
-  size_t used;
-  token_t* tokens;
-} tokenlist_t;
 
 
 typedef enum _type_t {
@@ -90,12 +86,61 @@ char* read_stream(FILE* stream)
   return buf;
 }
 
-token_t* new_token()
+unsigned char token_empty(token_t* token)
 {
+  return NULL == token || 0 == token->used;
+}
+
+token_t* token_head(token_t* token)
+{
+  token_t* head = token;
+  while (NULL != head && NULL != head->prev) {
+    head = head->prev;
+  }
+
+  return head;
+}
+
+void free_token(token_t* token)
+{
+  free(token->value);
+  free(token);
+}
+
+token_t* trim_token(token_t* token)
+{
+  if (NULL == token)
+    return NULL;
+
+  token_t* returntoken = token;
+  if (0 == token->used) {
+    if (NULL != token->prev) {
+      returntoken = token->prev;
+      token->prev->next = token->next;
+    }
+    if (NULL != token->next) {
+      token->next->prev = token->prev;
+    }
+    free_token(token);
+  }
+
+  return returntoken;
+}
+
+token_t* new_token(token_t* previous)
+{
+  if (NULL != previous && token_empty(previous))
+    return previous;
+
   token_t* newtoken = malloc(sizeof(token_t));
   newtoken->value = malloc(sizeof(char) * TOKENCHUNKSIZE);
   newtoken->size = TOKENCHUNKSIZE;
   newtoken->used = 0;
+  newtoken->next = NULL;
+  newtoken->prev = previous;
+
+  if (NULL != previous)
+    previous->next = newtoken;
 
   return newtoken;
 }
@@ -115,92 +160,40 @@ token_t* token_append(token_t* token, char append)
 
 void print_token(token_t* token)
 {
-  printf("\ntoken size: %lu\n", token->size);
-  printf("token used: %lu\n", token->used);
-  printf("token value: ");
+  if (NULL == token)
+    return;
+  printf("(token, %lu, %lu, \"", token->size, token->used);
   for (size_t i = 0; i < token->used; i++) {
     printf("%c", token->value[i]);
   }
-  printf("\n");
+  printf("\")\n");
+  print_token(token->next);
 }
 
-tokenlist_t* new_tokenlist()
+token_t* tokenize(char* content)
 {
-  tokenlist_t* tokenlist = malloc(sizeof(tokenlist_t));
-  tokenlist->tokens = malloc(sizeof(token_t) * TOKENLISTCHUNKSIZE);
-  tokenlist->size = TOKENLISTCHUNKSIZE;
-  tokenlist->used = 0;
-
-  return tokenlist;
-}
-
-tokenlist_t* tokenlist_append(tokenlist_t* list, token_t* append)
-{
-  if (list->size + 1 > list->size) {
-    size_t newsize = list->size + TOKENLISTCHUNKSIZE;
-    list->tokens = realloc(list->tokens, newsize * sizeof(token_t));
-    list->size = newsize;
-  }
-
-  list->tokens[list->used++] = *append;
-
-  return list;
-}
-
-void print_tokenlist(tokenlist_t* list)
-{
-  printf("\ntokenlist size: %lu\n", list->size);
-  printf("tokenlist used: %lu\n", list->used);
-  printf("tokenlist tokens:\n");
-  for (size_t i = 0; i < list->used; i++) {
-    print_token(&list->tokens[i]);
-  }
-  printf("\n");
-}
-
-tokenlist_t* tokenize(char* content)
-{
-  tokenlist_t* tokenlist = new_tokenlist();
+  token_t* token = new_token(NULL);
 
   size_t contentlen = strlen(content);
-  token_t* curtoken = NULL;
   for (size_t i = 0; i < contentlen; i++) {
     //char c = toupper(content[i]);
     char c = content[i];
     if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
-      if (!curtoken) {
-	curtoken = new_token();
-      }
-      curtoken = token_append(curtoken, c);
+      token = token_append(token, c);
     } else if (c == '(') {
-      if (curtoken) {
-	tokenlist_append(tokenlist, curtoken);
-      }
-      curtoken = new_token();
-      curtoken = token_append(curtoken, c);
-      if (curtoken) {
-	tokenlist_append(tokenlist, curtoken);
-      }
-      curtoken = NULL;
+      token = new_token(token);
+      token = token_append(token, c);
+      token = new_token(token);
     } else if (c == ')') {
-      if (curtoken) {
-	tokenlist_append(tokenlist, curtoken);
-      }
-      curtoken = new_token();
-      curtoken = token_append(curtoken, c);
-      if (curtoken) {
-	tokenlist_append(tokenlist, curtoken);
-      }
-      curtoken = NULL;
+      token = new_token(token);
+      token = token_append(token, c);
+      token = new_token(token);
     } else if (c == ' ' || c == '\t' || c == '\n') {
-      if (curtoken) {
-	tokenlist_append(tokenlist, curtoken);
-      }
-      curtoken = NULL;
+      token = new_token(token);
     }
   }
 
-  return tokenlist;
+  return token_head(trim_token(token));
 }
 
 obj_t* interned_syms;
@@ -291,11 +284,6 @@ obj_t* assoc(obj_t* key, obj_t* alist)
   return nil;
 }
 
-obj_t* objectify(tokenlist_t* tokens)
-{
-  return NULL;
-}
-
 obj_t* eval(obj_t* expr, obj_t* env);
 
 obj_t* progn(obj_t* exprs, obj_t* env)
@@ -351,6 +339,11 @@ obj_t* eval(obj_t* expr, obj_t* env)
   return nil;
 }
 
+obj_t* objectify(token_t* tokens)
+{
+  return NULL;
+}
+
 void print_obj(obj_t* obj)
 {
   switch (obj->type) {
@@ -398,8 +391,8 @@ int main(int argc, char* argv[])
 
   char* expr = read_stream(stdin);
   printf("\nREAD:\n%s\n", expr);
-  tokenlist_t* tokenlist = tokenize(expr);
-  print_tokenlist(tokenlist);
+  token_t* tokens = tokenize(expr);
+  print_token(tokens);
 
   obj_t* o1 = intern("xxx");
   obj_t* o2 = intern("yyy");
