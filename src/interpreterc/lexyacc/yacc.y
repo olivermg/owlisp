@@ -8,25 +8,25 @@ int yyerror();
 %}
 
 %union {
-    int integer;
     char* string;
 }
 
-%token			SPACE
-%token	<integer>	INT
-%token	<string>	SYMBOL
-%token	<string>	OPENPAR
+%token	<string>	ATOM
+%token			OPENPAR
 			CLOSEPAR
 
 %%
 
-expr:
-	| 	atom SPACE expr
+exprs:
+	|	expr exprs
 		;
 
-atom:		INT { printf("found INT: %d\n", yylval.integer); }
-	|	SYMBOL { printf("found SYMBOL: %s\n", yylval.string); }
+expr:		ATOM { printf("found ATOM: %s\n", yylval.string); }
+	|	cons
 		;
+
+cons:		OPENPAR { printf("starting CONS..."); } exprs CLOSEPAR { printf("...ending CONS\n"); }
+	;
 
 %%
 

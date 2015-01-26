@@ -17,12 +17,11 @@ void yyerror(char*);
 
 %%
 
-{digits}              { yylval.integer = atoi(yytext); return(INT); }
-{letters}             { yylval.string = yytext; return(SYMBOL); }
-{openpar}             return(OPENPAR);
-{closepar}            return(CLOSEPAR);
-{spaces}              return(SPACE);
-.                     { char msg[100]; sprintf(msg, "misplaced token %s", yytext); yyerror(msg); }
+({letters}|{digits})+                { yylval.string = yytext; return(ATOM); }
+{openpar}                            return(OPENPAR);
+{closepar}                           return(CLOSEPAR);
+{spaces}                             ;
+.                                    { char msg[100]; sprintf(msg, "misplaced token %s", yytext); yyerror(msg); }
 
 %%
 
