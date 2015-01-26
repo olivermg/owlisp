@@ -1,7 +1,8 @@
 /* definitions section */
 
+spaces                 [ \t\n]+
 digits                 [0-9]+
-letter                 [a-zA-Z]+
+letters                [a-zA-Z]+
 openpar                \(
 closepar               \)
 
@@ -16,10 +17,11 @@ void yyerror(char*);
 
 %%
 
-{digits}              { yylval = atoi(yytext); return(NUM); }
+{digits}              { yylval.integer = atoi(yytext); return(INT); }
+{letters}             { yylval.string = yytext; return(SYMBOL); }
 {openpar}             return(OPENPAR);
 {closepar}            return(CLOSEPAR);
-[\n\t ]               ;
+{spaces}              return(SPACE);
 .                     { char msg[100]; sprintf(msg, "misplaced token %s", yytext); yyerror(msg); }
 
 %%

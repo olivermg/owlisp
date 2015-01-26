@@ -1,16 +1,32 @@
 %{
 #include <stdlib.h>
 #include <stdio.h>
+
+int yylex();
+int yyerror();
+
 %}
 
-%token NUM
-%token OPENPAR CLOSEPAR
+%union {
+    int integer;
+    char* string;
+}
+
+%token			SPACE
+%token	<integer>	INT
+%token	<string>	SYMBOL
+%token	<string>	OPENPAR
+			CLOSEPAR
 
 %%
 
 expr:
-      | NUM { printf("found NUM: %d\n", yylval); } expr
-      ;
+	| 	atom SPACE expr
+		;
+
+atom:		INT { printf("found INT: %d\n", yylval.integer); }
+	|	SYMBOL { printf("found SYMBOL: %s\n", yylval.string); }
+		;
 
 %%
 

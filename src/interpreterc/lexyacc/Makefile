@@ -5,9 +5,10 @@ CC=clang
 parser: y.tab.c lex.yy.c
 	$(CC) -Wall -o $@ $^
 
-lex.yy.c: lexer.l
+lex.yy.c: lexer.l y.tab.h
 	$(LEX) $^
 
+y.tab.h:
 y.tab.c: yacc.y
 	$(YACC) -d $^
 
