@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdarg.h>
 
+
 #define STREAMCHUNKSIZE 1024
 #define TOKENCHUNKSIZE 16
 #define TOKENLISTCHUNKSIZE 16
@@ -96,8 +97,18 @@ expr_t* new_expr(char* tokencontent, expr_t* next)
 }
 */
 
-obj_t* new_obj(type_t type, unsigned long numargs, ...);
+obj_t* interned_syms;
+obj_t* global_env;
+obj_t* nil;
 
+
+obj_t* new_obj(type_t type, unsigned long numargs, ...);
+obj_t* intern(char* name);
+obj_t* eval(obj_t* expr, obj_t* env);
+obj_t* readobj(FILE* stream);
+
+
+/*
 char* read_stream(FILE* stream)
 {
   char* buf = NULL;
@@ -112,10 +123,10 @@ char* read_stream(FILE* stream)
 
   return buf;
 }
+*/
 
-obj_t* intern(char* name);
 
-char tokenbuf[100];
+char tokenbuf[256];
 
 char* readtoken(FILE* stream)
 {
@@ -130,25 +141,41 @@ char* readtoken(FILE* stream)
       else
 	break;
     }
-    tokenbuf[idx++] = c;
-    if (c == '(' || c == ')')
+    if (c == '(' || c == ')') {
+      if (idx > 0) {
+	ungetc(c, stream);
+      } else {
+	tokenbuf[idx++] = c;
+      }
       break;
+    }
+    tokenbuf[idx++] = c;
   }
   tokenbuf[idx] = '\0';
   return strdup(tokenbuf);
 }
 
-obj_t* readobj(FILE* stream);
-
 obj_t* readlist(FILE* stream)
 {
-  return cons(readobj(stream), readlist(stream));
+  printf("readlist...");
+  char* token = readtoken(stream);
+  printf(" token: %s\n", token);
+  if (strlen(token) == 0)
+    error("incomplete list expression (0)");
+  if (!strcmp(token, ")"))
+    return nil;
+  obj_t* nextobj = readobj(stream);
+  if (NULL == nextobj)
+    error("incomplete list expression (null)");
+  return cons(nextobj, readlist(stream));
 }
 
 obj_t* readobj(FILE* stream)
 {
   obj_t* obj = NULL;
+  printf("readobj...");
   char* token = readtoken(stream);
+  printf(" token: %s\n", token);
   if (strlen(token) > 0) {
     if (!strcmp(token, "("))
       return readlist(stream);
@@ -157,6 +184,7 @@ obj_t* readobj(FILE* stream)
   return obj;
 }
 
+/*
 unsigned char token_empty(token_t* token)
 {
   return NULL == token || 0 == token->used;
@@ -266,11 +294,7 @@ token_t* tokenize(char* content)
 
   return token_head(trim_token(token));
 }
-
-obj_t* interned_syms;
-obj_t* global_env;
-
-obj_t* nil;
+*/
 
 obj_t* new_obj(type_t type, unsigned long numargs, ...)
 {
@@ -331,8 +355,6 @@ obj_t* assoc(obj_t* key, obj_t* alist)
   return nil;
 }
 
-obj_t* eval(obj_t* expr, obj_t* env);
-
 obj_t* progn(obj_t* exprs, obj_t* env)
 {
   obj_t* ret = nil;
@@ -384,11 +406,6 @@ obj_t* eval(obj_t* expr, obj_t* env)
     break;
   }
   return nil;
-}
-
-obj_t* objectify(token_t* tokens)
-{
-  return NULL;
 }
 
 void print_obj(obj_t* obj)
@@ -448,8 +465,17 @@ int main(int argc, char* argv[])
   print_token(tokens);
   */
   obj_t* or = readobj(stdin);
-  print_obj(or);
+  if (NULL != or)
+    print_obj(or);
   printf("\n===\n");
+  /*
+  char* token = readtoken(stdin);
+  printf("TOKEN: %s\n", token);
+  token = readtoken(stdin);
+  printf("TOKEN: %s\n", token);
+  token = readtoken(stdin);
+  printf("TOKEN: %s\n\n", token);
+  */
 
   obj_t* o1 = intern("xxx");
   obj_t* o2 = intern("yyy");
