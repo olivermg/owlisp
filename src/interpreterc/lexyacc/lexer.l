@@ -17,6 +17,13 @@ void yyerror(char*);
 
 %%
 
+car                                  return(CAR);
+cdr                                  return(CDR);
+cons                                 return(CONS);
+if                                   return(IF);
+lambda                               return(LAMBDA);
+quote                                return(QUOTE);
+funcall                              return(FUNCALL);
 ({letters}|{digits})+                { yylval.string = yytext; return(ATOM); }
 {openpar}                            return(OPENPAR);
 {closepar}                           return(CLOSEPAR);

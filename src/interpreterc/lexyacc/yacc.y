@@ -11,6 +11,13 @@ int yyerror();
     char* string;
 }
 
+%token                  CAR
+%token                  CDR
+%token                  CONS
+%token                  IF
+%token                  LAMBDA
+%token                  QUOTE
+%token                  FUNCALL
 %token	<string>	ATOM
 %token			OPENPAR
 			CLOSEPAR
@@ -25,7 +32,37 @@ expr:		ATOM { printf("found ATOM: %s\n", yylval.string); }
 	|	cons
 		;
 
-cons:		OPENPAR { printf("starting CONS..."); } exprs CLOSEPAR { printf("...ending CONS\n"); }
+cons:		OPENPAR primopexpr CLOSEPAR
+	;
+
+primopexpr: 	carexpr
+	|	cdrexpr
+	|	consexpr
+	|	ifexpr
+	|	lambdaexpr
+	|	quoteexpr
+	|	funcallexpr
+	;
+
+carexpr:	CAR expr { printf("CAR!\n"); }
+	;
+
+cdrexpr: 	CDR expr
+	;
+
+consexpr:	CONS expr expr
+	;
+
+ifexpr:		IF expr expr expr
+	;
+
+lambdaexpr:	LAMBDA cons exprs
+	;
+
+quoteexpr:	QUOTE expr
+	;
+
+funcallexpr:	FUNCALL expr exprs
 	;
 
 %%
