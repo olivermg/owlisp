@@ -9,6 +9,7 @@ closepar               \)
 %{
 /* declarations */
 
+#include "parser.h"
 #include "y.tab.h"
 
 void yyerror(char*);
@@ -24,7 +25,7 @@ if                                   return(IF);
 lambda                               return(LAMBDA);
 quote                                return(QUOTE);
 funcall                              return(FUNCALL);
-({letters}|{digits})+                { yylval.string = yytext; return(ATOM); }
+({letters}|{digits})+                { yylval = mksym(yytext); return(ATOM); }
 {openpar}                            return(OPENPAR);
 {closepar}                           return(CLOSEPAR);
 {spaces}                             ;
