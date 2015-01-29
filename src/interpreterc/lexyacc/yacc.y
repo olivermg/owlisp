@@ -3,8 +3,31 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-int yylex();
-int yyerror();
+
+#define mksym(x) new_obj(TSYM, 1, (x))
+#define symname(x) (null(x) ? "nil" : (char*)((x)->objs[0]))
+
+#define mkint(x) new_obj(TINT, 1, (x)) // TODO: don't put value in ptr memory location
+#define intvalue(x) (int)((x)->objs[0])
+
+#define mkproc(args,code,env) new_obj(TPROC, 3, (args), (code), (env))
+#define procargs(p) ((p)->objs[0])
+#define proccode(p) ((p)->objs[1])
+#define procenv(p) ((p)->objs[2])
+
+#define eq(x,y) ((x) == (y))
+#define null(x) eq(x, nil)
+
+#define cons(x,y) new_obj(TCONS, 2, (x), (y))
+#define car(x) ((x)->objs[0])
+#define cdr(x) ((x)->objs[1])
+#define setcar(x,v) ((x)->objs[0] = (v))
+#define setcdr(x,v) ((x)->objs[1] = (v))
+
+#define extend(env,sym,val) cons(cons((sym), (val)), (env))
+
+#define error(x) do { fprintf(stderr, "ERROR: %s\n", x); exit(1); } while (0)
+
 
 typedef enum _type_t {
     TSYM,
@@ -18,7 +41,19 @@ typedef struct _obj_t {
     struct _obj_t* objs[1];
 } obj_t;
 
+
+obj_t* nil;
+obj_t* interned_syms;
+obj_t* global_env;
+
+
+int yylex();
+int yyerror();
+
 obj_t* new_obj(type_t type, unsigned long numargs, ...);
+//obj_t* intern(char* name);
+//obj_t* eval(obj_t* expr, obj_t* env);
+//obj_t* readobj(FILE* stream);
 
 %}
 
@@ -97,6 +132,16 @@ obj_t* new_obj(type_t type, unsigned long numargs, ...)
     return newobj;
 }
 
+void init()
+{
+  nil = new_obj(TSYM, 1, 0);
+  setcar(nil, nil);
+
+  interned_syms = cons(nil, nil);
+  global_env = cons(cons(nil, nil), nil);
+}
+
+
 int yyerror(char* msg)
 {
     fprintf(stderr, "ERROR: %s\n", msg);
@@ -110,6 +155,8 @@ int yywrap()
 
 int main()
 {
+    init();
+
     yyparse();
     return 0;
 }
