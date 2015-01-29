@@ -25,7 +25,7 @@ if                                   return(IF);
 lambda                               return(LAMBDA);
 quote                                return(QUOTE);
 funcall                              return(FUNCALL);
-({letters}|{digits})+                { yylval = mksym(yytext); return(ATOM); }
+{digits}+                            { yylval = mkint(atoi(yytext)); return(INT); }
 {openpar}                            return(OPENPAR);
 {closepar}                           return(CLOSEPAR);
 {spaces}                             ;

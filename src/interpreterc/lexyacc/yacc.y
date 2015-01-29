@@ -28,7 +28,7 @@ int yyerror();
 %token                  LAMBDA
 %token                  QUOTE
 %token                  FUNCALL
-%token			ATOM
+%token			INT
 %token			OPENPAR
 			CLOSEPAR
 
@@ -38,9 +38,12 @@ exprs:
 	|	expr exprs
 		;
 
-expr:		ATOM { printf("found ATOM: %p\n", yylval); }
+expr:		atom { printf("found ATOM: (%d,%p)\n", yylval->type, yylval->objs); }
 	|	cons
 		;
+
+atom:		INT
+	;
 
 cons:		OPENPAR primopexpr CLOSEPAR
 	;
