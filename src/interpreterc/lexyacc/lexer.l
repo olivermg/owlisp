@@ -18,16 +18,16 @@ void yyerror(char*);
 
 %%
 
-car                                  return(CAR);
-cdr                                  return(CDR);
-cons                                 return(CONS);
-if                                   return(IF);
-lambda                               return(LAMBDA);
-quote                                return(QUOTE);
-funcall                              return(FUNCALL);
+car                                  { return(CAR); }
+cdr                                  { return(CDR); }
+cons                                 { return(CONS); }
+if                                   { return(IF); }
+lambda                               { return(LAMBDA); }
+quote                                { return(QUOTE); }
+funcall                              { return(FUNCALL); }
 {digits}+                            { yylval = mkint(atoi(yytext)); return(INT); }
-{openpar}                            return(OPENPAR);
-{closepar}                           return(CLOSEPAR);
+{openpar}                            { return(OPENPAR); }
+{closepar}                           { return(CLOSEPAR); }
 {spaces}                             ;
 .                                    { char msg[100]; sprintf(msg, "misplaced token %s", yytext); yyerror(msg); }
 

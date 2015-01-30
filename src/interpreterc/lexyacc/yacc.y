@@ -13,7 +13,6 @@ int yyerror();
 
 %}
 
-%define api.value.type {obj_t*}
 /*
 %union {
     obj_t* obj;
@@ -63,7 +62,7 @@ carexpr:	CAR expr { printf("CAR!\n"); }
 cdrexpr: 	CDR expr
 	;
 
-consexpr:	CONS expr { printf("cons_car:%p\n",yylval); } expr
+consexpr:	CONS expr expr { $$ = cons($2, $3); printf("cons: (%d,%d)\n", intvalue(car($$)), intvalue(cdr($$))); }
 	;
 
 ifexpr:		IF expr expr expr

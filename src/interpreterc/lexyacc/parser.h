@@ -2,6 +2,8 @@
 #define __PARSER_H 1
 
 
+#define YYSTYPE obj_t*
+
 #define mksym(x) new_obj(TSYM, 1, (x))
 #define symname(x) (null(x) ? "nil" : (char*)((x)->objs[0]))
 
