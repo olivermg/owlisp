@@ -47,6 +47,7 @@ obj_t* interned_syms;
 obj_t* global_env;
 
 obj_t* new_obj(type_t type, unsigned long numargs, ...);
+void print_obj(obj_t* obj);
 //obj_t* intern(char* name);
 //obj_t* eval(obj_t* expr, obj_t* env);
 //obj_t* readobj(FILE* stream);

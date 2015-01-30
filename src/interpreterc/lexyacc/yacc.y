@@ -34,17 +34,17 @@ int yyerror();
 %%
 
 exprs:
-	|	expr exprs
+	|	exprs expr { $$ = $2; }
 		;
 
-expr:		atom { printf("found ATOM: (%d,%p)\n", yylval->type, yylval->objs); }
+expr:		atom
 	|	cons
 		;
 
 atom:		INT
 	;
 
-cons:		OPENPAR primopexpr CLOSEPAR
+cons:		OPENPAR primopexpr CLOSEPAR { $$ = $2; }
 	;
 
 primopexpr: 	carexpr
@@ -56,13 +56,13 @@ primopexpr: 	carexpr
 	|	funcallexpr
 	;
 
-carexpr:	CAR expr { printf("CAR!\n"); }
+carexpr:	CAR expr { $$ = car($2); }
 	;
 
-cdrexpr: 	CDR expr
+cdrexpr: 	CDR expr { $$ = cdr($2); }
 	;
 
-consexpr:	CONS expr expr { $$ = cons($2, $3); printf("cons: (%d,%d)\n", intvalue(car($$)), intvalue(cdr($$))); }
+consexpr:	CONS expr expr { $$ = cons($2, $3); }
 	;
 
 ifexpr:		IF expr expr expr
@@ -92,6 +92,37 @@ obj_t* new_obj(type_t type, unsigned long numargs, ...)
     va_end(va);
 
     return newobj;
+}
+
+void print_obj(obj_t* obj)
+{
+  switch (obj->type) {
+  case TSYM:
+    printf("SYM(%s)", symname(obj));
+    break;
+  case TINT:
+    printf("INT(%d)", intvalue(obj));
+    break;
+  case TCONS:
+    printf("CONS(");
+    print_obj(car(obj));
+    printf(", ");
+    print_obj(cdr(obj));
+    printf(")");
+    break;
+  case TPROC:
+    printf("PROC(");
+    print_obj(procargs(obj));
+    printf(", ");
+    print_obj(proccode(obj));
+    printf(", ");
+    print_obj(procenv(obj));
+    printf(")");
+    break;
+  default:
+    printf("unknown object of type %d!\n", obj->type);
+    break;
+  }
 }
 
 void init()
