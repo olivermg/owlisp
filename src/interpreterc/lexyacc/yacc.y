@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 #include "parser.h"
 #include "y.tab.h"
 
@@ -80,7 +81,7 @@ lambdaexpr:	LAMBDA lambdalist exprs { $$ = mkproc($2, $3, env); }
 quoteexpr:	QUOTE expr
 		;
 
-funcallexpr:	FUNCALL expr exprs { env = procenv($2); }
+funcallexpr:	FUNCALL expr exprs { $$ = apply($2, $3, env); }
 		;
 
 lambdalist:	OPENPAR symbolseq CLOSEPAR { $$ = $2; }
@@ -105,6 +106,103 @@ obj_t* new_obj(type_t type, unsigned long numargs, ...)
     va_end(va);
 
     return newobj;
+}
+
+obj_t* multiple_extend(obj_t* env, obj_t* syms, obj_t* vals)
+{
+  return null(syms)
+    ? env
+    : multiple_extend(extend(env, car(syms), car(vals)),
+		      cdr(syms), cdr(vals));
+}
+
+obj_t* find_symbol(char* name)
+{
+  if (strcmp(name, "nil"))
+    return nil;
+  obj_t* symlist;
+  for (symlist = interned_syms; !null(symlist); symlist = cdr(symlist)) {
+    obj_t* sym = car(symlist);
+    if (!strcmp(name, symname(sym)))
+      break;
+  }
+  if (!null(symlist)) {
+    return car(symlist);
+  } else {
+    return nil;
+  }
+}
+
+obj_t* intern(char* name)
+{
+  obj_t* sym = find_symbol(name);
+  if (!null(sym))
+    return sym;
+  sym = mksym(name);
+  interned_syms = cons(sym, interned_syms);
+  return sym;
+}
+
+obj_t* assoc(obj_t* key, obj_t* alist)
+{
+  for (obj_t* l = alist; !null(l); l = cdr(l)) {
+    if (eq(car(car(l)), key))
+      return car(l);
+  }
+  return nil;
+}
+
+obj_t* progn(obj_t* exprs, obj_t* env)
+{
+  obj_t* ret = nil;
+  for (obj_t* restexprs = exprs; !null(restexprs); restexprs = cdr(restexprs)) {
+    ret = eval(car(restexprs), env);
+  }
+  return ret;
+}
+
+obj_t* apply(obj_t* proc, obj_t* vals, obj_t* env)
+{
+  switch (proc->type) {
+  case TSYM:
+    break;
+  case TPROC:
+    return progn(proccode(proc), multiple_extend(procenv(proc), procargs(proc), vals));
+    break;
+  default:
+    error("unknown type for apply");
+    break;
+  }
+  return nil;
+}
+
+obj_t* evlis(obj_t* exprs, obj_t* env)
+{
+  if (null(exprs))
+    return nil;
+  return cons(eval(car(exprs), env),
+	      evlis(cdr(exprs), env));
+}
+
+obj_t* eval(obj_t* expr, obj_t* env)
+{
+  obj_t* tmp;
+  switch (expr->type) {
+  case TSYM:
+    tmp = assoc(expr, env);
+    if (null(tmp))
+      error("unbound symbol");
+    return cdr(tmp);
+  case TINT:
+    return expr;
+  case TCONS:
+    return apply(car(expr), evlis(cdr(expr), env), env);
+    break;
+  case TPROC:
+    return expr;
+    break;
+  }
+  return nil;
 }
 
 void print_obj(obj_t* obj)

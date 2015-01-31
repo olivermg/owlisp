@@ -48,8 +48,13 @@ obj_t* global_env;
 
 obj_t* new_obj(type_t type, unsigned long numargs, ...);
 void print_obj(obj_t* obj);
-//obj_t* intern(char* name);
-//obj_t* eval(obj_t* expr, obj_t* env);
-//obj_t* readobj(FILE* stream);
+obj_t* multiple_extend(obj_t* env, obj_t* syms, obj_t* vals);
+obj_t* find_symbol(char* name);
+obj_t* intern(char* name);
+obj_t* assoc(obj_t* key, obj_t* alist);
+obj_t* progn(obj_t* exprs, obj_t* env);
+obj_t* apply(obj_t* proc, obj_t* vals, obj_t* env);
+obj_t* evlis(obj_t* exprs, obj_t* env);
+obj_t* eval(obj_t* expr, obj_t* env);
 
 #endif
