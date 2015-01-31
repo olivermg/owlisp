@@ -4,7 +4,7 @@
 
 #define YYSTYPE obj_t*
 
-#define mksym(x) new_obj(TSYM, 1, (x))
+#define mksym(x) new_obj(TSYM, 1, strdup(x))
 #define symname(x) (null(x) ? "nil" : (char*)((x)->objs[0]))
 
 #define mkint(x) new_obj(TINT, 1, (x)) // TODO: don't put value in ptr memory location

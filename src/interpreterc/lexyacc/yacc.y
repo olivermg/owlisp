@@ -13,6 +13,8 @@ int yyerror();
 
 %}
 
+%parse-param {obj_t* env}
+
 /*
 %union {
     obj_t* obj;
@@ -20,6 +22,7 @@ int yyerror();
 }
 */
 
+%token                  NIL
 %token                  CAR
 %token                  CDR
 %token                  CONS
@@ -28,24 +31,27 @@ int yyerror();
 %token                  QUOTE
 %token                  FUNCALL
 %token			INT
+%token                  SYMBOL
 %token			OPENPAR
 			CLOSEPAR
 
 %%
 
 exprs:
-	|	exprs expr { $$ = $2; }
+	|	exprs expr { printf("env: %p\n", env); $$ = $2; }
 		;
 
 expr:		atom
 	|	cons
 		;
 
-atom:		INT
-	;
+atom: 		NIL
+	|	INT
+	|	SYMBOL
+		;
 
 cons:		OPENPAR primopexpr CLOSEPAR { $$ = $2; }
-	;
+		;
 
 primopexpr: 	carexpr
 	|	cdrexpr
@@ -54,28 +60,35 @@ primopexpr: 	carexpr
 	|	lambdaexpr
 	|	quoteexpr
 	|	funcallexpr
-	;
+		;
 
 carexpr:	CAR expr { $$ = car($2); }
-	;
+		;
 
 cdrexpr: 	CDR expr { $$ = cdr($2); }
-	;
+		;
 
 consexpr:	CONS expr expr { $$ = cons($2, $3); }
-	;
+		;
 
 ifexpr:		IF expr expr expr
-	;
+		;
 
-lambdaexpr:	LAMBDA cons exprs
-	;
+lambdaexpr:	LAMBDA lambdalist exprs { $$ = mkproc($2, $3, env); }
+		;
 
 quoteexpr:	QUOTE expr
-	;
+		;
 
-funcallexpr:	FUNCALL expr exprs
-	;
+funcallexpr:	FUNCALL expr exprs { env = procenv($2); }
+		;
+
+lambdalist:	OPENPAR symbolseq CLOSEPAR { $$ = $2; }
+		;
+
+symbolseq:      { $$ = nil; }
+	|	SYMBOL symbolseq { $$ = cons($1, $2); } // TODO: right-associative parsing may exhaust the parser stack
+		;
 
 %%
 
@@ -150,6 +163,13 @@ int main()
 {
     init();
 
-    yyparse();
+    /*
+    obj_t* o = cons(mksym("a"), cons(mksym("b"), nil));
+    print_obj(o);
+    */
+
+    yyparse(global_env);
+    //print_obj(yylval);
+
     return 0;
 }

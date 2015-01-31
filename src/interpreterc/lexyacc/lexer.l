@@ -18,6 +18,7 @@ void yyerror(char*);
 
 %%
 
+nil                                  { yylval = nil; return(NIL); }
 car                                  { return(CAR); }
 cdr                                  { return(CDR); }
 cons                                 { return(CONS); }
@@ -26,6 +27,7 @@ lambda                               { return(LAMBDA); }
 quote                                { return(QUOTE); }
 funcall                              { return(FUNCALL); }
 {digits}+                            { yylval = mkint(atoi(yytext)); return(INT); }
+({letters}|{digits})+                { yylval = mksym(yytext); return(SYMBOL); }
 {openpar}                            { return(OPENPAR); }
 {closepar}                           { return(CLOSEPAR); }
 {spaces}                             ;
