@@ -10,10 +10,20 @@
 #define mkint(x) new_obj(TINT, 1, (x)) // TODO: don't put value in ptr memory location
 #define intvalue(x) (int)((x)->objs[0])
 
-#define mkproc(args,code,env) new_obj(TPROC, 3, (args), (code), (env))
-#define procargs(p) ((p)->objs[0])
+#define mkproc(params,code,lenv) new_obj(TPROC, 3, (params), (code), (lenv))
+#define procparams(p) ((p)->objs[0])
 #define proccode(p) ((p)->objs[1])
-#define procenv(p) ((p)->objs[2])
+#define proclenv(p) ((p)->objs[2])
+
+#define mkapply(proc,args,denv) new_obj(TAPPLY, 3, (proc), (args), (denv))
+#define applyproc(a) ((a)->objs[0])
+#define applyargs(a) ((a)->objs[1])
+#define applydenv(a) ((a)->objs[2])
+
+#define mkif(pred,then,else) new_obj(TIF, 3, (pred), (then), (else))
+#define ifpred(i) ((i)->objs[0])
+#define ifthen(i) ((i)->objs[1])
+#define ifelse(i) ((i)->objs[2])
 
 #define eq(x,y) ((x) == (y))
 #define null(x) eq(x, nil)
@@ -33,7 +43,9 @@ typedef enum _type_t {
     TSYM,
     TINT,
     TCONS,
-    TPROC
+    TPROC,
+    TAPPLY,
+    TIF
 } type_t;
 
 typedef struct _obj_t {
@@ -43,6 +55,8 @@ typedef struct _obj_t {
 
 
 obj_t* nil;
+obj_t* quote;
+
 obj_t* interned_syms;
 obj_t* global_env;
 

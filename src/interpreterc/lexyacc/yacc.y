@@ -74,16 +74,16 @@ cdrexpr: 	CDR expr { $$ = cdr($2); }
 consexpr:	CONS expr expr { $$ = cons($2, $3); }
 		;
 
-ifexpr:		IF expr expr expr
+ifexpr:		IF expr expr expr { $$ = mkif($2, $3, $4); }
 		;
 
 lambdaexpr:	LAMBDA lambdalist exprseq { $$ = mkproc($2, $3, env); }
 		;
 
-quoteexpr:	QUOTE expr
+quoteexpr:	QUOTE expr { $$ = cons(quote, $2); }
 		;
 
-funcallexpr:	FUNCALL expr exprseq { $$ = apply($2, $3, env); }
+funcallexpr:	FUNCALL expr exprseq { $$ = mkapply($2, $3, env); }
 		;
 
 lambdalist:	'(' symbolseq ')' { $$ = $2; }
@@ -169,7 +169,7 @@ obj_t* apply(obj_t* proc, obj_t* vals, obj_t* env)
   case TSYM:
     break;
   case TPROC:
-    return progn(proccode(proc), multiple_extend(procenv(proc), procargs(proc), vals));
+    return progn(proccode(proc), multiple_extend(proclenv(proc), procparams(proc), vals));
     break;
   default:
     error("unknown type for apply");
@@ -203,6 +203,12 @@ obj_t* eval(obj_t* expr, obj_t* env)
   case TPROC:
     return expr;
     break;
+  case TAPPLY:
+    return expr;
+    break;
+  case TIF:
+    return expr;
+    break;
   }
   return nil;
 }
@@ -225,11 +231,11 @@ void print_obj(obj_t* obj)
     break;
   case TPROC:
     printf("PROC(");
-    print_obj(procargs(obj));
+    print_obj(procparams(obj));
     printf(", ");
     print_obj(proccode(obj));
     printf(", ");
-    print_obj(procenv(obj));
+    print_obj(proclenv(obj));
     printf(")");
     break;
   default:
@@ -242,6 +248,8 @@ void init()
 {
   nil = new_obj(TSYM, 1, 0);
   setcar(nil, nil);
+
+  quote = mksym("quote");
 
   interned_syms = cons(nil, nil);
   global_env = cons(cons(nil, nil), nil);
