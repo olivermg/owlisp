@@ -179,33 +179,33 @@ obj_t* apply(obj_t* proc, obj_t* vals, obj_t* env)
   return nil;
 }
 
-obj_t* evlis(obj_t* exprs, obj_t* env)
+obj_t* evlis(obj_t* exprs, obj_t* denv)
 {
   if (null(exprs))
     return nil;
-  return cons(eval(car(exprs), env),
-	      evlis(cdr(exprs), env));
+  return cons(eval(car(exprs), denv),
+	      evlis(cdr(exprs), denv));
 }
 
-obj_t* eval(obj_t* expr, obj_t* env)
+obj_t* eval(obj_t* expr, obj_t* denv)
 {
   obj_t* tmp;
   switch (expr->type) {
   case TSYM:
-    tmp = assoc(expr, env);
+    tmp = assoc(expr, denv);
     if (null(tmp))
       error("unbound symbol");
     return cdr(tmp);
   case TINT:
     return expr;
   case TCONS:
-    return apply(car(expr), evlis(cdr(expr), env), env);
+    return apply(car(expr), evlis(cdr(expr), denv), denv);
     break;
   case TPROC:
     return expr;
     break;
   case TAPPLY:
-    return expr;
+    return apply(car(expr), evlis(cdr(expr), denv), denv);
     break;
   case TIF:
     return expr;
@@ -280,6 +280,11 @@ int main()
     yyparse(global_env);
     printf("PROGRAM:");
     print_obj(program);
+    printf("\n");
+
+    obj_t* evald = eval(car(program), global_env);
+    printf("EVALD:");
+    print_obj(evald);
     printf("\n");
 
     return 0;
