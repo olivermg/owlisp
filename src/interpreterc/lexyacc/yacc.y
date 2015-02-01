@@ -33,8 +33,6 @@ int yyerror();
 %token                  FUNCALL
 %token			INT
 %token                  SYMBOL
-%token			OPENPAR
-			CLOSEPAR
 
 %%
 
@@ -51,7 +49,7 @@ atom: 		NIL
 	|	SYMBOL
 		;
 
-cons:		OPENPAR primopexpr CLOSEPAR { $$ = $2; }
+cons:		'(' primopexpr ')' { $$ = $2; }
 		;
 
 primopexpr: 	carexpr
@@ -84,7 +82,7 @@ quoteexpr:	QUOTE expr
 funcallexpr:	FUNCALL expr exprs { $$ = apply($2, $3, env); }
 		;
 
-lambdalist:	OPENPAR symbolseq CLOSEPAR { $$ = $2; }
+lambdalist:	'(' symbolseq ')' { $$ = $2; }
 		;
 
 symbolseq:      { $$ = nil; }
@@ -155,7 +153,9 @@ obj_t* assoc(obj_t* key, obj_t* alist)
 obj_t* progn(obj_t* exprs, obj_t* env)
 {
   obj_t* ret = nil;
+  //  printf("jjjjjjjjjjjjj\n");
   for (obj_t* restexprs = exprs; !null(restexprs); restexprs = cdr(restexprs)) {
+      //print_obj(restexprs); printf("\n");
     ret = eval(car(restexprs), env);
   }
   return ret;

@@ -3,8 +3,6 @@
 spaces                 [ \t\n]+
 digits                 [0-9]+
 letters                [a-zA-Z]+
-openpar                \(
-closepar               \)
 
 %{
 /* declarations */
@@ -28,10 +26,8 @@ quote                                { return(QUOTE); }
 funcall                              { return(FUNCALL); }
 {digits}+                            { yylval = mkint(atoi(yytext)); return(INT); }
 ({letters}|{digits})+                { yylval = mksym(yytext); return(SYMBOL); }
-{openpar}                            { return(OPENPAR); }
-{closepar}                           { return(CLOSEPAR); }
 {spaces}                             ;
-.                                    { char msg[100]; sprintf(msg, "misplaced token %s", yytext); yyerror(msg); }
+.                                    { return (int)yytext[0]; }
 
 %%
 
