@@ -34,14 +34,15 @@ int yyerror();
 %token			INT
 %token                  SYMBOL
 
+%start program
+
 %%
 
-exprs:          { $$ = nil; }
-	|	exprs expr { $$ = $2; printf("EXPRS:"); print_obj($$); printf("\n"); }
-		;
+program:	exprseq { program = $1; }
+	;
 
 exprseq:	{ $$ = nil; }
-	|	expr exprseq { $$ = cons($1, $2); printf("EXPRSEQ:"); print_obj($$); printf("\n"); }
+	|	expr exprseq { $$ = cons($1, $2); }
 		;
 
 expr:		atom
@@ -83,7 +84,7 @@ lambdaexpr:	LAMBDA lambdalist exprseq { $$ = mkproc($2, $3, env); }
 quoteexpr:	QUOTE expr { $$ = cons(quote, $2); }
 		;
 
-funcallexpr:	FUNCALL expr exprseq { $$ = mkapply($2, $3, env); }
+funcallexpr:	FUNCALL expr exprseq { $$ = mkapply($2, $3); }
 		;
 
 lambdalist:	'(' symbolseq ')' { $$ = $2; }
@@ -277,7 +278,9 @@ int main()
     */
 
     yyparse(global_env);
-    //print_obj(yylval);
+    printf("PROGRAM:");
+    print_obj(program);
+    printf("\n");
 
     return 0;
 }
