@@ -36,8 +36,12 @@ int yyerror();
 
 %%
 
-exprs:
-	|	exprs expr { printf("env: %p\n", env); $$ = $2; }
+exprs:          { $$ = nil; }
+	|	exprs expr { $$ = $2; printf("EXPRS:"); print_obj($$); printf("\n"); }
+		;
+
+exprseq:	{ $$ = nil; }
+	|	expr exprseq { $$ = cons($1, $2); printf("EXPRSEQ:"); print_obj($$); printf("\n"); }
 		;
 
 expr:		atom
@@ -73,13 +77,13 @@ consexpr:	CONS expr expr { $$ = cons($2, $3); }
 ifexpr:		IF expr expr expr
 		;
 
-lambdaexpr:	LAMBDA lambdalist exprs { $$ = mkproc($2, $3, env); }
+lambdaexpr:	LAMBDA lambdalist exprseq { $$ = mkproc($2, $3, env); }
 		;
 
 quoteexpr:	QUOTE expr
 		;
 
-funcallexpr:	FUNCALL expr exprs { $$ = apply($2, $3, env); }
+funcallexpr:	FUNCALL expr exprseq { $$ = apply($2, $3, env); }
 		;
 
 lambdalist:	'(' symbolseq ')' { $$ = $2; }
@@ -153,9 +157,7 @@ obj_t* assoc(obj_t* key, obj_t* alist)
 obj_t* progn(obj_t* exprs, obj_t* env)
 {
   obj_t* ret = nil;
-  //  printf("jjjjjjjjjjjjj\n");
   for (obj_t* restexprs = exprs; !null(restexprs); restexprs = cdr(restexprs)) {
-      //print_obj(restexprs); printf("\n");
     ret = eval(car(restexprs), env);
   }
   return ret;
