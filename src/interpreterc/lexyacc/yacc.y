@@ -199,13 +199,13 @@ obj_t* eval(obj_t* expr, obj_t* denv)
   case TINT:
     return expr;
   case TCONS:
-    return apply(car(expr), evlis(cdr(expr), denv), denv);
+    return apply(eval(car(expr), denv), evlis(cdr(expr), denv), denv);
     break;
   case TPROC:
     return expr;
     break;
   case TAPPLY:
-    return apply(car(expr), evlis(cdr(expr), denv), denv);
+    return apply(eval(car(expr), denv), evlis(cdr(expr), denv), denv);
     break;
   case TIF:
     tmp = eval(ifpred(expr), denv);
