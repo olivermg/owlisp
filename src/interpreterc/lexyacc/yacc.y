@@ -121,7 +121,7 @@ obj_t* multiple_extend(obj_t* env, obj_t* syms, obj_t* vals)
 
 obj_t* find_symbol(char* name)
 {
-  if (strcmp(name, "nil"))
+  if (!strcmp(name, "nil"))
     return nil;
   obj_t* symlist;
   for (symlist = interned_syms; !null(symlist); symlist = cdr(symlist)) {
@@ -237,6 +237,22 @@ void print_obj(obj_t* obj)
     print_obj(proccode(obj));
     printf(", ");
     print_obj(proclenv(obj));
+    printf(")");
+    break;
+  case TAPPLY:
+    printf("APPLY(");
+    print_obj(applyproc(obj));
+    printf(", ");
+    print_obj(applyargs(obj));
+    printf(")");
+    break;
+  case TIF:
+    printf("IF(");
+    print_obj(ifpred(obj));
+    printf(", ");
+    print_obj(ifthen(obj));
+    printf(", ");
+    print_obj(ifelse(obj));
     printf(")");
     break;
   default:

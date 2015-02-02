@@ -25,7 +25,7 @@ lambda                               { return(LAMBDA); }
 quote                                { return(QUOTE); }
 funcall                              { return(FUNCALL); }
 {digits}+                            { yylval = mkint(atoi(yytext)); return(INT); }
-({letters}|{digits})+                { yylval = mksym(yytext); return(SYMBOL); }
+({letters}|{digits})+                { yylval = intern(yytext); return(SYMBOL); }
 {spaces}                             ;
 .                                    { return (int)yytext[0]; }
 
