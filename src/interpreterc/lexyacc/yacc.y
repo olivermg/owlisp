@@ -208,7 +208,11 @@ obj_t* eval(obj_t* expr, obj_t* denv)
     return apply(car(expr), evlis(cdr(expr), denv), denv);
     break;
   case TIF:
-    return expr;
+    tmp = eval(ifpred(expr), denv);
+    if (!null(tmp))
+	return eval(ifthen(expr), denv);
+    else
+	return eval(ifelse(expr), denv);
     break;
   }
   return nil;
