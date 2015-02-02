@@ -51,7 +51,7 @@ expr:		atom
 
 atom: 		NIL
 	|	INT
-	|	SYMBOL
+	|	SYMBOL // TODO: convert symbol references to "memory address" during parsing. we can't implement closures as long as we want to separate parsing phase from interpretation phase
 		;
 
 cons:		'(' primopexpr ')' { $$ = $2; }
