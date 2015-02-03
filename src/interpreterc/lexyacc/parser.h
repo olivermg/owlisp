@@ -7,6 +7,10 @@
 #define mksym(x)                     new_obj(TSYM, 1, strdup(x))
 #define symname(x)                   (null(x) ? "nil" : (char*)((x)->objs[0]))
 
+#define mkref(f,v)                   new_obj(TREF, 2, (f), (v))
+#define refframe(r)                  (int)((r)->objs[0])
+#define refvar(r)                    (int)((r)->objs[1])
+
 #define mkint(x)                     new_obj(TINT, 1, (x)) // TODO: don't put value in ptr memory location
 #define intvalue(x)                  (int)((x)->objs[0])
 
@@ -40,6 +44,7 @@
 
 typedef enum _type_t {
     TSYM,
+    TREF,
     TINT,
     TCONS,
     TPROC,
@@ -56,6 +61,8 @@ typedef struct _obj_t {
 obj_t* nil;
 obj_t* quote;
 
+obj_t* orgframes;
+
 obj_t* program;
 
 obj_t* interned_syms;
@@ -64,6 +71,8 @@ obj_t* global_env;
 obj_t* new_obj(type_t type, unsigned long numargs, ...);
 void print_obj(obj_t* obj);
 obj_t* multiple_extend(obj_t* env, obj_t* syms, obj_t* vals);
+obj_t* register_frame(obj_t* frame, obj_t* syms);
+obj_t* find_symbol_address(obj_t* frame, obj_t* sym, int frameidx);
 obj_t* find_symbol(char* name);
 obj_t* intern(char* name);
 obj_t* assoc(obj_t* key, obj_t* alist);

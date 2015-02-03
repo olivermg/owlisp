@@ -14,7 +14,7 @@ int yyerror();
 
 %}
 
-%parse-param {obj_t* env}
+%parse-param {obj_t* frames}
 
 /*
 %union {
@@ -51,7 +51,7 @@ expr:		atom
 
 atom: 		NIL
 	|	INT
-	|	SYMBOL // TODO: convert symbol references to "memory address" during parsing. we can't implement closures as long as we want to separate parsing phase from interpretation phase
+	|	symbol
 		;
 
 cons:		'(' primopexpr ')' { $$ = $2; }
@@ -78,7 +78,7 @@ consexpr:	CONS expr expr { $$ = cons($2, $3); }
 ifexpr:		IF expr expr expr { $$ = mkif($2, $3, $4); }
 		;
 
-lambdaexpr:	LAMBDA lambdalist exprseq { $$ = mkproc($2, $3, env); }
+lambdaexpr:	LAMBDA lambdalist { orgframes = frames; frames = register_frame(frames, $2); } exprseq { $$ = mkproc($2, $3, orgframes); }
 		;
 
 quoteexpr:	QUOTE expr { $$ = cons(quote, $2); }
@@ -92,6 +92,9 @@ lambdalist:	'(' symbolseq ')' { $$ = $2; }
 
 symbolseq:      { $$ = nil; }
 	|	SYMBOL symbolseq { $$ = cons($1, $2); } // TODO: right-associative parsing may exhaust the parser stack
+		;
+
+symbol:		SYMBOL { $$ = find_symbol_address(frames, $1, 0); }
 		;
 
 %%
@@ -117,6 +120,26 @@ obj_t* multiple_extend(obj_t* env, obj_t* syms, obj_t* vals)
     ? env
     : multiple_extend(extend(env, car(syms), car(vals)),
 		      cdr(syms), cdr(vals));
+}
+
+obj_t* register_frame(obj_t* frame, obj_t* syms)
+{
+  return cons(syms, frame);
+}
+
+obj_t* find_symbol_address(obj_t* frame, obj_t* sym, int frameidx)
+{
+  if (null(frame))
+    error("unbound symbol!");
+  if (null(sym))
+    return nil;
+  int varidx;
+  obj_t* cursym;
+  for (varidx = 0, cursym = car(frame); !null(cursym); varidx += 1, cursym = cdr(cursym)) {
+    if (eq(car(cursym), sym))
+      return mkref(frameidx, varidx);
+  }
+  return find_symbol_address(cdr(frame), sym, frameidx+1);
 }
 
 obj_t* find_symbol(char* name)
@@ -166,10 +189,12 @@ obj_t* progn(obj_t* exprs, obj_t* env)
 
 obj_t* apply(obj_t* proc, obj_t* vals, obj_t* env)
 {
+    printf("applying on "); print_obj(proc); printf("\n");
   switch (proc->type) {
   case TSYM:
     break;
   case TPROC:
+      printf("proclenv: "); print_obj(proclenv(proc)); printf("\n");
     return progn(proccode(proc), multiple_extend(proclenv(proc), procparams(proc), vals));
     break;
   default:
@@ -196,6 +221,8 @@ obj_t* eval(obj_t* expr, obj_t* denv)
     if (null(tmp))
       error("unbound symbol");
     return cdr(tmp);
+  case TREF:
+    return expr;
   case TINT:
     return expr;
   case TCONS:
@@ -223,6 +250,9 @@ void print_obj(obj_t* obj)
   switch (obj->type) {
   case TSYM:
     printf("SYM(%s)", symname(obj));
+    break;
+  case TREF:
+    printf("REF(%d,%d)", refframe(obj), refvar(obj));
     break;
   case TINT:
     printf("INT(%d)", intvalue(obj));
@@ -297,7 +327,14 @@ int main()
     print_obj(o);
     */
 
-    yyparse(global_env);
+    obj_t* frame1 = cons(intern("a"), cons(intern("b"), nil));
+    obj_t* frame2 = cons(intern("c"), cons(intern("d"), cons(intern("e"), nil)));
+    obj_t* frames = cons(frame1, cons(frame2, nil));
+    obj_t* addr = find_symbol_address(frames, intern("d"), 0);
+    printf("found address: "); print_obj(addr); printf("\n");
+
+    obj_t* parse_frames = nil;
+    yyparse(parse_frames);
     printf("PROGRAM:");
     print_obj(program);
     printf("\n");
