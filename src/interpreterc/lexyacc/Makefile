@@ -3,7 +3,7 @@ YACC=yacc
 CC=clang
 
 parser: y.tab.c lex.yy.c
-	$(CC) -Wall -o $@ $^
+	$(CC) -Wall -g -o $@ $^
 
 lex.yy.c: lexer.l y.tab.h
 	$(LEX) $^

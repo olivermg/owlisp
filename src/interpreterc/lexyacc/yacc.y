@@ -14,6 +14,7 @@ int yyerror();
 
 %}
 
+/* %define api.pure full */
 %parse-param {obj_t* frames}
 
 /*
@@ -51,7 +52,7 @@ expr:		atom
 
 atom: 		NIL
 	|	INT
-	|	symbol
+	|	symbolref
 		;
 
 cons:		'(' primopexpr ')' { $$ = $2; }
@@ -78,7 +79,8 @@ consexpr:	CONS expr expr { $$ = cons($2, $3); }
 ifexpr:		IF expr expr expr { $$ = mkif($2, $3, $4); }
 		;
 
-lambdaexpr:	LAMBDA lambdalist { orgframes = frames; frames = register_frame(frames, $2); } exprseq { $$ = mkproc($2, $3, orgframes); }
+lambdaexpr:	LAMBDA lambdalist { frames = register_frame(frames, $2); }
+		    exprseq { $$ = mklambda($4); frames = drop_frame(frames); }
 		;
 
 quoteexpr:	QUOTE expr { $$ = cons(quote, $2); }
@@ -94,7 +96,7 @@ symbolseq:      { $$ = nil; }
 	|	SYMBOL symbolseq { $$ = cons($1, $2); } // TODO: right-associative parsing may exhaust the parser stack
 		;
 
-symbol:		SYMBOL { $$ = find_symbol_address(frames, $1, 0); }
+symbolref:	SYMBOL { $$ = find_symbol_address(frames, $1, 0); }
 		;
 
 %%
@@ -114,17 +116,28 @@ obj_t* new_obj(type_t type, unsigned long numargs, ...)
     return newobj;
 }
 
-obj_t* multiple_extend(obj_t* env, obj_t* syms, obj_t* vals)
+obj_t* multiple_extend(obj_t* env, obj_t* vals)
 {
-  return null(syms)
+    obj_t* newenv = nil;
+    for (obj_t* val = vals; !null(val); val = cdr(val)) {
+	newenv = cons(car(val), newenv);
+    }
+    return cons(newenv, env);
+    /*
+  return null(vals)
     ? env
-    : multiple_extend(extend(env, car(syms), car(vals)),
-		      cdr(syms), cdr(vals));
+    : multiple_extend(extend(env, car(vals)), cdr(vals));
+    */
 }
 
 obj_t* register_frame(obj_t* frame, obj_t* syms)
 {
   return cons(syms, frame);
+}
+
+obj_t* drop_frame(obj_t* frame)
+{
+  return cdr(frame);
 }
 
 obj_t* find_symbol_address(obj_t* frame, obj_t* sym, int frameidx)
@@ -189,13 +202,13 @@ obj_t* progn(obj_t* exprs, obj_t* env)
 
 obj_t* apply(obj_t* proc, obj_t* vals, obj_t* env)
 {
-    printf("applying on "); print_obj(proc); printf("\n");
+    printf("applying on "); print_obj(proc, 0); printf("\n");
   switch (proc->type) {
   case TSYM:
     break;
   case TPROC:
-      printf("proclenv: "); print_obj(proclenv(proc)); printf("\n");
-    return progn(proccode(proc), multiple_extend(proclenv(proc), procparams(proc), vals));
+      printf("proclenv: "); print_obj(proclenv(proc), 0); printf("\n");
+    return progn(proccode(proc), multiple_extend(proclenv(proc), vals));
     break;
   default:
     error("unknown type for apply");
@@ -228,6 +241,9 @@ obj_t* eval(obj_t* expr, obj_t* denv)
   case TCONS:
     return apply(eval(car(expr), denv), evlis(cdr(expr), denv), denv);
     break;
+  case TLAMBDA:
+    return mkproc(lambdacode(expr), denv);
+    break;
   case TPROC:
     return expr;
     break;
@@ -245,49 +261,69 @@ obj_t* eval(obj_t* expr, obj_t* denv)
   return nil;
 }
 
-void print_obj(obj_t* obj)
+void indent(int indentation)
+{
+    for (int i = 0; i < indentation; i++) {
+	printf(" ");
+    }
+}
+
+void print_cons(obj_t* obj, int indentation)
+{
+    indent(indentation); printf("(");
+    char* separator = "";
+    for (obj_t* cur = obj; !null(cur); cur = cdr(cur)) {
+	printf("%s", separator);
+	separator = " ";
+	print_obj(car(cur), 0);
+    }
+    printf(")");
+}
+
+void print_obj(obj_t* obj, int indentation)
 {
   switch (obj->type) {
   case TSYM:
-    printf("SYM(%s)", symname(obj));
+    indent(indentation); printf("SYM[%s]", symname(obj));
     break;
   case TREF:
-    printf("REF(%d,%d)", refframe(obj), refvar(obj));
+    indent(indentation); printf("REF[%d,%d]", refframe(obj), refvar(obj));
     break;
   case TINT:
-    printf("INT(%d)", intvalue(obj));
+    indent(indentation); printf("INT[%d]", intvalue(obj));
     break;
   case TCONS:
-    printf("CONS(");
-    print_obj(car(obj));
-    printf(", ");
-    print_obj(cdr(obj));
-    printf(")");
+    print_cons(obj, indentation);
+    break;
+  case TLAMBDA:
+    indent(indentation); printf("LAMBDA[");
+    print_obj(lambdacode(obj), indentation);
+    printf("]");
     break;
   case TPROC:
-    printf("PROC(");
-    print_obj(procparams(obj));
-    printf(", ");
-    print_obj(proccode(obj));
-    printf(", ");
-    print_obj(proclenv(obj));
-    printf(")");
+    indent(indentation); printf("PROC[c:");
+    //    print_obj(procparams(obj), indentation);
+    //    printf(",\n"); indent(indentation); printf("     c:");
+    print_obj(proccode(obj), indentation);
+    printf(",\n"); indent(indentation); printf("     e:");
+    print_obj(proclenv(obj), indentation);
+    printf("]");
     break;
   case TAPPLY:
-    printf("APPLY(");
-    print_obj(applyproc(obj));
+    indent(indentation); printf("APPLY[");
+    print_obj(applyproc(obj), indentation);
     printf(", ");
-    print_obj(applyargs(obj));
-    printf(")");
+    print_obj(applyargs(obj), indentation);
+    printf("]");
     break;
   case TIF:
-    printf("IF(");
-    print_obj(ifpred(obj));
+    indent(indentation); printf("IF[");
+    print_obj(ifpred(obj), indentation);
     printf(", ");
-    print_obj(ifthen(obj));
+    print_obj(ifthen(obj), indentation);
     printf(", ");
-    print_obj(ifelse(obj));
-    printf(")");
+    print_obj(ifelse(obj), indentation);
+    printf("]");
     break;
   default:
     printf("unknown object of type %d!\n", obj->type);
@@ -331,17 +367,31 @@ int main()
     obj_t* frame2 = cons(intern("c"), cons(intern("d"), cons(intern("e"), nil)));
     obj_t* frames = cons(frame1, cons(frame2, nil));
     obj_t* addr = find_symbol_address(frames, intern("d"), 0);
-    printf("found address: "); print_obj(addr); printf("\n");
+    printf("found address: "); print_obj(addr, 0); printf("\n");
+
+    obj_t* e = cons(nil, nil);
+    print_obj(e, 0); printf("\n");
+    obj_t* e1 = extend(e, mkint(11));
+    print_obj(e1, 0); printf("\n");
+    obj_t* e2 = extend(e1, mkint(22));
+    print_obj(e2, 0); printf("\n\n");
+
+    obj_t* env = nil;
+    obj_t* vals1 = cons(mkint(11), cons(mkint(22), nil));
+    obj_t* vals2 = cons(mkint(33), cons(mkint(44), nil));
+    obj_t* env1 = multiple_extend(env, vals1);
+    obj_t* env2 = multiple_extend(env1, vals2);
+    printf("env: "); print_obj(env2, 0); printf("\n");
 
     obj_t* parse_frames = nil;
     yyparse(parse_frames);
     printf("PROGRAM:");
-    print_obj(program);
+    print_obj(program, 0);
     printf("\n");
 
     obj_t* evald = eval(car(program), global_env);
     printf("EVALD:");
-    print_obj(evald);
+    print_obj(evald, 0);
     printf("\n");
 
     return 0;
