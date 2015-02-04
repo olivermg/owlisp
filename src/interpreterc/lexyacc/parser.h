@@ -50,8 +50,8 @@ typedef enum _type_t {
     TREF,
     TINT,
     TCONS,
-    TLAMBDA,
-    TPROC,
+    TLAMBDA, // used during parse time to represent lambda operator
+    TPROC,   // used during evaluation time to represent closure
     TAPPLY,
     TIF
 } type_t;
