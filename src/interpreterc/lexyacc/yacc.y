@@ -172,6 +172,21 @@ obj_t* find_symbol(char* name)
   }
 }
 
+obj_t* nth(obj_t* list, int idx)
+{
+    return (0 == idx) ? car(list) : nth(cdr(list), idx-1);
+}
+
+obj_t* deref_i(obj_t* frames, int frameidx, int varidx)
+{
+    return (0 == frameidx) ? nth(car(frames), varidx) : deref_i(cdr(frames), frameidx-1, varidx);
+}
+
+obj_t* deref(obj_t* frames, obj_t* ref)
+{
+    return deref_i(frames, refframe(ref), refvar(ref));
+}
+
 obj_t* intern(char* name)
 {
   obj_t* sym = find_symbol(name);
@@ -235,7 +250,7 @@ obj_t* eval(obj_t* expr, obj_t* denv)
       error("unbound symbol");
     return cdr(tmp);
   case TREF:
-    return expr;
+    return deref(denv, expr);
   case TINT:
     return expr;
   case TCONS:
@@ -339,7 +354,8 @@ void init()
   quote = mksym("quote");
 
   interned_syms = cons(nil, nil);
-  global_env = cons(cons(nil, nil), nil);
+  //  global_env = cons(cons(nil, nil), nil);
+  global_env = nil;
 }
 
 
