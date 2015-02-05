@@ -118,11 +118,14 @@ obj_t* new_obj(type_t type, unsigned long numargs, ...)
 
 obj_t* multiple_extend(obj_t* env, obj_t* vals)
 {
+    return cons(vals, env);
+    /*
     obj_t* newenv = nil;
     for (obj_t* val = vals; !null(val); val = cdr(val)) {
 	newenv = cons(car(val), newenv);
     }
     return cons(newenv, env);
+    */
     /*
   return null(vals)
     ? env
