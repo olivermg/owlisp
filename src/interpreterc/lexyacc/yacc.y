@@ -357,8 +357,7 @@ void init()
   quote = mksym("quote");
 
   interned_syms = cons(nil, nil);
-  //  global_env = cons(cons(nil, nil), nil);
-  global_env = nil;
+  global_env = cons(cons(nil, nil), nil);
 }
 
 
