@@ -1,5 +1,6 @@
 *~
 *.swp
+*.dSYM
 
 *.fasl
 
@@ -15,6 +16,11 @@ src/crt/*.bc
 src/crt/*.o
 src/crt/test
 src/crt/libowlisp-rt.so*
+
+src/interpreterc/main
+src/interpreterc/lexyacc/*.c
+src/interpreterc/lexyacc/y.tab.h
+src/interpreterc/lexyacc/parser
 
 tests/*.bc
 tests/*.s

@@ -24,6 +24,11 @@
     result))
 |#
 
+;; TODO: implement recursive walking (e.g. for macroexpansion)
+;; TODO: implement matching objects & their slots
+;; TODO: implement processing several expressions (=sequences)?
+;; TODO: implement aliases of rules (is specifying several predicates enough?)
+
 (defmacro make-walker (&body body)
 
   (with-gensyms (rules-var)
@@ -31,21 +36,21 @@
     `(let ((,rules-var '()))
 
        (macrolet ((defrule (testfn pattern &body transformation)
-		    (with-gensyms (form-arg userdata-arg)
+		    (with-gensyms (form-arg)
 		      `(setf ,',rules-var
 			     (append ,',rules-var
 				     (list (cons ,testfn
-						 #'(lambda (,form-arg ,userdata-arg)
+						 #'(lambda (,form-arg)
 						     (destructuring-bind
-							   ,pattern
-							 (list ,form-arg ,userdata-arg)
+							   (,pattern)
+							 (list ,form-arg)
 						       ,@transformation)))))))))
 
-	 (labels ((walk (expr &optional (userdata '()))
+	 (labels ((walk (expr &optional)
 		    (loop
 		       for (testfn . transformfn) in ,rules-var
 		       do (if (funcall testfn expr)
-			      (return (funcall transformfn expr userdata)))))
+			      (return (funcall transformfn expr)))))
 
 		  (walk-sequence (expr-list)
 		    (mapcar #'(lambda (expr)
@@ -59,6 +64,13 @@
 			    expr-list)))
 
 	   ,@body
+
+	   (defrule
+	       #'(lambda (expr)
+		   (declare (ignore expr))
+		   t)
+	       expr
+	     expr)
 
 	   #'(lambda (expr)
 	       (walk expr)))))))

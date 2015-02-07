@@ -29,7 +29,8 @@
 
 	  make-function-reference*
 	  function-reference*-p
-	  function-reference*-name
+	  function-reference*-frameindex
+	  function-reference*-varindex
 
 ;	  make-free-reference*
 ;	  free-reference*-p
@@ -61,7 +62,24 @@
 	  make-application*
 	  application*-p
 	  application*-fn
-	  application*-args))
+	  application*-args
+
+	  make-set*
+	  set*-p
+	  set*-variable
+	  set*-value
+
+	  make-setf*
+	  setf*-p
+	  setf*-location
+	  setf*-value
+
+#|
+	  make-symbol-function*
+	  symbol-function*-p
+	  symbol-function*-symbol
+|#
+	  ))
 
 
 (defstruct null*)
@@ -70,13 +88,16 @@
 (defstruct symbol* name)
 (defstruct if* cond then else)
 (defstruct reference* frameindex varindex)
-(defstruct function-reference* name)
+(defstruct function-reference* frameindex varindex)
 ;(defstruct free-reference* symbol)
 ;(defstruct bound-reference* symbol)
 (defstruct abstraction* name args body)
 (defstruct bindings* bindings body) ; TODO: include type of binding (e.g. function, var)?
 ;(defstruct closure* args body env) ; TODO: make passed closure a separate field instead of assuming it's the first arg
 (defstruct application* fn args)
+(defstruct set* variable value)
+(defstruct setf* location value)
+;(defstruct symbol-function* symbol)
 ;(defstruct environment* parent symbols)
 
 

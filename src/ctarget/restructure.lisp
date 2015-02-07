@@ -30,32 +30,32 @@
 
       (defrule
 	  #'null*-p
-	  (obj nil)
+	  obj
 	(declare (ignore obj))
 	(make-assignment/c :lvalue (next-varname)
 			   :value (make-null/c)))
 
       (defrule
 	  #'constant-int*-p
-	  (obj nil)
+	  obj
 	(make-assignment/c :lvalue (next-varname)
 			   :value (make-constant-int/c :value (constant-int*-value obj))))
 
       (defrule
 	  #'constant-string*-p
-	  (obj nil)
+	  obj
 	(make-assignment/c :lvalue (next-varname)
 			   :value (make-constant-string/c :value (constant-string*-value obj))))
 
       (defrule
 	  #'symbol*-p
-	  (obj nil)
+	  obj
 	(declare (ignore obj))
 	(error "not yet implemented"))
 
       (defrule
 	  #'if*-p
-	  (obj nil)
+	  obj
 	(let ((walked-cond (walk (if*-cond obj)))
 	      (walked-then (walk (if*-then obj)))
 	      (walked-else (walk (if*-else obj))))
@@ -70,14 +70,14 @@
 
       (defrule
 	  #'reference*-p
-	  (obj nil)
+	  obj
 	(make-assignment/c :lvalue (next-varname)
 			   :value (make-reference/c :frameindex (reference*-frameindex obj)
 						    :varindex (reference*-varindex obj))))
 
       (defrule
 	  #'bindings*-p
-	  (obj nil)
+	  obj
 	(let ((set-bindings
 	       (loop
 		  for (symboladdress expr) in (bindings*-bindings obj)
@@ -97,14 +97,44 @@
 
       (defrule
 	  #'function-reference*-p
-	  (obj nil)
+	  obj
 	(make-assignment/c :lvalue (next-varname)
-			   :value (make-function-reference/c :name
-							     (function-reference*-name obj))))
+			   :value (make-function-reference/c
+				   :frameindex (function-reference*-frameindex obj)
+				   :varindex (function-reference*-varindex obj))))
+
+      (defrule
+	  #'set*-p
+	  obj
+	(let ((reference (if (symbol*-p (set*-variable obj))
+			     (make-refer (set*-variable obj))
+			     ()))
+	      (walked-value (walk (set*-value obj))))
+	  (make-sequence/c :sequence
+			   (cons
+			    walked-value
+			    (list (make-assignment/c :lvalue (next-varname)
+						     :value (make-set-binding/c :frameindex frameindex
+										:varindex varindex
+										:value (get-return-var walked-value))))))))
+
+      (defrule
+	  #'setf*-p
+	  obj
+	(let ((frameindex (function-reference*-frameindex (setf*-location obj))) ; TODO: check location type | combine function-reference & reference types to both work
+	      (varindex (function-reference*-varindex (setf*-location obj)))
+	      (walked-value (walk (setf*-value obj))))
+	  (make-sequence/c :sequence ; TODO: implement macro that simplifies syntax for creating sequences
+			   (cons
+			    walked-value
+			    (list (make-assignment/c :lvalue (next-varname)
+						     :value (make-set-binding/c :frameindex frameindex
+										:varindex varindex
+										:value (get-return-var walked-value))))))))
 
       (defrule
 	  #'abstraction*-p
-	  (obj nil)
+	  obj
 	(let* ((walked-body (walk-sequence (abstraction*-body obj)))
 	       (last-var (get-return-var walked-body))
 	       (body-with-return (append walked-body
@@ -121,7 +151,7 @@
 
       (defrule
 	  #'application*-p
-	  (obj nil)
+	  obj
 	(let* ((fn-assignment
 		(walk (application*-fn obj)))
 	       (args-assignments
@@ -140,7 +170,7 @@
 	  #'(lambda (obj)
 	      (declare (ignore obj))
 	      t)
-	  (obj nil)
+	  obj
 	(error "unknown object ~a" obj)))))
 
 

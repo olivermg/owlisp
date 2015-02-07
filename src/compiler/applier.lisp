@@ -4,8 +4,22 @@
 	  compile-stdin
 	  compile-stream
 	  compile-forms
+	  eval-form
 	  compile-form))
 
+
+(defparameter *eval-chain*
+  #'(lambda (expr)
+      (let* ((macroexpanded-expr (do-macroexpansion expr))
+	     (cps-converted-expr (do-cps-conversion macroexpanded-expr))
+	     (transformed-expr (do-transform cps-converted-expr)))
+	transformed-expr)))
+
+(defparameter *compile-chain*
+  #'(lambda (expr)
+      (let* ((restructured-expr (do-restructure expr))
+	     (dumped-expr (do-dump restructured-expr)))
+	dumped-expr)))
 
 (defparameter *transformation-chain*
   #'(lambda (expr)
@@ -40,6 +54,10 @@
 	  forms
 	  :initial-value ""))
 
-(defun compile-form (expr)
-  (funcall *transformation-chain*
+(defun eval-form (expr)
+  (funcall *eval-chain*
 	   expr))
+
+(defun compile-form (expr)
+  (funcall *compile-chain*
+	   (eval-form expr)))
